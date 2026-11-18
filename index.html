@@ -504,6 +504,35 @@ body.show-hands .backdrop{display:block}
   .bhead .hpat{font-size:12px}
   body.table-view.show-hands .side{display:block}
 }
+
+/* ================= The walls ================= */
+.wallring{flex:1;min-height:0;width:100%;max-width:680px;display:grid;gap:7px;
+  grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:". t ." "l c r" ". b ."}
+.wside{display:flex;gap:1.5px;min-width:0;min-height:0}
+.wside.t{grid-area:t;padding-bottom:3px}.wside.b{grid-area:b;padding-bottom:3px}
+.wside.l{grid-area:l;flex-direction:column;justify-content:center}.wside.r{grid-area:r;flex-direction:column;justify-content:center}
+.wside.t .st,.wside.b .st{flex:1 1 0;max-width:24px;aspect-ratio:3/4;min-width:0}
+.wside.l .st,.wside.r .st{flex:1 1 0;width:22px;max-height:17px;min-height:3px}
+.st{display:block;border-radius:3px;background:linear-gradient(180deg,var(--tile-back),var(--tile-back-2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.2),0 1.5px 0 var(--ivory-edge),0 2.5px 0 #b5a277,0 4px 0 var(--ivory-edge),0 5px 0 #a8956a,0 7px 6px rgba(0,0,0,.4)}
+.st.s1{transform:translateY(2.5px);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.2),0 1.5px 0 var(--ivory-edge),0 2.5px 0 #a8956a,0 5px 5px rgba(0,0,0,.35)}
+.st.s0{visibility:hidden}
+.st.next{box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 0 0 1.5px rgba(236,198,109,.9),0 0 10px rgba(236,198,109,.5),0 1.5px 0 var(--ivory-edge),0 4px 0 var(--ivory-edge),0 7px 6px rgba(0,0,0,.4)}
+.st.s1.next{box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 0 0 1.5px rgba(236,198,109,.9),0 0 10px rgba(236,198,109,.5),0 1.5px 0 var(--ivory-edge),0 5px 5px rgba(0,0,0,.35)}
+.wallring.build .st{animation:stackin .45s cubic-bezier(.2,1.2,.4,1) backwards;animation-delay:calc(var(--i)*9ms)}
+@keyframes stackin{from{opacity:0;transform:translateY(-10px) scale(.85)}}
+.wcenter{grid-area:c;min-height:0;min-width:0;display:flex;flex-direction:column;gap:6px}
+.wcenter .discards{flex:1;width:100%;max-width:none}
+.wallcount{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--felt-txt);font-variant-numeric:tabular-nums;opacity:.9}
+.wallcount b{color:var(--txt);font-size:13px}
+body.scroll-layout .wallring{flex:none}
+body.scroll-layout .wcenter .discards{min-height:110px}
+@media(max-width:900px){
+  .wallring{gap:4px}.wside{gap:1px}
+  .wside.t .st,.wside.b .st{max-width:15px}
+  .wside.l .st,.wside.r .st{width:14px;max-height:12px}
+  .wallcount{font-size:11px;gap:10px}
+}
 /* ================= Scroll layout (Settings > Screen layout > Scroll) ================= */
 body.scroll-layout{display:block;height:auto;min-height:100vh;overflow-x:hidden;overflow-y:auto}
 body.scroll-layout .topbar{position:sticky;top:0}
@@ -1173,6 +1202,7 @@ const botLevel=i=>{const v=settings.botDiff&&settings.botDiff[i];return v===0||v
 const isBlind=st=>!!(st&&st.blind&&!houseOn('noBlind'));
 let scores=[0,0,0,0];
 let dealer=-1,pendingStart=true;
+let wallBreak=0,wallBuild=false;   // the four walls: 76 stacks of 2; draws start at the break and go around the square
 let building=null;   // exposure you're placing yourself: {t, from, tiles, botMJ, botExp}   // pendingStart: the next new game seats you at your chosen starting wind
 if(!settings.save){try{localStorage.removeItem('amj_progress');localStorage.removeItem('amj_game')}catch(e){}}   // off: nothing carries over
 if(settings.save){try{const pr=JSON.parse(localStorage.getItem('amj_progress'));
@@ -1200,6 +1230,7 @@ function newGame(){
   gid++;closeModal();Sound.init();
   wall=buildWall();discards=[];logs=[];logVer++;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];
   if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false}else dealer=(dealer+1)%4;
+  wallBreak=Math.floor(Math.random()*76)*2;wallBuild=true;
   chNote='';jokerPlans.clear();dead=[false,false,false,false];building=null;turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
   log('Everyone pushes their tiles in. Washing the tiles…');
   render();Sound.wash();
@@ -1659,9 +1690,8 @@ function render(){
   const rnd=(a,b)=>Math.round(a+Math.random()*(b-a));
   const middle=phase==='shuffle'
     ?`<div class="wash">${Array.from({length:30},(_,x)=>`<i class="back" style="--x1:${rnd(-200,200)}px;--y1:${rnd(-55,55)}px;--r1:${rnd(-200,200)}deg;--x2:${rnd(-220,220)}px;--y2:${rnd(-55,55)}px;--r2:${rnd(-200,200)}deg;--d:${x*14}ms"></i>`).join('')}</div>`
-    :`<div class="discards">${discards.length?discards.map((t,i)=>`<span class="dw" style="rotate:${((t.id*37)%7-3)*.8}deg">${tileHTML(t,'sm'+(i===last?' last':''),true)}</span>`).join(''):'<div class="empty">Discards land here</div>'}</div>`;
-  $('#center').innerHTML=`<div class="banner${changed?' swap':''}">${dirHTML}<div class="status">${status}</div><div class="sub">${sub}</div></div>${middle}
-   <div class="wallmeter"><div class="wallstack" id="wallStack"><i class="back"></i><i class="back"></i><i class="back"></i></div><span>Wall <b>${wall.length}</b></span><div class="bar"><i style="width:${(wall.length/152*100).toFixed(1)}%"></i></div><span><b>${discards.length}</b> thrown</span></div>`;
+    :wallsHTML(`<div class="discards">${discards.length?discards.map((t,i)=>`<span class="dw" style="rotate:${((t.id*37)%7-3)*.6}deg">${tileHTML(t,'sm'+(i===last?' last':''),true)}</span>`).join(''):'<div class="empty">Discards land here</div>'}</div>`);
+  $('#center').innerHTML=`<div class="banner${changed?' swap':''}">${dirHTML}<div class="status">${status}</div><div class="sub">${sub}</div></div>${middle}`;
 
   const p=players[0];let acts='';
   if(phase==='idle')acts='<button class="btn btn-gold" id="bStart2">Deal me in</button>';
@@ -1742,6 +1772,21 @@ function moveJoker(cpi,gi){   // tap a faded tile: put a Joker there
 function freeJoker(cpi,gi){   // tap a purple tile: take its Joker off that group
   const cp=ALL[cpi];if(!cp)return;const plan=planFor(cp);const x=plan.picks.lastIndexOf(gi);if(x<0)return;
   plan.picks.splice(x,1);plan.held++;Sound.tap();render();
+}
+// The four walls, laid out like a real table: yours at the bottom, Queens on the right, Bronx across, Brooklyn on the left.
+// Stack k (0-75) holds draw positions 2k (top) and 2k+1 (bottom), counted from the break.
+function wallsHTML(center){
+  const drawn=152-wall.length;const nextStack=Math.floor(drawn/2);
+  const st=k=>{const order=((2*k-wallBreak)%152+152)%152;const left=Math.max(0,Math.min(2,order+2-drawn));
+    const isNext=wall.length>0&&order===nextStack*2;
+    return `<i class="st s${left}${isNext?' next':''}" ${isNext?'id="wallStack"':''} style="--i:${k}"></i>`};
+  const side=(a,rev)=>{let out=[];for(let k=a;k<a+19;k++)out.push(st(k));if(rev)out.reverse();return out.join('')};
+  const html=`<div class="wallring${wallBuild?' build':''}">
+    <div class="wside t">${side(38,true)}</div><div class="wside l">${side(57,false)}</div>
+    <div class="wcenter">${center}<div class="wallcount"><span><b>${wall.length}</b> tiles in the wall</span><span><b>${discards.length}</b> thrown</span></div></div>
+    <div class="wside r">${side(19,true)}</div><div class="wside b">${side(0,false)}</div></div>`;
+  if(wallBuild&&phase!=='shuffle')wallBuild=false;
+  return html;
 }
 function patternTilesHTML(cp,tiles,exps){
   const {info,expFor,j,held}=jokerLayout(cp,tiles,exps);const cpi=cpIndex(cp);
@@ -1834,7 +1879,7 @@ function saveProgress(){
     localStorage.setItem('amj_progress',JSON.stringify({scores,dealer}));
     if(phase==='over'){localStorage.removeItem('amj_game');return}
     const safe=phase==='charleston'||(phase==='play'&&turn===0&&step==='discard'&&!callState&&!building);
-    if(safe)localStorage.setItem('amj_game',JSON.stringify({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc,cardMode}));
+    if(safe)localStorage.setItem('amj_game',JSON.stringify({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc,wallBreak,cardMode}));
   }catch(e){}
 }
 function clearProgress(){try{localStorage.removeItem('amj_progress');localStorage.removeItem('amj_game')}catch(e){}}
@@ -1842,7 +1887,7 @@ function savedGame(){if(!settings.save)return null;try{const g=JSON.parse(localS
 function resumeGame(){
   const g=savedGame();if(!g){startFromSplash();return}
   gid++;Sound.init();
-  ({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc}=g);
+  ({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc}=g);wallBreak=g.wallBreak||0;
   pendingStart=false;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];logs=[];logVer++;
   log('Picked up where you left off.');$('#splash').classList.add('hide');render();
 }
