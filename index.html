@@ -210,7 +210,8 @@ h1{font-family:var(--display);font-weight:400;font-size:22px;letter-spacing:1.5p
 .hcat{font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tag{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;background:var(--gold);color:#2b1d02;padding:2px 7px;border-radius:999px;font-weight:800}
 .why{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.4}
-.hint .tiles{display:flex;flex-wrap:wrap;gap:2px;align-items:flex-end}
+.hint .tiles{display:flex;flex-wrap:wrap;gap:5px 7px;align-items:flex-end}
+.grp{display:flex;flex-wrap:nowrap;gap:2px}
 .hint .foot{font-size:11px;color:var(--muted);margin-top:7px}
 .gap{width:5px}
 .hintlist{position:relative;max-height:var(--three,560px);overflow-y:auto;overscroll-behavior:contain;margin:0 -6px;padding:0 6px;scrollbar-width:thin;scrollbar-color:rgba(236,198,109,.35) transparent;
@@ -271,6 +272,48 @@ code{background:#efe4c8;padding:1px 5px;border-radius:4px}
 .help h4{margin:16px 0 4px;font-size:14px;letter-spacing:.04em;color:#7d5e18;text-transform:uppercase}
 .help p{margin:0 0 8px;font-size:14px}
 
+/* ---------- building an exposure ---------- */
+.building{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:10px}
+.exp.pending{border:2px dashed var(--gold);background:rgba(236,198,109,.08);padding:5px;gap:3px;animation:rise .3s}
+.exp.pending .tile[data-id]{cursor:pointer}
+.exp.pending .tile.called{box-shadow:inset 0 0 0 calc(var(--w)*.045) #fff,0 0 0 2px var(--ember)}
+.exp.pending .slot{width:38px;height:53px;border-radius:6px;border:1.5px dashed rgba(236,198,109,.45)}
+.bmsg{font-size:13px;color:var(--muted);max-width:46ch;line-height:1.45}
+.bmsg.ok{color:var(--gold);font-weight:700}
+.bmsg .sub{font-weight:400}
+.rack .tile.can{box-shadow:inset 0 0 0 calc(var(--w)*.045) #fff,inset 0 0 0 calc(var(--w)*.075) #e2d5b5,0 0 0 2px rgba(236,198,109,.85),0 calc(var(--w)*.16) calc(var(--w)*.2) rgba(0,0,0,.45)}
+
+/* ---------- settings ---------- */
+.setrow.col{flex-direction:column;align-items:stretch;cursor:default;gap:10px}
+.slider{width:100%;max-width:420px}
+.slider input{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:8px;cursor:pointer;
+  background:linear-gradient(90deg,#c99a3b var(--fill,50%),#e3d6b3 var(--fill,50%));outline-offset:4px}
+.slider input::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #a87b22;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.slider input::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid #a87b22}
+.slider .ticks{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--paper-muted)}
+.slider .ticks span.on{color:var(--paper-ink);font-weight:800}
+.botname{display:inline-flex;align-items:center;gap:8px}
+.setnote{font-size:13px;color:var(--paper-muted);margin:0 0 4px}
+.set-sec{font-family:var(--display);color:#7d5e18;font-size:19px;margin:18px 0 2px;letter-spacing:.5px}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 2px;border-bottom:1px solid #e2d5b5;cursor:pointer}
+.setrow .st{display:flex;flex-direction:column;gap:3px;min-width:0}
+.setrow .st b{font-size:14.5px}
+.setrow .d{font-size:12.5px;color:var(--paper-muted);line-height:1.45;max-width:52ch}
+.modal .switch .track{background:#e3d6b3;border-color:#cdb67a}
+.modal .switch .knob{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.modal .switch input:checked+.track{background:#c99a3b;border-color:#a87b22}
+.modal .switch input:checked+.track .knob{background:#fff}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid #cdb67a;border-radius:10px;overflow:hidden;flex:none}
+.seg button{border:0;background:rgba(255,255,255,.5);padding:7px 11px;font:600 12.5px var(--body);color:#5a4a26;cursor:pointer}
+.seg button+button{border-left:1px solid #cdb67a}
+.seg button.on{background:var(--paper-ink);color:var(--gold)}
+.morebtn{display:inline-flex;align-items:center;gap:6px;margin-top:10px;border:1px solid #cdb67a;background:rgba(255,255,255,.45);color:#5a4a26;border-radius:9px;padding:7px 12px;font:700 13px var(--body);cursor:pointer}
+.morebtn .chev{transition:transform .2s}.morebtn.open .chev{transform:rotate(180deg)}
+.hrlist{margin-top:8px;padding:6px 12px;border-radius:12px;background:rgba(255,255,255,.4);border:1px solid #e2d5b5}
+.hrlist.off .setrow{opacity:.5}
+@media(max-width:560px){.setrow{flex-wrap:wrap}.seg{width:100%}.seg button{flex:1}}
+.splash-btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+
 /* ---------- splash ---------- */
 #splash{position:fixed;inset:0;z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));
   background:radial-gradient(900px 620px at 50% 38%,rgba(20,52,76,.96),rgba(4,9,14,.985));transition:opacity .6s,visibility .6s}
@@ -305,6 +348,7 @@ code{background:#efe4c8;padding:1px 5px;border-radius:4px}
     <div class="tools">
       <button class="btn btn-ghost" id="btnCard" title="See the card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span class="lbl">The Card</span></button>
       <button class="btn btn-ghost" id="btnHelp" title="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5V14"/><path d="M12 17.2h.01"/></svg><span class="lbl">How to play</span></button>
+      <button class="btn btn-ghost" id="btnSettings" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Settings</span></button>
       <button class="btn btn-ghost icon" id="btnSound"></button>
       <button class="btn btn-gold" id="btnNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></svg>New game</button>
     </div>
@@ -332,7 +376,7 @@ code{background:#efe4c8;padding:1px 5px;border-radius:4px}
   <div class="fan" id="fan"></div>
   <h2 class="splash-title">American Mah Jongg</h2>
   <div class="splash-tag">NEW YORK EDITION</div>
-  <button class="btn btn-gold" id="btnStart">Deal me in</button>
+  <div class="splash-btns"><button class="btn btn-gold" id="btnStart">Deal me in</button><button class="btn btn-ghost" id="btnResume" hidden>Resume game</button></div>
   <svg class="splash-skyline" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true">
     <path fill="#ecc66d" d="M0 46V30h30v-8h18v8h14V18h12v12h20V24h16v-6h10v6h12v22h10V12h8V4h4v8h8v34h18V26h22v-6h14v6h10v20h16V22h26v24h14V16h6V2h3v14h6v30h20V28h18v-8h22v26h14V20h10v-6h12v6h10v26h22V30h18v16h12V18h10V8h6v10h10v28h20V24h24v22h16V14h8V0h3v14h8v32h18V28h14v-8h20v26h22V22h16v24h14V30h24v16h16V20h10v-8h10v8h10v26h18V26h22v20h14V16h12v30h20V24h18v22h20V30h26v16h14V18h10V6h4v12h10v28h18V26h20v20h16V22h26v24h18V28h22v18h24V20h12v26h20V30h28v16h18V24h22v22z"/>
   </svg>
@@ -752,11 +796,24 @@ const WORD={3:'Pung',4:'Kong',5:'Quint',6:'Sextet'};
 const SPEED=760;
 let wall=[],players=[0,1,2,3].map(()=>({hand:[],exp:[]})),discards=[],phase='idle',turn=0,step='discard',passIdx=0;
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
-let scores=[0,0,0,0];            // scoreboard lives only for this visit
-let dealer=-1;
+// Settings are always saved on this device. Progress (scores, East rotation, an unfinished game) only when "Save progress" is on.
+const SET_DEFAULT={dblDiscard:false,startWind:0,save:false,expMode:'quick',diff:1,botDiff:{},house:false,
+  hr:{threeExp:true,wallPoints:false,deadNoPay:false,noBlind:false,noCourtesy:false,alwaysSecond:false}};
+let settings=JSON.parse(JSON.stringify(SET_DEFAULT));
+try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={...settings,...sv,hr:{...SET_DEFAULT.hr,...(sv.hr||{})}}}}catch(e){}
+function saveSettings(){try{localStorage.setItem('amj_settings',JSON.stringify(settings))}catch(e){}}
+const houseOn=k=>settings.house&&!!settings.hr[k];
+const LEVELS=['Easy','Default','Hard'];
+const botLevel=i=>{const v=settings.botDiff&&settings.botDiff[i];return v===0||v===1||v===2?v:settings.diff};
+const isBlind=st=>!!(st&&st.blind&&!houseOn('noBlind'));
+let scores=[0,0,0,0];
+let dealer=-1,pendingStart=true;
+let building=null;   // exposure you're placing yourself: {t, from, tiles, botMJ, botExp}   // pendingStart: the next new game seats you at your chosen starting wind
+if(settings.save){try{const pr=JSON.parse(localStorage.getItem('amj_progress'));
+  if(pr&&Array.isArray(pr.scores)&&pr.scores.length===4){scores=pr.scores;if(pr.dealer>=0){dealer=pr.dealer;pendingStart=false}}}catch(e){}}
 let dead=[false,false,false,false];   // declared-dead hands (Part 12)
 let turnSrc=null;                   // seat whose discard the current player claimed this turn, or null if drawn                    // first game: you are East; each new game East moves to the right
-const windOf=i=>WIND[(i-(dealer<0?0:dealer)+4)%4];
+const windOf=i=>WIND[(i-(dealer<0?(4-settings.startWind)%4:dealer)+4)%4];
 let stars=[];try{stars=JSON.parse(localStorage.getItem('amj_stars'))||[]}catch(e){}
 const hkey=h=>h.cat+'|'+h.pat;
 const isStar=h=>stars.includes(hkey(h));
@@ -776,7 +833,8 @@ function toast(m,kind=''){document.querySelectorAll('.toast').forEach(t=>t.remov
 function newGame(){
   gid++;closeModal();Sound.init();
   wall=buildWall();discards=[];logs=[];logVer++;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];
-  dealer=(dealer+1)%4;dead=[false,false,false,false];turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
+  if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false}else dealer=(dealer+1)%4;
+  dead=[false,false,false,false];building=null;turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
   log('Everyone pushes their tiles in. Washing the tiles…');
   render();Sound.wash();
   later(deal,REDUCED?60:1550);
@@ -806,15 +864,34 @@ function tileScores(p){
   for(const k in c){let s=0;top.forEach(r=>{const w=1/Math.pow(1+r.dist-d0,2);s+=w*Math.min(c[k],r.need[k]||0)/c[k]});sc[k]=s+Math.random()*0.02}
   return sc;
 }
+// Hard bots: rank hands like the coach does (live tiles, Joker coverage, exposed over concealed) and play defense.
+function seenFor(i){const s={};const add=t=>{s[t.k]=(s[t.k]||0)+1};players[i].hand.forEach(add);discards.forEach(add);players.forEach(q=>q.exp.forEach(e=>e.tiles.forEach(add)));return s}
+function neededBy(q){const e=players[q].exp,need=new Set();
+  for(const cp of ALL){const ev=evalPat(cp,{},0,e);if(!ev)continue;cp.groups.forEach((g,gi)=>{if(!ev.used[gi])need.add(g.k)})}
+  return need}
+function hardScores(p,i){
+  const {res,c,j}=analyze(p.hand,p.exp);if(!res.length)return tileScores(p);
+  const seen=seenFor(i),liveJ=Math.max(0,8-(seen.J||0)),minD=res[0].dist,cand=[];
+  for(const r of res){if(r.dist>minD+2)break;const a=assess(r.cp,c,j,p.exp,seen,liveJ);if(a)cand.push({r,score:a.score})}
+  if(!cand.length)return tileScores(p);
+  cand.sort((a,b)=>a.score-b.score);const top=cand.slice(0,8),s0=top[0].score,sc={};
+  for(const k in c){let s=0;top.forEach(({r,score})=>{const w=1/Math.pow(1+score-s0,2);s+=w*Math.min(c[k],r.need[k]||0)/c[k]});sc[k]=s+Math.random()*0.01}
+  for(let q=0;q<4;q++){if(q===i||dead[q]||players[q].exp.length<2)continue;const need=neededBy(q),w=players[q].exp.length>=3?.9:.45;
+    for(const k in c)if(need.has(k))sc[k]+=w}
+  return sc;
+}
 function chooseDiscard(p){
-  const sc=tileScores(p);let best=null,bs=Infinity;
+  const i=players.indexOf(p),lv=i>0?botLevel(i):1;
+  if(lv===0&&Math.random()<.35){const pool=p.hand.filter(t=>t.k!=='J');if(pool.length)return pool[Math.floor(Math.random()*pool.length)]}
+  const sc=lv===2?hardScores(p,i):tileScores(p);let best=null,bs=Infinity;
   for(const k in sc)if(sc[k]<bs){bs=sc[k];best=k}
   return best?p.hand.find(t=>t.k===best):p.hand.find(t=>t.k==='J');
 }
 function botCall(p,k){
   if(k==='J')return null;
+  const lv=botLevel(players.indexOf(p));if(lv===0&&Math.random()<.6)return null;
   const {res,c,j}=analyze(p.hand,p.exp);const r=res[0];
-  if(!r||r.dist>7||r.cp.hand.conc)return null;
+  if(!r||r.dist>(lv===2?9:lv===0?5:7)||r.cp.hand.conc)return null;
   const nk=c[k]||0;if(nk<1)return null;
   for(const g of r.cp.groups){
     if(g.k!==k||g.n<3||nk+j<g.n-1||(r.need[k]||0)<=nk)continue;
@@ -832,6 +909,7 @@ function doSwap(pi,t,[qi,ei]){
   Sound.chime();toast(pi===0?'Joker is yours':`${NAMES[pi]} takes a Joker`);
 }
 function botSwaps(pi){
+  if(botLevel(pi)===0&&Math.random()<.75)return;
   const p=players[pi];let again=true;
   while(again){again=false;const cur=analyze(p.hand,p.exp).res[0]?.dist??99;
     for(const t of p.hand){if(t.k==='J')continue;const tg=swapTargets(t);if(!tg.length)continue;
@@ -864,7 +942,7 @@ function doPass(){
     if(want<=m)log(mine.length?`Courtesy pass: you traded ${mine.length} with Bronx.`:'You skipped the courtesy pass.');
     sel.clear();startPlay();render();return;
   }
-  const k=sel.size;if(k>3||(!st.blind&&k!==3))return;
+  const k=sel.size;if(k>3||(!isBlind(st)&&k!==3))return;
   const ids=[...sel],outR=ids.map(tileRect);
   const fromSeat=(4-st.d)%4,toSeat=st.d;
   const out=[[],[],[],[]];
@@ -882,7 +960,7 @@ function doPass(){
   const second=passIdx>3;
   log(`${second?'Second':'First'} Charleston: passed ${st.n}${blind.length?` (${blind.length} blind)`:''}.`);
   if(blind.length)toast(blind.length===3?'Blind pass':`${blind.length} passed blind`);
-  sel.clear();passIdx++;render();
+  sel.clear();passIdx++;houseSkips();render();
 }
 function botWantsStop(i){const p=players[i];const r=analyze(p.hand,p.exp).res[0];const d=r?r.dist-(14-p.hand.length):99;return d<=3||Math.random()<.12}
 function chDecide(goOn){
@@ -890,7 +968,11 @@ function chDecide(goOn){
     if(stopper){passIdx=CH.indexOf('courtesy');log(`${NAMES[stopper]} wants to stop, so there's no second Charleston.`);toast(`${NAMES[stopper]} stops the Charleston`)}
     else{passIdx++;log('All four players agree to a second Charleston.')}}
   else{passIdx=CH.indexOf('courtesy');log('You stopped the Charleston after the first left.')}
-  newIds=new Set();render();
+  newIds=new Set();houseSkips();render();
+}
+function houseSkips(){
+  if(chStep()==='decide'&&houseOn('alwaysSecond')){passIdx++;log('House rule: everyone does the second Charleston.')}
+  if(chStep()==='courtesy'&&houseOn('noCourtesy')){log('House rule: no courtesy pass.');startPlay()}
 }
 // 5.6: each pair across trades the smaller number either player wants
 function botCourtesy(i){const sc=tileScores(players[i]);return Math.min(3,players[i].hand.filter(t=>t.k!=='J'&&sc[t.k]<.25).length)}
@@ -1000,7 +1082,7 @@ function resolveCalls(i,t){
   const order=[1,2,3].map(d=>(i+d)%4),pos=j=>order.indexOf(j);
   let botMJ=null,botExp=null;
   if(t.k!=='J'){
-    for(const j of order){if(j===0||dead[j])continue;const w=isWin([...players[j].hand,t],players[j].exp);if(w){botMJ={j,w};break}}
+    for(const j of order){if(j===0||dead[j])continue;if(botLevel(j)===0&&Math.random()<.2)continue;const w=isWin([...players[j].hand,t],players[j].exp);if(w){botMJ={j,w};break}}
     if(!botMJ)for(const j of order){if(j===0||dead[j])continue;const n=botCall(players[j],t.k);if(n){botExp={j,n};break}}
   }
   if(i!==0&&!dead[0]){
@@ -1016,6 +1098,7 @@ function finishCalls(i,t,botMJ,botExp,choice){
   callState=null;
   if(choice&&choice.mj){discards.pop();players[0].hand.push(t);sortHand(players[0].hand);win(0,isWin(players[0].hand,players[0].exp),i);return}
   if(botMJ){discards.pop();players[botMJ.j].hand.push(t);win(botMJ.j,botMJ.w,i);return}
+  if(choice&&choice.build){startBuild(i,t,botMJ,botExp);return}
   if(choice&&choice.n){doExpose(0,t.k,choice.n,i);render();return}
   if(botExp){doExpose(botExp.j,t.k,botExp.n,i);render();later(()=>botAct(botExp.j),SPEED);return}
   startTurn(nextAlive(i));
@@ -1035,14 +1118,59 @@ function win(pi,cp,from){
   const allT=[...p.hand,...p.exp.flatMap(e=>e.tiles)];
   const jokerless=!allT.some(t=>t.k==='J')&&!cp.groups.every(g=>g.n<3);
   const v=cp.hand.pts*(jokerless?2:1);const pay=[0,0,0,0];
-  for(let q=0;q<4;q++){if(q===pi)continue;const amt=from===null?2*v:(q===from?2*v:v);pay[q]-=amt;pay[pi]+=amt}
+  for(let q=0;q<4;q++){if(q===pi)continue;if(dead[q]&&houseOn('deadNoPay'))continue;const amt=from===null?2*v:(q===from?2*v:v);pay[q]-=amt;pay[pi]+=amt}
+  let rule='';
+  if(from!==null&&houseOn('threeExp')&&p.exp.length>=3){const total=pay[pi];pay.fill(0);pay[from]=-total;pay[pi]=total;rule='three'}
   for(let q=0;q<4;q++)scores[q]+=pay[q];saveScores();
   log(`${NAMES[pi]} declared Mah Jongg! ${cp.hand.cat}, ${v} pts${jokerless?' (jokerless x2)':''}.`);
   if(pi===0){Sound.fanfare();confetti();toast('Mah Jongg!','big')}else{Sound.sad();toast(`${NAMES[pi]}: Mah Jongg`)}
-  render();later(()=>showResult(pi,cp,from,v,jokerless,pay),1300);
+  render();later(()=>showResult(pi,cp,from,v,jokerless,pay,rule),1300);
 }
-function endWall(){phase='over';callState=null;log('The wall is empty. Wall game.');Sound.sad();render();
-  openModal(`<h2>Wall game</h2><p>The last tile is gone and nobody made Mah Jongg. No points change hands.</p><div class="mrow"><button class="btn btn-gold" onclick="newGame()">New game</button><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`)}
+function endWall(){phase='over';callState=null;log('The wall is empty. Wall game.');Sound.sad();
+  const wp=houseOn('wallPoints');if(wp)for(let q=0;q<4;q++)if(!dead[q])scores[q]+=10;
+  render();
+  openModal(`<h2>Wall game</h2><p>The last tile is gone and nobody made Mah Jongg. ${wp?'<b>House rule:</b> every live hand gets 10 points.':'No points change hands.'}</p><div class="mrow"><button class="btn btn-gold" onclick="newGame()">New game</button><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`)}
+
+// ================= Building your own exposure =================
+function startBuild(i,t,botMJ,botExp){
+  const fromT=tileRect(t.id);discards.pop();
+  building={t,from:i,tiles:[t],botMJ,botExp};
+  turn=0;step='discard';turnSrc=i;selected=null;newIds=new Set();
+  log(`You called ${tname(t.k)}. Add matching tiles or Jokers, then discard to lock it in.`);
+  queueFly(t,fromT,0,480);Sound.chime();render();
+}
+const canAdd=t=>building&&(t.k===building.t.k||t.k==='J');
+function buildValid(){
+  if(!building)return false;const n=building.tiles.length,k=building.t.k;
+  return n>=3&&n<=6&&ALL.some(cp=>evalPat(cp,{},0,[...players[0].exp,{k,n}]));
+}
+function buildExps(){return building&&buildValid()?[...players[0].exp,{k:building.t.k,n:building.tiles.length,tiles:building.tiles}]:players[0].exp}
+function finalizeBuild(){
+  const b=building;building=null;const n=b.tiles.length;
+  players[0].exp.push({k:b.t.k,n,tiles:b.tiles});
+  log(`You exposed a ${WORD[n].toLowerCase()} of ${tname(b.t.k)}.`);toast(`You: ${WORD[n]}!`);
+}
+function cancelBuild(){
+  const b=building;if(!b)return;building=null;
+  players[0].hand.push(...b.tiles.filter(x=>x!==b.t));discards.push(b.t);turnSrc=null;
+  log(`You let the ${tname(b.t.k)} go.`);
+  finishCalls(b.from,b.t,b.botMJ,b.botExp,null);
+  if(phase==='play')render();
+}
+function buildTap(t){
+  if(building.tiles.length>=6){toast('Six tiles is the most a group can have');return}
+  const p=players[0];const r=tileRect(t.id);p.hand.splice(p.hand.indexOf(t),1);building.tiles.push(t);
+  selected=null;queueFly(t,r,0,300);Sound.tap();render();
+}
+function unbuildTap(id){
+  if(!building)return;const t=building.tiles.find(x=>x.id===id);if(!t||t===building.t)return;
+  const r=tileRect(id);building.tiles.splice(building.tiles.indexOf(t),1);players[0].hand.push(t);
+  queueFly(t,r,0,300);Sound.tap();render();
+}
+function humanThrow(t){
+  if(building){if(!buildValid()){toast('Finish your exposure first');return}finalizeBuild()}
+  discard(0,t);
+}
 
 // ================= Your moves =================
 function onTileClick(id){
@@ -1053,11 +1181,13 @@ function onTileClick(id){
     if(sel.has(id))sel.delete(id);else if(sel.size<3)sel.add(id);else{toast('Three tiles max');return}
     Sound.tap();render();return;
   }
-  if(phase==='play'&&turn===0&&step==='discard'&&!callState){Sound.tap();selected=selected===id?null:id;render()}
+  if(phase==='play'&&turn===0&&step==='discard'&&!callState){if(building&&canAdd(t)){buildTap(t);return}
+    Sound.tap();if(selected===id&&settings.dblDiscard){humanThrow(t);return}selected=selected===id?null:id;render()}
 }
-function humanDiscard(){const t=players[0].hand.find(x=>x.id===selected);if(t)discard(0,t)}
-function humanSwap(){const t=players[0].hand.find(x=>x.id===selected);if(!t)return;const tg=swapTargets(t);if(!tg.length)return;doSwap(0,t,tg[0]);selected=null;render()}
-function humanMJ(){const w=isWin(players[0].hand,players[0].exp);if(w)win(0,w,phase==='charleston'?null:turnSrc)}
+function humanDiscard(){const t=players[0].hand.find(x=>x.id===selected);if(t)humanThrow(t)}
+function humanSwap(){const t=players[0].hand.find(x=>x.id===selected);if(!t)return;
+  if(building){if(!buildValid()){toast('Finish your exposure before swapping for a Joker');return}finalizeBuild()}  /* 8.16: a Joker exchange locks the new exposure */const tg=swapTargets(t);if(!tg.length)return;doSwap(0,t,tg[0]);selected=null;render()}
+function humanMJ(){if(building){if(!buildValid())return;finalizeBuild()}const w=isWin(players[0].hand,players[0].exp);if(w)win(0,w,phase==='charleston'?null:turnSrc)}
 
 // ================= Hand coach =================
 // Ranks every hand on the card by how realistic it is to finish, not just raw distance:
@@ -1108,7 +1238,7 @@ function renderSeat(i){
   const p=players[i],el=$('#seat'+i);const active=turn===i&&phase==='play';
   el.className=`seat seat-${SEATPOS[i]}${active?' turn':''}${active&&step==='discard'&&!callState?' thinking':''}`;
   const body=phase==='over'?`<div class="reveal">${p.hand.map(t=>tileHTML(t,'xs')).join('')}</div>`:`<div class="backs">${p.hand.map(()=>'<i class="back"></i>').join('')}</div>`;
-  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${windOf(i)} · ${p.hand.length} tiles${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div>${body}${expHTML(p,'xs')}`;
+  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${windOf(i)} · ${p.hand.length} tiles · ${LEVELS[botLevel(i)]}${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div>${body}${expHTML(p,'xs')}`;
 }
 function renderScores(){
   if(scoreAnim)return;
@@ -1134,11 +1264,12 @@ function render(){
     if(st==='decide'){status='First Charleston done';sub='Keep going with a second Charleston (left, across, right), or stop here.'}
     else if(st==='courtesy'){status='Courtesy pass';dir='across';sub='Optional: pick 0 to 3 tiles to trade with Bronx. Bronx gives back the same number.'}
     else{const second=passIdx>3;dir=st.n;status=`${second?'Second':'First'} Charleston · Pass ${st.n}`;
-      sub=st.blind?`Pick 3 tiles to pass ${st.n}. This is a blind pass: pick fewer and the rest are passed straight along from the tiles coming to you, unseen.`
+      sub=isBlind(st)?`Pick 3 tiles to pass ${st.n}. This is a blind pass: pick fewer and the rest are passed straight along from the tiles coming to you, unseen.`
         :`Pass ${(second?passIdx-4:passIdx)+1} of 3. Pick 3 tiles you don't need.`}}
   else if(phase==='play'){
     if(callState){status=`${NAMES[callState.i]} threw ${tname(callState.t.k)}`;sub='You can claim it. Call it or let it go.'}
-    else if(turn===0&&step==='discard'){status='Your turn';sub='Tap a tile to select it, then hit Discard. Tap it again to deselect.'}
+    else if(turn===0&&step==='discard'&&building){status='Build your exposure';sub=`Tap matching ${tname(building.t.k)} tiles or Jokers to add them. Pick a tile to throw, and the exposure locks in when you discard.`}
+    else if(turn===0&&step==='discard'){status='Your turn';sub=settings.dblDiscard?'Tap a tile, then hit Discard. Or tap it twice to throw it.':'Tap a tile to select it, then hit Discard. Tap it again to deselect.'}
     else{status=`${NAMES[turn]} is playing`;sub=dead[0]?'Your hand is dead, so you sit out the rest of this hand.':`${windOf(turn)} seat`}
   }else status='Hand over';
   const changed=status!==lastStatus;lastStatus=status;
@@ -1157,44 +1288,55 @@ function render(){
     if(dealer===0&&passIdx===0&&isWin(p.hand,p.exp))acts='<button class="btn btn-red" id="bMJ">Mah Jongg! (Heavenly Hand)</button>';
     else if(st==='decide')acts=`<button class="btn btn-gold" id="bGo">Second Charleston</button><button class="btn btn-ghost" id="bStop">Stop Charleston</button>`;
     else if(st==='courtesy')acts=`<button class="btn btn-gold" id="bPass">${sel.size?`Trade ${sel.size} across`:'Skip courtesy pass'}</button>`;
-    else if(st.blind){const k=sel.size;acts=`<button class="btn btn-gold" id="bPass">${k===3?`Pass 3 ${st.n}`:k===0?`Blind pass all 3 ${st.n}`:`Pass ${k} + ${3-k} blind ${st.n}`}</button>`}
+    else if(isBlind(st)){const k=sel.size;acts=`<button class="btn btn-gold" id="bPass">${k===3?`Pass 3 ${st.n}`:k===0?`Blind pass all 3 ${st.n}`:`Pass ${k} + ${3-k} blind ${st.n}`}</button>`}
     else acts=`<button class="btn btn-gold" ${sel.size===3?'':'disabled'} id="bPass">Pass ${sel.size}/3 ${st.n}</button>`;
   }else if(phase==='play'&&callState){
     const o=callState.o;
     acts=`<div class="callbar">${tileHTML(callState.t,'md')}<span>Call it?</span>
       ${o.mj?'<button class="btn btn-red" data-call="mj">Mah Jongg!</button>':''}
-      ${o.exp.map(n=>`<button class="btn btn-ghost" data-call="${n}">${WORD[n].toUpperCase()} (${n})</button>`).join('')}
+      ${settings.expMode==='build'?(o.exp.length?'<button class="btn btn-ghost" data-call="build">CALL</button>':''):o.exp.map(n=>`<button class="btn btn-ghost" data-call="${n}">${WORD[n].toUpperCase()} (${n})</button>`).join('')}
       <button class="btn btn-ghost" data-call="pass">Let it go</button></div>`;
   }else if(phase==='play'&&turn===0&&step==='discard'){
-    const t=p.hand.find(x=>x.id===selected);const canSwap=t&&t.k!=='J'&&swapTargets(t).length;const w=isWin(p.hand,p.exp);
-    acts=`${w?'<button class="btn btn-red" id="bMJ">Mah Jongg!</button>':''}<button class="btn btn-gold" id="bDis" ${t?'':'disabled'}>Discard</button>${canSwap?'<button class="btn btn-ghost" id="bSwap">Swap for Joker</button>':''}`;
+    const t=p.hand.find(x=>x.id===selected);const canSwap=t&&t.k!=='J'&&swapTargets(t).length;const w=isWin(p.hand,buildExps());const bv=!building||buildValid();
+    acts=`${w?'<button class="btn btn-red" id="bMJ">Mah Jongg!</button>':''}<button class="btn btn-gold" id="bDis" ${t&&bv?'':'disabled'}>${building?'Discard and lock in':'Discard'}</button>${canSwap?'<button class="btn btn-ghost" id="bSwap">Swap for Joker</button>':''}${building?'<button class="btn btn-ghost" id="bCancel">Cancel call</button>':''}`;
   }else if(phase==='over')acts='<button class="btn btn-gold" id="bNext">New game</button>';
   const yourTurn=turn===0&&phase==='play'&&step==='discard'&&!callState;
   const me=$('#me');
   me.className='me'+(yourTurn?' turn':'');
   me.innerHTML=`<div class="me-head"><div class="avatar">${bulletHTML(0)}</div><div class="meta"><div class="pname">Your rack</div><div class="pinfo">${windOf(0)} · ${p.hand.length} in hand</div></div>${yourTurn?'<span class="turnpill">YOUR TURN</span>':''}${dead[0]?'<span class="turnpill" style="background:#e5484d;color:#fff;box-shadow:none">DEAD HAND</span>':''}
      <div class="sortbtns"><button class="btn btn-ghost sm" id="bSortS">Sort by suit</button><button class="btn btn-ghost sm" id="bSortN">Sort by number</button></div></div>
-    ${expHTML(p,'md')}
-    <div class="rack" id="rack">${p.hand.map(t=>tileHTML(t,(sel.has(t.id)||selected===t.id?'sel ':'')+(newIds.has(t.id)?'new ':'')+(dealAnim?'deal':''),true)).join('')}</div>
+    ${expHTML(p,'md')}${buildHTML()}
+    <div class="rack" id="rack">${p.hand.map(t=>tileHTML(t,(sel.has(t.id)||selected===t.id?'sel ':'')+(newIds.has(t.id)?'new ':'')+(dealAnim?'deal ':'')+(building&&canAdd(t)?'can':''),true)).join('')}</div>
     <div class="actions">${acts}</div>`;
   document.querySelectorAll('#rack .tile').forEach((e,x)=>{e.tabIndex=0;if(dealAnim)e.style.animationDelay=x*45+'ms'});
   dealAnim=false;
   bindRack();
   const bind=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
   bind('bPass',doPass);bind('bGo',()=>chDecide(true));bind('bStop',()=>chDecide(false));bind('bSortS',()=>sortMine('suit'));bind('bSortN',()=>sortMine('num'));
-  bind('bDis',humanDiscard);bind('bSwap',humanSwap);bind('bMJ',humanMJ);bind('bNext',newGame);bind('bStart2',startFromSplash);
+  bind('bDis',humanDiscard);bind('bCancel',cancelBuild);document.querySelectorAll('.pending .tile[data-id]').forEach(e=>e.onclick=()=>unbuildTap(+e.dataset.id));bind('bSwap',humanSwap);bind('bMJ',humanMJ);bind('bNext',newGame);bind('bStart2',startFromSplash);
   document.querySelectorAll('[data-call]').forEach(b=>b.onclick=()=>{const v=b.dataset.call,cs=callState;if(!cs)return;
-    finishCalls(cs.i,cs.t,cs.botMJ,cs.botExp,v==='mj'?{mj:true}:v==='pass'?null:{n:+v})});
-  renderStars();renderHints();renderLog();flushFly();
+    finishCalls(cs.i,cs.t,cs.botMJ,cs.botExp,v==='mj'?{mj:true}:v==='pass'?null:v==='build'?{build:true}:{n:+v})});
+  renderStars();renderHints();renderLog();flushFly();saveProgress();
+}
+function buildHTML(){
+  if(!building)return'';const n=building.tiles.length,ok=buildValid();
+  const msg=ok?`${WORD[n].toUpperCase()} (${n}) ready. It locks in when you discard.`:n<3?`Add ${3-n} more to make a pung. Up to 6 for a sextet.`:`A ${WORD[n].toLowerCase()} of ${tname(building.t.k)} doesn't fit any exposed hand on the card.`;
+  return`<div class="building"><div class="exp pending">${building.tiles.map(t=>tileHTML(t,'md'+(t===building.t?' called':''),true)).join('')}${Array.from({length:Math.max(0,3-n)},()=>'<span class="slot"></span>').join('')}</div>
+    <div class="bmsg${ok?' ok':''}">${msg}<span class="sub"> Tap a tile in the group to take it back.</span></div></div>`;
 }
 function patternTilesHTML(cp,tiles,exps){
-  const {c,j}=countTiles(tiles);const avail={...c};let jl=j;const r=evalPat(cp,c,j,exps);const used=r?r.used:[];
+  const {c,j}=countTiles(tiles);const avail={...c};let jl=j;
+  // match each exposure to its group the same way evalPat does, so exposed groups show their real tiles
+  const expFor={},taken=new Set();
+  for(const e of exps)for(let i=0;i<cp.groups.length;i++){const g=cp.groups[i];if(!taken.has(i)&&g.k===e.k&&g.n===e.n){taken.add(i);expFor[i]=e;break}}
   return cp.groups.map((g,i)=>{let h='';
-    if(used[i]){for(let x=0;x<g.n;x++)h+=tileHTML(g.k,'xs');return h}
-    const have=Math.min(g.n,avail[g.k]||0);avail[g.k]=(avail[g.k]||0)-have;let rest=g.n-have,jf=0;
-    if(g.n>=3){jf=Math.min(rest,jl);jl-=jf;rest-=jf}
-    for(let x=0;x<have;x++)h+=tileHTML(g.k,'xs');for(let x=0;x<jf;x++)h+=tileHTML(g.k,'xs wj');for(let x=0;x<rest;x++)h+=tileHTML(g.k,'xs miss');
-    return h}).join('<div class="gap"></div>');
+    if(expFor[i]){const ts=expFor[i].tiles||[];for(let x=0;x<g.n;x++){const t=ts[x];h+=tileHTML(g.k,'xs'+(t&&t.k==='J'?' wj':''))}}
+    else{
+      const have=Math.min(g.n,avail[g.k]||0);avail[g.k]=(avail[g.k]||0)-have;let rest=g.n-have,jf=0;
+      if(g.n>=3){jf=Math.min(rest,jl);jl-=jf;rest-=jf}
+      for(let x=0;x<have;x++)h+=tileHTML(g.k,'xs');for(let x=0;x<jf;x++)h+=tileHTML(g.k,'xs wj');for(let x=0;x<rest;x++)h+=tileHTML(g.k,'xs miss');
+    }
+    return `<span class="grp">${h}</span>`}).join('');
 }
 function renderHints(){
   const head=`<div class="ph"><h3>Best hands</h3><label class="switch" for="hintToggle"><input type="checkbox" id="hintToggle" ${showHints?'checked':''}><span class="track"><span class="knob"></span></span><span>${showHints?'On':'Off'}</span></label></div>`;
@@ -1244,14 +1386,91 @@ function renderStars(){
 }
 function renderLog(){if(shownLogVer===logVer||!$('#log'))return;shownLogVer=logVer;$('#log').innerHTML=logs.map((m,i)=>`<div${i===0?' class="fresh"':''}>${m}</div>`).join('')}
 
+// ================= Saved progress =================
+// Only saved at moments that wait on you (Charleston, or your turn), so a resumed game never skips a bot's move.
+function saveProgress(){
+  if(!settings.save)return;
+  try{
+    localStorage.setItem('amj_progress',JSON.stringify({scores,dealer}));
+    if(phase==='over'){localStorage.removeItem('amj_game');return}
+    const safe=phase==='charleston'||(phase==='play'&&turn===0&&step==='discard'&&!callState&&!building);
+    if(safe)localStorage.setItem('amj_game',JSON.stringify({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc,cardMode}));
+  }catch(e){}
+}
+function clearProgress(){try{localStorage.removeItem('amj_progress');localStorage.removeItem('amj_game')}catch(e){}}
+function savedGame(){if(!settings.save)return null;try{const g=JSON.parse(localStorage.getItem('amj_game'));return g&&Array.isArray(g.players)&&g.cardMode===cardMode?g:null}catch(e){return null}}
+function resumeGame(){
+  const g=savedGame();if(!g){startFromSplash();return}
+  gid++;Sound.init();
+  ({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc}=g);
+  pendingStart=false;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];logs=[];logVer++;
+  log('Picked up where you left off.');$('#splash').classList.add('hide');render();
+}
+
+// ================= Settings =================
+function diffSlider(id,v,bot){return `<div class="slider"><input type="range" id="${id}" min="0" max="2" step="1" value="${v}" ${bot?`data-bot="${bot}"`:''} aria-valuetext="${LEVELS[v]}" aria-label="${bot?NAMES[bot]+' difficulty':'Bot difficulty'}"><div class="ticks">${LEVELS.map((l,x)=>`<span class="${x===v?'on':''}">${l}</span>`).join('')}</div></div>`}
+function paintSlider(el){const v=+el.value;el.setAttribute('aria-valuetext',LEVELS[v]);el.style.setProperty('--fill',(v*50)+'%');
+  el.parentElement.querySelectorAll('.ticks span').forEach((s,x)=>s.classList.toggle('on',x===v))}
+const HR=[
+  ['threeExp','Three-exposure rule','If a player with 3 exposures wins on your discard, you pay for the whole table.'],
+  ['wallPoints','Wall game points','When the wall runs out, every live hand gets 10 points.'],
+  ['deadNoPay',"Dead hands don't pay",'Players with dead hands owe nothing when someone wins.'],
+  ['noBlind','No blind passes','Every Charleston pass has to be 3 tiles from your own hand.'],
+  ['noCourtesy','No courtesy pass','Play starts right after the Charleston.'],
+  ['alwaysSecond','Always do the second Charleston','Nobody can stop after the first Charleston.']];
+function swRow(id,label,desc,on){return `<label class="setrow" for="${id}"><span class="st"><b>${label}</b><span class="d">${desc}</span></span><span class="switch"><input type="checkbox" id="${id}" ${on?'checked':''}><span class="track"><span class="knob"></span></span></span></label>`}
+function showSettings(){
+  openModal(`<h2>Settings</h2><p class="setnote">Settings are saved on this device.</p>
+   <div class="set-sec">Gameplay</div>
+   ${swRow('s_dbl','Double-tap to discard','Tap a selected tile again to throw it. When off, tapping it again just deselects it.',settings.dblDiscard)}
+   ${swRow('s_sound','Sound effects','Tile clicks, calls and the Mah Jongg fanfare.',Sound.on)}
+   ${swRow('s_hints','Best hands panel','Suggests which hands on the card your tiles fit.',showHints)}
+   <div class="setrow"><span class="st"><b>Starting seat</b><span class="d">Your seat in the first game. After that, East moves one seat to the right every game. Takes effect on the next new game.</span></span>
+     <span class="seg" role="group" aria-label="Starting seat">${WIND.map((w,i)=>`<button class="${settings.startWind===i?'on':''}" data-wind="${i}" aria-pressed="${settings.startWind===i}">${w}</button>`).join('')}</span></div>
+   <div class="setrow"><span class="st"><b>Making exposures</b><span class="d">Quick pick: choose PUNG, KONG and so on when you call. Build your own: press CALL, add the tiles yourself, and the group locks in when you discard.</span></span>
+     <span class="seg" role="group" aria-label="Making exposures">${[['quick','Quick pick'],['build','Build your own']].map(([v,l])=>`<button class="${settings.expMode===v?'on':''}" data-exp="${v}" aria-pressed="${settings.expMode===v}">${l}</button>`).join('')}</span></div>
+   <div class="setrow col"><span class="st"><b>Bot difficulty</b><span class="d">Easy bots make loose throws and rarely call. Hard bots chase the most realistic hand, count live tiles and avoid feeding a player with 2 or more exposures. Applies right away.</span></span>
+     ${diffSlider('s_diff',settings.diff)}<span class="d" id="diffNote">${[1,2,3].some(i=>botLevel(i)!==settings.diff)?'Bots are set individually below.':''}</span></div>
+   <button class="morebtn" id="s_botmore" aria-expanded="false" aria-controls="botList">More <span class="chev">▾</span></button>
+   <div id="botList" class="hrlist" hidden>
+     <p class="setnote">Set each bot on its own. Moving the main slider resets all three.</p>
+     ${[1,2,3].map(i=>`<div class="setrow col"><span class="st"><b class="botname">${bulletHTML(i)} ${NAMES[i]}</b></span>${diffSlider('s_bot'+i,botLevel(i),i)}</div>`).join('')}</div>
+   ${swRow('s_save','Save progress','Keep scores, the East rotation and an unfinished game between visits. When off, they reset every time you reload.',settings.save)}
+   <div class="set-sec">House rules</div>
+   ${swRow('s_house','Use house rules','When off, the game uses only the standard rules.',settings.house)}
+   <button class="morebtn" id="s_more" aria-expanded="false" aria-controls="hrList">More <span class="chev">▾</span></button>
+   <div id="hrList" class="hrlist${settings.house?'':' off'}" hidden>
+     <p class="setnote">${settings.house?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'}</p>
+     ${HR.map(([k,l,d])=>swRow('hr_'+k,l,d,settings.hr[k])).join('')}</div>
+   <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Done</button></div>`);
+  const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{fn(e.checked);saveSettings();render()}};
+  on('s_dbl',v=>settings.dblDiscard=v);
+  on('s_sound',v=>{Sound.on=v;try{localStorage.setItem('amj_sound',v?'on':'off')}catch(e){}renderSoundBtn();if(v){Sound.init();Sound.chime()}});
+  on('s_hints',v=>{showHints=v;try{localStorage.setItem('amj_hints',v?'on':'off')}catch(e){}});
+  on('s_save',v=>{settings.save=v;if(v)saveProgress();else clearProgress()});
+  on('s_house',v=>{settings.house=v;const l=$('#hrList');l.classList.toggle('off',!v);l.querySelector('.setnote').textContent=v?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'});
+  HR.forEach(([k])=>on('hr_'+k,v=>settings.hr[k]=v));
+  document.querySelectorAll('[data-wind]').forEach(b=>b.onclick=()=>{settings.startWind=+b.dataset.wind;pendingStart=true;saveSettings();
+    document.querySelectorAll('[data-wind]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)});render()});
+  document.querySelectorAll('[data-exp]').forEach(b=>b.onclick=()=>{settings.expMode=b.dataset.exp;saveSettings();
+    document.querySelectorAll('[data-exp]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)});render()});
+  const diffNote=()=>{$('#diffNote').textContent=[1,2,3].some(i=>botLevel(i)!==settings.diff)?'Bots are set individually below.':''};
+  document.querySelectorAll('.slider input').forEach(paintSlider);
+  $('#s_diff').oninput=e=>{settings.diff=+e.target.value;settings.botDiff={};paintSlider(e.target);
+    [1,2,3].forEach(i=>{const b=$('#s_bot'+i);b.value=settings.diff;paintSlider(b)});diffNote();saveSettings();render()};
+  [1,2,3].forEach(i=>{$('#s_bot'+i).oninput=e=>{settings.botDiff={...settings.botDiff,[i]:+e.target.value};paintSlider(e.target);diffNote();saveSettings();render()}});
+  $('#s_botmore').onclick=()=>{const l=$('#botList'),b=$('#s_botmore');l.hidden=!l.hidden;b.setAttribute('aria-expanded',!l.hidden);b.classList.toggle('open',!l.hidden);b.firstChild.textContent=l.hidden?'More ':'Less '};
+  $('#s_more').onclick=()=>{const l=$('#hrList'),b=$('#s_more');l.hidden=!l.hidden;b.setAttribute('aria-expanded',!l.hidden);b.classList.toggle('open',!l.hidden);b.firstChild.textContent=l.hidden?'More ':'Less '};
+}
+
 // ================= Modals =================
 function openModal(html){$('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"><div class="box">${html}</div></div>`}
 function closeModal(){$('#modal').innerHTML=''}
-function showResult(pi,cp,from,v,jl,pay){
+function showResult(pi,cp,from,v,jl,pay,rule){
   const p=players[pi];
   openModal(`<h2>${pi===0?'You made Mah Jongg!':NAMES[pi]+' made Mah Jongg'}</h2>
    <p><b>${cp.hand.cat}</b> · <span class="pat">${patColored(displayPat(cp.hand))}</span><br>
-   ${from===null?'Self-drawn, so everyone pays double.':`Won on ${from===0?'your':NAMES[from]+"'s"} discard, so ${from===0?'you pay':NAMES[from]+' pays'} double.`}${jl?' Jokerless, so the value doubles.':''} Hand value: <b>${v}</b>.</p>
+   ${from===null?'Self-drawn, so everyone pays double.':`Won on ${from===0?'your':NAMES[from]+"'s"} discard, so ${from===0?'you pay':NAMES[from]+' pays'} double.`}${jl?' Jokerless, so the value doubles.':''} Hand value: <b>${v}</b>.${rule==='three'?`<br><b>House rule:</b> ${pi===0?'you':NAMES[pi]} had 3 exposures, so ${from===0?'you pay':NAMES[from]+' pays'} for the whole table.`:''}${houseOn('deadNoPay')&&dead.some((d,q)=>d&&q!==pi)?'<br><b>House rule:</b> dead hands don\'t pay.':''}</p>
    <div class="win-tiles">${[...p.exp.flatMap(e=>e.tiles),...p.hand].map(t=>tileHTML(t,'md')).join('')}</div>
    <div class="pay">${NAMES.map((n,i)=>`<span>${n} <b class="${pay[i]>0?'plus':pay[i]<0?'minus':''}">${pay[i]>0?'+':''}${pay[i]}</b></span>`).join('')}</div>
    <div class="mrow"><button class="btn btn-gold" onclick="newGame()">New game</button><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
@@ -1316,9 +1535,10 @@ function showHelp(){openModal(`<div class="help"><h2>How to play</h2>
  <p>Draw (automatic), swap for Jokers if you want, declare Mah Jongg if your hand is complete, otherwise discard. You can throw the tile you just drew. Tap a tile to select it and hit Discard. Tap it again to deselect.</p>
  <h4>Calling</h4>
  <p>Only the newest discard can be claimed. Call it for a PUNG (3), KONG (4), QUINT (5) or SEXTET (6) of identical tiles, using matching tiles, Jokers or both. The group must fit an exposed (X) hand on the card. It goes face up, you discard without drawing, and play continues to your right. Seats you skip lose their turn.</p>
+ <p>Bot difficulty is in Settings: one slider for all three, or set each bot under More.</p>
  <p>You can't call a tile for a single, a pair, a run, NEWS or 2026 unless it finishes Mah Jongg. You can claim any tile, even for a pair or single, when it completes your whole hand, including a concealed (C) hand. A discarded Joker can never be called. If several players want a tile, Mah Jongg wins over an exposure. Between two of the same kind of call, the player next in turn after the thrower gets it. You never have to call.</p>
  <h4>Exposures</h4>
- <p>Exposed groups stay face up and can't grow. Calling another of the same tile makes a new group, not a bigger one. You can switch to a different hand as long as all your exposures still fit it.</p>
+ <p>In Settings you can switch to Build your own: press CALL, add the matching tiles or Jokers yourself, and the group locks in when you discard (or when you swap for a Joker). Exposed groups stay face up and can't grow. Calling another of the same tile makes a new group, not a bigger one. You can switch to a different hand as long as all your exposures still fit it.</p>
  <h4>Jokers</h4>
  <p>Jokers fill in for tiles in groups of 3 or more identical tiles, including Flowers. They never go in singles, pairs, runs, NEWS or 2026. On your turn, after you draw or call, you can trade the real tile for any exposed Joker, yours or anyone's, as many times as you can. Select the tile and hit Swap for Joker. You can't swap with a discard. A win made by a Joker swap counts as self-drawn.</p>
  <h4>Dead hands</h4>
@@ -1340,6 +1560,9 @@ $('#btnCard').onclick=()=>showCard('view');
 $('#btnHelp').onclick=showHelp;
 $('#btnNew').onclick=askNew;
 $('#btnStart').onclick=startFromSplash;
+$('#btnSettings').onclick=showSettings;
+$('#btnResume').onclick=resumeGame;
+if(savedGame()){$('#btnResume').hidden=false;$('#btnStart').textContent='New game'}
 addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#modal').innerHTML)closeModal()});
 $('#emblem').innerHTML=tileHTML({k:'F',v:3})+tileHTML('J');
 $('#fan').innerHTML=[{k:'F',v:3},'R','J','G',{k:'F',v:0}].map((t,x)=>`<div class="fan-slot" style="--r:${(x-2)*13}deg;--d:${x*90}ms">${tileHTML(t)}</div>`).join('');
