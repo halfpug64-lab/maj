@@ -435,6 +435,60 @@ h1{font-size:20px}
   body.show-hands .sheet-bar{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1;padding:12px 2px 10px;background:var(--sky-3);color:var(--gold)}
 }
 
+
+/* ================= Table view (Settings > Table view) ================= */
+#btnHands,#btnFull{display:none}
+body.table-view #btnHands{display:inline-flex}
+body.table-view #btnFull:not([hidden]){display:inline-flex}
+body.table-view .hands-btn{display:none!important}
+body.table-view .brand small{display:none}
+body.table-view .layout{grid-template-columns:minmax(0,1fr)}
+body.table-view .side{display:none}
+body.table-view .rack .tile{--w:clamp(40px,min(7.4vh,calc((100vw - 150px)/15.3)),76px)}
+body.table-view .rack{gap:6px;padding:16px 10px 18px}
+body.table-view .discards .tile.sm{--w:34px}
+body.table-view .seat .tile.xs{--w:27px}
+body.table-view .exps .tile.md{--w:44px}
+body.table-view .status{font-size:24px}
+body.table-view .banner .sub{font-size:13.5px}
+body.table-view .pname{font-size:15px}
+body.table-view .felt{grid-template-columns:minmax(150px,240px) minmax(0,1fr) minmax(150px,240px)}
+/* bubbles */
+.bubbles{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;margin-top:8px}
+.bubble{border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(236,198,109,.35);overflow:hidden;max-width:100%;animation:rise .3s}
+.bubble.open{background:rgba(0,0,0,.4)}
+.bhead{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--txt);padding:6px 10px 6px 8px;cursor:pointer;font:inherit;max-width:100%}
+.bhead:hover{background:rgba(236,198,109,.08)}
+.bhead .hpat{margin:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk{flex:none;font-size:11px;font-weight:800;letter-spacing:.06em;color:#2b1d02;background:var(--gold);border-radius:999px;padding:2px 7px}
+.bubble .tiles{display:flex;flex-wrap:wrap;gap:5px 7px;padding:2px 10px 10px}
+.bubble .cg{color:#4fd08a}.bubble .cr{color:#ff7a7a}.bubble .cb{color:#74adff}.bubble .cn{color:var(--txt)}
+/* the Hands drawer */
+.backdrop{position:fixed;inset:0;z-index:39;background:rgba(2,8,14,.5);display:none}
+body.show-hands .backdrop{display:block}
+.sb-btns{display:flex;gap:6px}
+@media(min-width:901px){
+  body.table-view.show-hands .side{display:block;position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);z-index:40;overflow-y:auto;
+    padding:0 14px 16px;background:var(--sky-3);border-left:1px solid var(--gold);box-shadow:-20px 0 50px rgba(0,0,0,.6);animation:slidein .3s cubic-bezier(.2,.9,.3,1)}
+  body.table-view.show-hands .sheet-bar{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1;padding:14px 2px 10px;background:var(--sky-3);color:var(--gold)}
+}
+@keyframes slidein{from{transform:translateX(40px);opacity:0}}
+@media(max-width:900px){
+  body.table-view .rack .tile{--w:clamp(28px,calc((100vw - 84px)/7.5),58px)}
+  body.table-view .rack{gap:3px;padding:12px 4px 14px}
+  .bubbles{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-top:6px;padding-bottom:2px}
+  .bubbles::-webkit-scrollbar{display:none}
+  .bubble{flex:none}
+  .bhead{padding:5px 8px 5px 6px;gap:6px}
+  .pinfo .lvl{display:none}
+  body.table-view .discards .tile.sm{--w:26px}
+  body.table-view .seat .tile.xs{--w:20px}
+  body.table-view .exps .tile.md{--w:32px}
+  body.table-view .felt{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  body.table-view .status{font-size:18px}
+  .bhead .hpat{font-size:12px}
+  body.table-view.show-hands .side{display:block}
+}
 /* ================= Scroll layout (Settings > Screen layout > Scroll) ================= */
 body.scroll-layout{display:block;height:auto;min-height:100vh;overflow-x:hidden;overflow-y:auto}
 body.scroll-layout .topbar{position:sticky;top:0}
@@ -468,6 +522,8 @@ body.scroll-layout .rack .tile{--w:50px}
     <div class="tools">
       <button class="btn btn-ghost" id="btnCard" title="See the card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span class="lbl">The Card</span></button>
       <button class="btn btn-ghost" id="btnHelp" title="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5V14"/><path d="M12 17.2h.01"/></svg><span class="lbl">How to play</span></button>
+      <button class="btn btn-ghost" id="btnHands" title="Your hands and the card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="14" rx="1.5"/><rect x="10" y="5" width="6" height="14" rx="1.5"/><path d="M19 7l2 1-3 11-2-.6"/></svg><span class="lbl">Hands</span></button>
+      <button class="btn btn-ghost icon" id="btnFull" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       <button class="btn btn-ghost" id="btnSettings" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Settings</span></button>
       <button class="btn btn-ghost icon" id="btnSound"></button>
       <button class="btn btn-gold" id="btnNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></svg>New game</button>
@@ -485,11 +541,12 @@ body.scroll-layout .rack .tile{--w:50px}
     <div class="me" id="me"></div>
   </section>
   <aside class="side">
-    <div class="sheet-bar"><b>Your hands</b><button class="btn btn-ghost sm" id="bHandsClose">Close</button></div>
+    <div class="sheet-bar"><b>Your hands</b><span class="sb-btns"><button class="btn btn-ghost sm" id="bHandsCard">The Card</button><button class="btn btn-ghost sm" id="bHandsClose">Close</button></span></div>
     <div class="panel" id="stars"></div>
     <div class="panel" id="hints"></div>
   </aside>
 </main>
+<div class="backdrop" id="backdrop"></div>
 <div id="fx"></div>
 <canvas id="confetti"></canvas>
 <div id="modal"></div>
@@ -918,12 +975,12 @@ const SPEED=760;
 let wall=[],players=[0,1,2,3].map(()=>({hand:[],exp:[]})),discards=[],phase='idle',turn=0,step='discard',passIdx=0;
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
 // Settings are always saved on this device. Progress (scores, East rotation, an unfinished game) only when "Save progress" is on.
-const SET_DEFAULT={v:2,layout:'fit',dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
+const SET_DEFAULT={v:2,layout:'fit',tableView:true,topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
   hr:{threeExp:true,wallPoints:false,deadNoPay:false,noBlind:false,noCourtesy:false,alwaysSecond:false}};
 let settings=JSON.parse(JSON.stringify(SET_DEFAULT));
 try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={...settings,...sv,hr:{...SET_DEFAULT.hr,...(sv.hr||{})}};
   if(sv.v!==2){settings.v=2;settings.save=true}}}catch(e){}   // save progress became on by default in v2
-function applyLayout(){document.body.classList.toggle('scroll-layout',settings.layout==='scroll')}
+function applyLayout(){document.body.classList.toggle('scroll-layout',settings.layout==='scroll');document.body.classList.toggle('table-view',!!settings.tableView)}
 function saveSettings(){try{localStorage.setItem('amj_settings',JSON.stringify(settings))}catch(e){}}
 const houseOn=k=>settings.house&&!!settings.hr[k];
 const LEVELS=['Easy','Default','Hard'];
@@ -1125,14 +1182,15 @@ function sortMine(mode){
 function bindRack(){
   document.querySelectorAll('#rack .tile').forEach(el=>{
     el.onpointerdown=e=>{
-      if(e.button>0)return;e.preventDefault();
+      if(e.button>0)return;e.preventDefault();rackHold=true;   // hold off redraws (bot moves) until you let go
       const id=+el.dataset.id,sx=e.clientX,sy=e.clientY;let dragging=false;
       try{el.setPointerCapture(e.pointerId)}catch(_){}
       el.onpointermove=ev=>{const dx=ev.clientX-sx,dy=ev.clientY-sy;
         if(!dragging&&Math.hypot(dx,dy)>8){dragging=true;el.classList.add('dragging')}
         if(dragging)el.style.transform=`translate(${dx}px,${dy}px) scale(1.08)`};
-      el.onpointerup=el.onpointercancel=ev=>{el.onpointermove=el.onpointerup=el.onpointercancel=null;
-        if(dragging)dropTile(id,ev.clientX,ev.clientY,el);else if(ev.type==='pointerup')onTileClick(id)};
+      el.onpointerup=el.onpointercancel=ev=>{el.onpointermove=el.onpointerup=el.onpointercancel=null;rackHold=false;
+        if(dragging)dropTile(id,ev.clientX,ev.clientY,el);else if(ev.type==='pointerup')onTileClick(id);
+        if(renderPending){renderPending=false;render()}};
     };
     el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onTileClick(+el.dataset.id)}};
   });
@@ -1374,7 +1432,7 @@ function renderSeat(i){
   const p=players[i],el=$('#seat'+i);const active=turn===i&&phase==='play';
   el.className=`seat seat-${SEATPOS[i]}${active?' turn':''}${active&&step==='discard'&&!callState?' thinking':''}`;
   const body=phase==='over'?`<div class="reveal">${p.hand.map(t=>tileHTML(t,'xs')).join('')}</div>`:`<div class="backs">${p.hand.map(()=>'<i class="back"></i>').join('')}</div>`;
-  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${windOf(i)} · ${p.hand.length} tiles · ${LEVELS[botLevel(i)]}${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div>${body}${expHTML(p,'xs')}`;
+  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${windOf(i)} · ${p.hand.length} tiles<span class="lvl"> · ${LEVELS[botLevel(i)]}</span>${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div>${body}${expHTML(p,'xs')}`;
 }
 function renderScores(){
   if(scoreAnim)return;
@@ -1390,7 +1448,9 @@ function animateScores(){
   requestAnimationFrame(stepFn);
 }
 const ARROW_ROT={right:0,across:-90,left:180};
+let rackHold=false,renderPending=false;
 function render(){
+  if(rackHold){renderPending=true;return}
   renderScores();
   [1,2,3].forEach(renderSeat);
   let status='',sub='',dir=null;const st=phase==='charleston'?chStep():null;
@@ -1441,7 +1501,7 @@ function render(){
   me.className='me'+(yourTurn?' turn':'');
   me.innerHTML=`<div class="me-head"><div class="avatar">${bulletHTML(0)}</div><div class="meta"><div class="pname">Your rack</div><div class="pinfo">${windOf(0)} · ${p.hand.length} in hand</div></div>${yourTurn?'<span class="turnpill">YOUR TURN</span>':''}${dead[0]?'<span class="turnpill" style="background:#e5484d;color:#fff;box-shadow:none">DEAD HAND</span>':''}
      <div class="sortbtns"><button class="btn btn-ghost sm hands-btn" id="bHands">Hands</button><button class="btn btn-ghost sm" id="bSortS">Sort by suit</button><button class="btn btn-ghost sm" id="bSortN">Sort by number</button></div></div>
-    ${expHTML(p,'md')}${buildHTML()}
+    ${bubblesHTML()}${expHTML(p,'md')}${buildHTML()}
     <div class="rack" id="rack">${p.hand.map(t=>tileHTML(t,(sel.has(t.id)||selected===t.id?'sel ':'')+(newIds.has(t.id)?'new ':'')+(dealAnim?'deal ':'')+(building&&canAdd(t)?'can':''),true)).join('')}</div>
     <div class="actions">${acts}</div>`;
   document.querySelectorAll('#rack .tile').forEach((e,x)=>{e.tabIndex=0;if(dealAnim)e.style.animationDelay=x*45+'ms'});
@@ -1449,7 +1509,7 @@ function render(){
   bindRack();
   const bind=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
   bind('bPass',doPass);bind('bGo',()=>chDecide(true));bind('bStop',()=>chDecide(false));bind('bSortS',()=>sortMine('suit'));bind('bSortN',()=>sortMine('num'));
-  bind('bDis',humanDiscard);bind('bHands',()=>document.body.classList.add('show-hands'));bind('bCancel',cancelBuild);document.querySelectorAll('.pending .tile[data-id]').forEach(e=>e.onclick=()=>unbuildTap(+e.dataset.id));bind('bSwap',humanSwap);bind('bMJ',humanMJ);bind('bNext',newGame);bind('bStart2',startFromSplash);
+  bind('bDis',humanDiscard);bindBubbles();bind('bHands',()=>document.body.classList.add('show-hands'));bind('bCancel',cancelBuild);document.querySelectorAll('.pending .tile[data-id]').forEach(e=>e.onclick=()=>unbuildTap(+e.dataset.id));bind('bSwap',humanSwap);bind('bMJ',humanMJ);bind('bNext',newGame);bind('bStart2',startFromSplash);
   document.querySelectorAll('[data-call]').forEach(b=>b.onclick=()=>{const v=b.dataset.call,cs=callState;if(!cs)return;
     finishCalls(cs.i,cs.t,cs.botMJ,cs.botExp,v==='mj'?{mj:true}:v==='pass'?null:v==='build'?{build:true}:{n:+v})});
   renderStars();renderHints();renderLog();flushFly();saveProgress();
@@ -1529,6 +1589,27 @@ function renderHints(){
   const hl=$('#hintlist');if(hl){const items=hl.querySelectorAll('.hint');if(items.length>3){hl.style.setProperty('--three',(items[3].offsetTop+30)+'px')}hl.scrollTop=prevScroll}
   bindStars('#hints');
   $('#hintToggle').onchange=e=>{showHints=e.target.checked;try{localStorage.setItem('amj_hints',showHints?'on':'off')}catch(_){}renderHints()};
+}
+// ---- Table view bubbles: starred hands (and optionally the top suggestion) kept in view above your rack ----
+const bubOpen=new Set();
+function bestFor(h,an,seen,liveJ){
+  const p=players[0];let best=null;
+  for(const r of an.res){if(r.cp.hand!==h)continue;const a=assess(r.cp,an.c,an.j,p.exp,seen,liveJ);const sc=a?a.score:999+r.dist;if(!best||sc<best.sc)best={sc,cp:r.cp,dist:r.dist}}
+  return best;
+}
+function bubblesHTML(){
+  if(!settings.tableView||phase==='idle'||phase==='shuffle')return'';
+  const p=players[0];const an=analyze(p.hand,p.exp);const seen=seenCounts();const liveJ=Math.max(0,8-(seen.J||0));
+  const items=HANDS.filter(isStar).map(h=>({h,kind:'star'}));
+  if(settings.topBubble&&showHints){const top=rankHands(p.hand,p.exp)[0];if(top&&!items.some(x=>x.h===top.cp.hand))items.push({h:top.cp.hand,kind:'top'})}
+  if(!items.length)return'';
+  return `<div class="bubbles">${items.map(({h,kind})=>{const b=bestFor(h,an,seen,liveJ);const open=bubOpen.has(h.id);
+    const pill=b?(b.dist<=0?'<span class="pill done">Mah Jongg!</span>':`<span class="pill">${b.dist} away</span>`):'<span class="pill dead">Out of reach</span>';
+    return `<div class="bubble${open?' open':''}"><button class="bhead" data-bub="${h.id}" aria-expanded="${open}"><span class="bk">${kind==='star'?'★':'Top'}</span><span class="hpat">${patColored(displayPat(h))}</span>${pill}</button>${open&&b?`<div class="tiles">${patternTilesHTML(b.cp,p.hand,p.exp)}</div>`:''}</div>`}).join('')}</div>`;
+}
+function bindBubbles(){
+  document.querySelectorAll('[data-bub]').forEach(e=>e.onclick=()=>{const id=+e.dataset.bub;bubOpen.has(id)?bubOpen.delete(id):bubOpen.add(id);Sound.tap();render()});
+  bindStars('.bubbles');
 }
 function hintHTML(r,p,size,best){
   const h=r.cp.hand,away=r.dist,note=handNote(h);  // tiles still missing; 0 only when all 14 are in place
@@ -1610,6 +1691,8 @@ function swRow(id,label,desc,on){return `<label class="setrow" for="${id}"><span
 function showSettings(){
   openModal(`<h2>Settings</h2><p class="setnote">Settings are saved on this device.</p>
    <div class="set-sec">Gameplay</div>
+   ${swRow('s_table','Table view','Just the game board with big tiles. Open your hands and the card from the Hands button, and keep starred hands in bubbles above your rack.',settings.tableView)}
+   ${swRow('s_topbub','Top suggestion bubble','In Table view, also keep the top suggested hand in a bubble above your rack.',settings.topBubble)}
    <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Fit to screen keeps everything in the window with no page scrolling. Scroll shows everything at full size and you scroll the page.</span></span>
      <span class="seg" role="group" aria-label="Screen layout">${[['fit','Fit to screen'],['scroll','Scroll']].map(([v,l])=>`<button class="${settings.layout===v?'on':''}" data-layout="${v}" aria-pressed="${settings.layout===v}">${l}</button>`).join('')}</span></div>
    ${swRow('s_dbl','Double-tap to discard','Tap a selected tile again to throw it. When off, tapping it again just deselects it.',settings.dblDiscard)}
@@ -1636,6 +1719,8 @@ function showSettings(){
    <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Done</button></div>`);
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{fn(e.checked);saveSettings();render()}};
   on('s_dbl',v=>settings.dblDiscard=v);
+  on('s_table',v=>{settings.tableView=v;applyLayout();document.body.classList.remove('show-hands')});
+  on('s_topbub',v=>settings.topBubble=v);
   on('s_sound',v=>{Sound.on=v;try{localStorage.setItem('amj_sound',v?'on':'off')}catch(e){}renderSoundBtn();if(v){Sound.init();Sound.chime()}});
   on('s_hints',v=>{showHints=v;try{localStorage.setItem('amj_hints',v?'on':'off')}catch(e){}});
   $('#s_save').onchange=e=>{
@@ -1761,10 +1846,15 @@ $('#btnHelp').onclick=showHelp;
 $('#btnNew').onclick=askNew;
 $('#btnStart').onclick=startFromSplash;
 $('#btnSettings').onclick=showSettings;
-$('#bHandsClose').onclick=()=>document.body.classList.remove('show-hands');
+const closeHands=()=>document.body.classList.remove('show-hands');
+$('#bHandsClose').onclick=closeHands;$('#backdrop').onclick=closeHands;
+$('#btnHands').onclick=()=>document.body.classList.toggle('show-hands');
+$('#bHandsCard').onclick=()=>{closeHands();showCard('view')};
+if(!document.fullscreenEnabled)$('#btnFull').hidden=true;
+$('#btnFull').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(e){}};
 $('#btnResume').onclick=resumeGame;
 if(savedGame()){$('#btnResume').hidden=false;$('#btnStart').textContent='New game'}
-addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#modal').innerHTML)closeModal()});
+addEventListener('keydown',e=>{if(e.key!=='Escape')return;if($('#modal').innerHTML)closeModal();else document.body.classList.remove('show-hands')});
 $('#emblem').innerHTML=tileHTML({k:'F',v:3})+tileHTML('J');
 $('#fan').innerHTML=[{k:'F',v:3},'R','J','G',{k:'F',v:0}].map((t,x)=>`<div class="fan-slot" style="--r:${(x-2)*13}deg;--d:${x*90}ms">${tileHTML(t)}</div>`).join('');
 applyLayout();renderSoundBtn();
