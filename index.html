@@ -323,7 +323,6 @@ code{background:#efe4c8;padding:1px 5px;border-radius:4px}
   <aside class="side">
     <div class="panel" id="stars"></div>
     <div class="panel" id="hints"></div>
-    <div class="panel"><div class="ph"><h3>Table talk</h3></div><div class="log" id="log"></div></div>
   </aside>
 </main>
 <div id="fx"></div>
@@ -661,7 +660,10 @@ function analyze(tiles,exps){
 }
 function isWin(tiles,exps){
   if(tiles.length+exps.reduce((s,e)=>s+e.n,0)!==14)return null;
-  const {res}=analyze(tiles,exps);return res.length&&res[0].dist===0?res[0].cp:null;
+  const {res}=analyze(tiles,exps);const wins=res.filter(r=>r.dist===0);if(!wins.length)return null;
+  const noJ=![...tiles,...exps.flatMap(e=>e.tiles||[])].some(t=>t.k==='J');
+  let best=null,bv=-1;for(const r of wins){const v=r.cp.hand.pts*(noJ&&r.cp.groups.some(g=>g.n>=3)?2:1);if(v>bv){bv=v;best=r.cp}}
+  return best;
 }
 
 
@@ -751,7 +753,9 @@ const SPEED=760;
 let wall=[],players=[0,1,2,3].map(()=>({hand:[],exp:[]})),discards=[],phase='idle',turn=0,step='discard',passIdx=0;
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
 let scores=[0,0,0,0];            // scoreboard lives only for this visit
-let dealer=-1;                    // first game: you are East; each new game East moves to the right
+let dealer=-1;
+let dead=[false,false,false,false];   // declared-dead hands (Part 12)
+let turnSrc=null;                   // seat whose discard the current player claimed this turn, or null if drawn                    // first game: you are East; each new game East moves to the right
 const windOf=i=>WIND[(i-(dealer<0?0:dealer)+4)%4];
 let stars=[];try{stars=JSON.parse(localStorage.getItem('amj_stars'))||[]}catch(e){}
 const hkey=h=>h.cat+'|'+h.pat;
@@ -772,7 +776,7 @@ function toast(m,kind=''){document.querySelectorAll('.toast').forEach(t=>t.remov
 function newGame(){
   gid++;closeModal();Sound.init();
   wall=buildWall();discards=[];logs=[];logVer++;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];
-  dealer=(dealer+1)%4;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
+  dealer=(dealer+1)%4;dead=[false,false,false,false];turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
   log('Everyone pushes their tiles in. Washing the tiles…');
   render();Sound.wash();
   later(deal,REDUCED?60:1550);
@@ -783,6 +787,8 @@ function deal(){
   phase='charleston';passIdx=0;
   log(`Fresh deal with ${cardMode==='mine'?'your loaded card':'the 2026 card'}. ${dealer===0?"You're East with 14 tiles and throw first.":`${NAMES[dealer]} is East and throws first. You're ${windOf(0)}.`}`);
   dealAnim=true;render();for(let i=0;i<14;i++)later(()=>Sound.tap(),120+i*45);
+  const hv=isWin(players[dealer].hand,[]);
+  if(hv&&dealer!==0)later(()=>{log(`${NAMES[dealer]} was dealt a complete hand. Heavenly Hand!`);win(dealer,hv,null)},900);
 }
 function askNew(){
   if(phase==='play'||phase==='charleston'){
@@ -820,7 +826,7 @@ function swapTargets(t){const out=[];players.forEach((q,qi)=>q.exp.forEach((e,ei
 function doSwap(pi,t,[qi,ei]){
   const e=players[qi].exp[ei];const ji=e.tiles.findIndex(x=>x.k==='J');const jt=e.tiles[ji];
   const fT=tileRect(t.id)||mini(rectOf('#seat'+pi)),fJ=tileRect(jt.id);
-  e.tiles[ji]=t;const p=players[pi];p.hand.splice(p.hand.indexOf(t),1);p.hand.push(jt);if(pi!==0)sortHand(p.hand);
+  turnSrc=null;e.tiles[ji]=t;const p=players[pi];p.hand.splice(p.hand.indexOf(t),1);p.hand.push(jt);if(pi!==0)sortHand(p.hand);
   queueFly(t,fT,0,460);if(pi===0)queueFly(jt,fJ,90,460);
   log(`${NAMES[pi]} swapped a ${tname(t.k)} for a Joker from ${pi===qi?(pi===0?'your own':'their own'):(qi===0?'your':NAMES[qi]+"'s")} exposure.`);
   Sound.chime();toast(pi===0?'Joker is yours':`${NAMES[pi]} takes a Joker`);
@@ -842,14 +848,20 @@ function botGive(i,n){const out=[];for(let x=0;x<n;x++){const t=chooseDiscard(pl
 function doPass(){
   const st=chStep();
   if(st==='courtesy'){
+    const want=sel.size,bronx=botCourtesy(2),m=Math.min(want,bronx);
+    [...sel].slice(m).forEach(id=>sel.delete(id));
     const ids=[...sel],outR=ids.map(tileRect);const mine=takeSel();
     let theirs=botGive(2,mine.length);
     if(theirs.length<mine.length){players[0].hand.push(...mine.splice(theirs.length))}
+    if(want>m)log(m?`Bronx only wanted to trade ${m}, so you each passed ${m}.`:'Bronx didn\'t want a courtesy pass, so nothing was traded.');
+    {const m2=Math.min(botCourtesy(1),botCourtesy(3));const a=botGive(1,m2),b=botGive(3,m2);const n2=Math.min(a.length,b.length);
+     players[1].hand.push(...a.splice(n2));players[3].hand.push(...b.splice(n2));players[3].hand.push(...a);players[1].hand.push(...b);
+     sortHand(players[1].hand);sortHand(players[3].hand);log(n2?`Queens and Brooklyn traded ${n2} across.`:'Queens and Brooklyn skipped their courtesy pass.')}
     players[2].hand.push(...mine);players[0].hand.push(...theirs);sortHand(players[2].hand);
     newIds=new Set(theirs.map(t=>t.id));
     const r2=rectOf('#seat2');mine.forEach((t,x)=>flyAway(t,outR[x],r2,x*70));theirs.forEach((t,x)=>queueFly(t,mini(r2),300+x*80,480));
     if(mine.length)Sound.whoosh();
-    log(mine.length?`Courtesy pass: you traded ${mine.length} with Bronx.`:'No courtesy pass.');
+    if(want<=m)log(mine.length?`Courtesy pass: you traded ${mine.length} with Bronx.`:'You skipped the courtesy pass.');
     sel.clear();startPlay();render();return;
   }
   const k=sel.size;if(k>3||(!st.blind&&k!==3))return;
@@ -872,10 +884,16 @@ function doPass(){
   if(blind.length)toast(blind.length===3?'Blind pass':`${blind.length} passed blind`);
   sel.clear();passIdx++;render();
 }
+function botWantsStop(i){const p=players[i];const r=analyze(p.hand,p.exp).res[0];const d=r?r.dist-(14-p.hand.length):99;return d<=3||Math.random()<.12}
 function chDecide(goOn){
-  if(goOn){passIdx++;log('Everyone agrees to a second Charleston.')}else{passIdx=CH.indexOf('courtesy');log('Charleston stopped after the first left.')}
+  if(goOn){const stopper=[1,2,3].find(botWantsStop);
+    if(stopper){passIdx=CH.indexOf('courtesy');log(`${NAMES[stopper]} wants to stop, so there's no second Charleston.`);toast(`${NAMES[stopper]} stops the Charleston`)}
+    else{passIdx++;log('All four players agree to a second Charleston.')}}
+  else{passIdx=CH.indexOf('courtesy');log('You stopped the Charleston after the first left.')}
   newIds=new Set();render();
 }
+// 5.6: each pair across trades the smaller number either player wants
+function botCourtesy(i){const sc=tileScores(players[i]);return Math.min(3,players[i].hand.filter(t=>t.k!=='J'&&sc[t.k]<.25).length)}
 function startPlay(){phase='play';turn=dealer;step='discard';sel.clear();passIdx=CH.length;
   log(dealer===0?'Charleston done. You are East: discard a tile.':`Charleston done. ${NAMES[dealer]} is East and throws first.`);
   if(dealer!==0)later(()=>botAct(dealer),SPEED)}
@@ -912,16 +930,47 @@ function dropTile(id,x,y,dragEl){
   Sound.tap();render();
 }
 
+// ================= Dead hands (Part 12) =================
+// A hand with exposures is dead when no exposed hand on the card can still be finished using
+// tiles that aren't already showing in the discards or anyone's exposures. Concealed tiles are never used to judge.
+function provablyDead(pi){
+  const p=players[pi];if(!p.exp.length)return false;
+  const vis={};const add=t=>{vis[t.k]=(vis[t.k]||0)+1};
+  discards.forEach(add);players.forEach(q=>q.exp.forEach(e=>e.tiles.forEach(add)));
+  const liveJ=8-(vis.J||0);
+  for(const cp of ALL){
+    const ev=evalPat(cp,{},0,p.exp);if(!ev)continue;
+    const pn={},bn={};cp.groups.forEach((g,i)=>{if(ev.used[i])return;if(g.n<3)pn[g.k]=(pn[g.k]||0)+g.n;else bn[g.k]=(bn[g.k]||0)+g.n});
+    let ok=true,jNeed=0;
+    for(const k of new Set([...Object.keys(pn),...Object.keys(bn)])){const av=TOTAL(k)-(vis[k]||0),pp=pn[k]||0,b=bn[k]||0;
+      if(pp>av){ok=false;break}jNeed+=Math.max(0,b-(av-pp))}
+    if(ok&&jNeed<=liveJ)return false;
+  }
+  return true;
+}
+function checkDead(){
+  for(let i=0;i<4;i++){if(dead[i]||!provablyDead(i))continue;dead[i]=true;
+    log(i===0?'Your exposures can no longer make any hand on the card with the tiles left. Your hand is dead.':`${NAMES[i]}'s exposures can no longer make any hand on the card. ${NAMES[i]}'s hand is dead.`);
+    toast(i===0?'Your hand is dead':`${NAMES[i]}'s hand is dead`);Sound.sad()}
+  if(dead.filter(x=>!x).length<=1){phase='over';callState=null;log('Three hands are dead, so this hand ends with no winner.');render();
+    openModal(`<h2>No winner</h2><p>Three hands are dead, so the hand ends. No points change hands.</p><div class="mrow"><button class="btn btn-gold" onclick="newGame()">New game</button><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);return true}
+  return false;
+}
+function nextAlive(i){let j=(i+1)%4;while(dead[j]&&j!==i)j=(j+1)%4;return j}
+
 // ================= Play =================
 function startTurn(i){
+  if(checkDead())return;
+  if(dead[i]){startTurn(nextAlive(i));return}
   if(!wall.length){endWall();return}
+  turnSrc=null;
   const t=wall.pop();players[i].hand.push(t);if(i!==0)sortHand(players[i].hand);turn=i;step='discard';callState=null;
   if(i===0){newIds=new Set([t.id]);selected=null;log(`You drew ${tname(t.k)}.`);queueFly(t,rectOf('#wallStack'),0,460);render();Sound.tap()}
   else{render();later(()=>botAct(i),SPEED)}
 }
 function botAct(i){
   if(phase!=='play')return;const p=players[i];botSwaps(i);
-  const w=isWin(p.hand,p.exp);if(w){win(i,w,null);return}
+  const w=isWin(p.hand,p.exp);if(w){win(i,w,turnSrc);return}
   discard(i,chooseDiscard(p));
 }
 function discard(i,t){
@@ -951,10 +1000,10 @@ function resolveCalls(i,t){
   const order=[1,2,3].map(d=>(i+d)%4),pos=j=>order.indexOf(j);
   let botMJ=null,botExp=null;
   if(t.k!=='J'){
-    for(const j of order){if(j===0)continue;const w=isWin([...players[j].hand,t],players[j].exp);if(w){botMJ={j,w};break}}
-    if(!botMJ)for(const j of order){if(j===0)continue;const n=botCall(players[j],t.k);if(n){botExp={j,n};break}}
+    for(const j of order){if(j===0||dead[j])continue;const w=isWin([...players[j].hand,t],players[j].exp);if(w){botMJ={j,w};break}}
+    if(!botMJ)for(const j of order){if(j===0||dead[j])continue;const n=botCall(players[j],t.k);if(n){botExp={j,n};break}}
   }
-  if(i!==0){
+  if(i!==0&&!dead[0]){
     const o=humanOptions(t.k);
     if(botMJ&&pos(botMJ.j)<pos(0))o.mj=false;   // a Mah Jongg caller sits ahead of you
     if(botMJ)o.exp=[];                          // Mah Jongg outranks exposures
@@ -967,11 +1016,11 @@ function finishCalls(i,t,botMJ,botExp,choice){
   callState=null;
   if(choice&&choice.mj){discards.pop();players[0].hand.push(t);sortHand(players[0].hand);win(0,isWin(players[0].hand,players[0].exp),i);return}
   if(botMJ){discards.pop();players[botMJ.j].hand.push(t);win(botMJ.j,botMJ.w,i);return}
-  if(choice&&choice.n){doExpose(0,t.k,choice.n);render();return}
-  if(botExp){doExpose(botExp.j,t.k,botExp.n);render();later(()=>botAct(botExp.j),SPEED);return}
-  startTurn((i+1)%4);
+  if(choice&&choice.n){doExpose(0,t.k,choice.n,i);render();return}
+  if(botExp){doExpose(botExp.j,t.k,botExp.n,i);render();later(()=>botAct(botExp.j),SPEED);return}
+  startTurn(nextAlive(i));
 }
-function doExpose(pi,k,n){
+function doExpose(pi,k,n,from){
   const p=players[pi];const t=discards.pop();const fromT=tileRect(t.id);const tiles=[t];const moves=[];
   for(let x=0;x<n-1;x++){let idx=p.hand.findIndex(y=>y.k===k);if(idx<0)idx=p.hand.findIndex(y=>y.k==='J');
     const tt=p.hand.splice(idx,1)[0];if(pi===0)moves.push([tt,tileRect(tt.id)]);tiles.push(tt)}
@@ -979,7 +1028,7 @@ function doExpose(pi,k,n){
   queueFly(t,fromT,0,480);moves.forEach(([tt,r],x)=>queueFly(tt,r,60+x*45,420));
   log(`${NAMES[pi]} called ${tname(k)} for a ${WORD[n].toLowerCase()}.`);
   toast(`${NAMES[pi]}: ${WORD[n]}!`);Sound.chime();
-  turn=pi;step='discard';selected=null;newIds=new Set();
+  turn=pi;step='discard';selected=null;newIds=new Set();turnSrc=from;
 }
 function win(pi,cp,from){
   phase='over';callState=null;const p=players[pi];
@@ -1008,7 +1057,7 @@ function onTileClick(id){
 }
 function humanDiscard(){const t=players[0].hand.find(x=>x.id===selected);if(t)discard(0,t)}
 function humanSwap(){const t=players[0].hand.find(x=>x.id===selected);if(!t)return;const tg=swapTargets(t);if(!tg.length)return;doSwap(0,t,tg[0]);selected=null;render()}
-function humanMJ(){const w=isWin(players[0].hand,players[0].exp);if(w)win(0,w,null)}
+function humanMJ(){const w=isWin(players[0].hand,players[0].exp);if(w)win(0,w,phase==='charleston'?null:turnSrc)}
 
 // ================= Hand coach =================
 // Ranks every hand on the card by how realistic it is to finish, not just raw distance:
@@ -1059,7 +1108,7 @@ function renderSeat(i){
   const p=players[i],el=$('#seat'+i);const active=turn===i&&phase==='play';
   el.className=`seat seat-${SEATPOS[i]}${active?' turn':''}${active&&step==='discard'&&!callState?' thinking':''}`;
   const body=phase==='over'?`<div class="reveal">${p.hand.map(t=>tileHTML(t,'xs')).join('')}</div>`:`<div class="backs">${p.hand.map(()=>'<i class="back"></i>').join('')}</div>`;
-  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${windOf(i)} · ${p.hand.length} tiles</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div>${body}${expHTML(p,'xs')}`;
+  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${windOf(i)} · ${p.hand.length} tiles${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div>${body}${expHTML(p,'xs')}`;
 }
 function renderScores(){
   if(scoreAnim)return;
@@ -1090,7 +1139,7 @@ function render(){
   else if(phase==='play'){
     if(callState){status=`${NAMES[callState.i]} threw ${tname(callState.t.k)}`;sub='You can claim it. Call it or let it go.'}
     else if(turn===0&&step==='discard'){status='Your turn';sub='Tap a tile, then Discard. Or tap it twice.'}
-    else{status=`${NAMES[turn]} is playing`;sub=`${windOf(turn)} seat`}
+    else{status=`${NAMES[turn]} is playing`;sub=dead[0]?'Your hand is dead, so you sit out the rest of this hand.':`${windOf(turn)} seat`}
   }else status='Hand over';
   const changed=status!==lastStatus;lastStatus=status;
   const last=discards.length-1;
@@ -1105,7 +1154,8 @@ function render(){
   const p=players[0];let acts='';
   if(phase==='idle')acts='<button class="btn btn-gold" id="bStart2">Deal me in</button>';
   else if(phase==='charleston'){
-    if(st==='decide')acts=`<button class="btn btn-gold" id="bGo">Second Charleston</button><button class="btn btn-ghost" id="bStop">Stop Charleston</button>`;
+    if(dealer===0&&passIdx===0&&isWin(p.hand,p.exp))acts='<button class="btn btn-red" id="bMJ">Mah Jongg! (Heavenly Hand)</button>';
+    else if(st==='decide')acts=`<button class="btn btn-gold" id="bGo">Second Charleston</button><button class="btn btn-ghost" id="bStop">Stop Charleston</button>`;
     else if(st==='courtesy')acts=`<button class="btn btn-gold" id="bPass">${sel.size?`Trade ${sel.size} across`:'Skip courtesy pass'}</button>`;
     else if(st.blind){const k=sel.size;acts=`<button class="btn btn-gold" id="bPass">${k===3?`Pass 3 ${st.n}`:k===0?`Blind pass all 3 ${st.n}`:`Pass ${k} + ${3-k} blind ${st.n}`}</button>`}
     else acts=`<button class="btn btn-gold" ${sel.size===3?'':'disabled'} id="bPass">Pass ${sel.size}/3 ${st.n}</button>`;
@@ -1113,7 +1163,7 @@ function render(){
     const o=callState.o;
     acts=`<div class="callbar">${tileHTML(callState.t,'md')}<span>Call it?</span>
       ${o.mj?'<button class="btn btn-red" data-call="mj">Mah Jongg!</button>':''}
-      ${o.exp.map(n=>`<button class="btn btn-ghost" data-call="${n}">${WORD[n]}</button>`).join('')}
+      ${o.exp.map(n=>`<button class="btn btn-ghost" data-call="${n}">${WORD[n].toUpperCase()} (${n})</button>`).join('')}
       <button class="btn btn-ghost" data-call="pass">Let it go</button></div>`;
   }else if(phase==='play'&&turn===0&&step==='discard'){
     const t=p.hand.find(x=>x.id===selected);const canSwap=t&&t.k!=='J'&&swapTargets(t).length;const w=isWin(p.hand,p.exp);
@@ -1122,7 +1172,7 @@ function render(){
   const yourTurn=turn===0&&phase==='play'&&step==='discard'&&!callState;
   const me=$('#me');
   me.className='me'+(yourTurn?' turn':'');
-  me.innerHTML=`<div class="me-head"><div class="avatar">${bulletHTML(0)}</div><div class="meta"><div class="pname">Your rack</div><div class="pinfo">${windOf(0)} · ${p.hand.length} in hand</div></div>${yourTurn?'<span class="turnpill">YOUR TURN</span>':''}
+  me.innerHTML=`<div class="me-head"><div class="avatar">${bulletHTML(0)}</div><div class="meta"><div class="pname">Your rack</div><div class="pinfo">${windOf(0)} · ${p.hand.length} in hand</div></div>${yourTurn?'<span class="turnpill">YOUR TURN</span>':''}${dead[0]?'<span class="turnpill" style="background:#e5484d;color:#fff;box-shadow:none">DEAD HAND</span>':''}
      <div class="sortbtns"><button class="btn btn-ghost sm" id="bSortS">Sort by suit</button><button class="btn btn-ghost sm" id="bSortN">Sort by number</button></div></div>
     ${expHTML(p,'md')}
     <div class="rack" id="rack">${p.hand.map(t=>tileHTML(t,(sel.has(t.id)||selected===t.id?'sel ':'')+(newIds.has(t.id)?'new ':'')+(dealAnim?'deal':''),true)).join('')}</div>
@@ -1166,7 +1216,7 @@ function renderHints(){
   $('#hintToggle').onchange=e=>{showHints=e.target.checked;try{localStorage.setItem('amj_hints',showHints?'on':'off')}catch(_){}renderHints()};
 }
 function hintHTML(r,p,size,best){
-  const h=r.cp.hand,away=r.dist-(14-size),note=handNote(h);
+  const h=r.cp.hand,away=r.dist,note=handNote(h);  // tiles still missing; 0 only when all 14 are in place
   return`<div class="hint${best?' best':''}"><div class="t"><div style="min-width:0"><div class="hcat">${best?'<span class="tag">Best bet</span>':''}${h.cat}</div>
     <div class="hpat">${patColored(displayPat(h))}</div></div>
     <div class="hr"><span class="pill ${away<=0?'done':''}">${away<=0?'Mah Jongg!':away+' away'}</span><button class="star${isStar(h)?' on':''}" data-star="${h.id}" aria-pressed="${isStar(h)}" aria-label="Star this hand" title="Star this hand">★</button></div></div>
@@ -1192,7 +1242,7 @@ function renderStars(){
   $('#stars').innerHTML=`<div class="ph"><h3>Starred hands</h3><span class="sub">${list.length}/3</span></div>${body}`;
   bindStars('#stars');
 }
-function renderLog(){if(shownLogVer===logVer)return;shownLogVer=logVer;$('#log').innerHTML=logs.map((m,i)=>`<div${i===0?' class="fresh"':''}>${m}</div>`).join('')}
+function renderLog(){if(shownLogVer===logVer||!$('#log'))return;shownLogVer=logVer;$('#log').innerHTML=logs.map((m,i)=>`<div${i===0?' class="fresh"':''}>${m}</div>`).join('')}
 
 // ================= Modals =================
 function openModal(html){$('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"><div class="box">${html}</div></div>`}
@@ -1255,21 +1305,28 @@ function showCard(tab='view'){
   }
 }
 function showHelp(){openModal(`<div class="help"><h2>How to play</h2>
- <p>Be the first to build one of the 14-tile hands on the card. The Best hands panel ranks the hands you can realistically finish and shows which tiles you still need. You can switch it off.</p>
+ <p>Be the first to build exactly 14 tiles that match one hand on the card. The card decides what wins. The rules below decide how you get, expose, swap and use tiles.</p>
+ <h4>Seats</h4>
+ <p>You start as East. East gets 14 tiles and throws first without drawing. After every hand, win or wall game, East moves one seat to the right. Play goes to the right.</p>
  <h4>Charleston</h4>
- <p>The first Charleston is required: pass 3 right, 3 across, 3 left. Then everyone can stop or do a second Charleston (left, across, right), followed by an optional courtesy pass of 0 to 3 tiles with the player across. Jokers can't be passed.</p>
- <p><b>Blind passes:</b> on the first left and the second right you can pass fewer than 3 of your own tiles. The rest are taken from the tiles being passed to you and sent along without you seeing them.</p>
+ <p>First Charleston, required: pass 3 right, 3 across, 3 left. A second Charleston (left, across, right) only happens if all four players agree. If anyone wants to stop, it's skipped. Once it starts, it has to finish. Then comes an optional courtesy pass of 0 to 3 tiles with the player across. You both trade the smaller number either of you wants. Jokers can never be passed.</p>
+ <p><b>Blind pass:</b> on the first left and the second right only, you can pass fewer than 3 of your own tiles. The rest come from the tiles being passed to you and go straight on without you seeing them.</p>
+ <p><b>Heavenly Hand:</b> if East is dealt a complete hand, East declares Mah Jongg right away. If East completes a hand during the Charleston, East declares before the first discard.</p>
  <h4>Your turn</h4>
- <p>You draw automatically. Tap a tile and hit Discard, or tap it twice. Drag tiles to arrange your rack, or use Sort by suit / Sort by number.</p>
+ <p>Draw (automatic), swap for Jokers if you want, declare Mah Jongg if your hand is complete, otherwise discard. You can throw the tile you just drew. Tap a tile and hit Discard, or tap it twice.</p>
  <h4>Calling</h4>
- <p>When someone throws a tile you can use, a gold bar pops up. You can call it for a pung (3), kong (4), quint (5) or sextet (6) using matching tiles, jokers, or both. The group goes face up and you discard without drawing. Play then continues to your right.</p>
- <p>Singles and pairs can only be claimed for Mah Jongg. Concealed (C) hands can't call anything except Mah Jongg. A discarded Joker can't be called. Mah Jongg beats any other call. If two players want the same tile, the one next in turn gets it.</p>
+ <p>Only the newest discard can be claimed. Call it for a PUNG (3), KONG (4), QUINT (5) or SEXTET (6) of identical tiles, using matching tiles, Jokers or both. The group must fit an exposed (X) hand on the card. It goes face up, you discard without drawing, and play continues to your right. Seats you skip lose their turn.</p>
+ <p>You can't call a tile for a single, a pair, a run, NEWS or 2026 unless it finishes Mah Jongg. You can claim any tile, even for a pair or single, when it completes your whole hand, including a concealed (C) hand. A discarded Joker can never be called. If several players want a tile, Mah Jongg wins over an exposure. Between two of the same kind of call, the player next in turn after the thrower gets it. You never have to call.</p>
+ <h4>Exposures</h4>
+ <p>Exposed groups stay face up and can't grow. Calling another of the same tile makes a new group, not a bigger one. You can switch to a different hand as long as all your exposures still fit it.</p>
  <h4>Jokers</h4>
- <p>Jokers stand in for any tile in a group of 3 or more, never in singles or pairs. If a joker sits in anyone's exposure and you hold the real tile, select it on your turn and hit <b>Swap for Joker</b>.</p>
+ <p>Jokers fill in for tiles in groups of 3 or more identical tiles, including Flowers. They never go in singles, pairs, runs, NEWS or 2026. On your turn, after you draw or call, you can trade the real tile for any exposed Joker, yours or anyone's, as many times as you can. Select the tile and hit Swap for Joker. You can't swap with a discard. A win made by a Joker swap counts as self-drawn.</p>
+ <h4>Dead hands</h4>
+ <p>If a player's exposures can no longer make any hand on the card with the tiles still out (judged only from discards and exposures), that hand is dead. A dead hand sits out the rest of the hand but still pays the winner. If three hands are dead, the hand ends with no winner.</p>
  <h4>Scoring</h4>
- <p>Win off a discard: the thrower pays double, everyone else pays the hand value. Self-drawn: everyone pays double. Jokerless hands double (except Singles and Pairs).</p>
+ <p>Win on a discard: the thrower pays double, the other two pay the hand's value. Self-drawn or Joker-swap win: everyone pays double. A hand with no Jokers doubles its value, except Singles and Pairs, which can't use Jokers anyway. If your tiles match more than one hand, you get the highest-scoring one. If the wall runs out, nobody pays. The last discard can still be called first.</p>
  <h4>Your NYC tiles</h4>
- <p>Dots are bagels, Bams are Art Deco towers, Craks are Big Apples, Winds are street signs, Red is a hydrant, Green is the Liberty torch, Soap is a Broadway marquee star. Flowers: pizza, One WTC, hot dog, Liberty crown, Brooklyn Bridge, subway car, coffee cup, Coney Island wheel. Jokers are yellow cabs.</p>
+ <p>Dots are bagels, Bams are Art Deco towers, Craks are Big Apples, Winds are street signs, Red is a hydrant, Green is the Liberty torch, Soap (White, also used as zero) is a Broadway marquee star. Flowers, all interchangeable: pizza, One WTC, hot dog, Liberty crown, Brooklyn Bridge, subway car, coffee cup, Coney Island wheel. Jokers are yellow cabs. Red goes with Craks, Green with Bams, Soap with Dots.</p>
  <div class="win-tiles">${['D5','B5','C5','N','R','G','0'].map(k=>tileHTML(k,'md')).join('')}${[0,1,2,3,4,5,6,7].map(v=>tileHTML({k:'F',v},'md')).join('')}${tileHTML('J','md')}</div>
  <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Got it</button></div></div>`)}
 
