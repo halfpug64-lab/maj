@@ -349,6 +349,94 @@ code{background:#efe4c8;padding:1px 5px;border-radius:4px}
   .tools{margin-left:auto}
   h1{font-size:19px}
 }
+
+/* ================= One-screen layout ================= */
+/* The page never scrolls: the table and rack share the window height; long lists scroll inside their own panel. */
+html,body{height:100%}
+body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+.topbar{flex:none;position:relative}
+.bar-in{padding-top:8px;padding-bottom:8px}
+.emblem{width:42px;height:36px}.emblem .tile{--w:21px}
+h1{font-size:20px}
+.layout{flex:1;min-height:0;width:100%;padding-block:12px;grid-template-rows:minmax(0,1fr);gap:14px}
+.table{min-height:0;gap:10px}
+.felt{flex:1;min-height:0;padding:12px;gap:10px;grid-template-rows:auto minmax(0,1fr);border-width:9px}
+.seat{padding:8px 10px;overflow:hidden;min-height:0}
+.seat .backs{margin-top:7px}
+.seat .back{width:11px;height:15px}
+.avatar,.avatar .bullet{width:32px;height:32px;font-size:15px}
+.pool{min-height:0}
+.banner{margin-bottom:8px}
+.status{font-size:20px}
+.discards{flex:1;min-height:56px;overflow-y:auto;padding:8px;scrollbar-width:thin;scrollbar-color:rgba(236,198,109,.35) transparent}
+.wash{flex:1;min-height:80px;height:auto}
+.wallmeter{margin-top:8px}
+.me{flex:none;padding:10px 14px 12px}
+.rack{padding:16px 8px 16px;margin-top:8px;min-height:0}
+.rack .tile{--w:clamp(30px,5.2vh,50px)}
+.actions{margin-top:10px;min-height:38px}
+.side{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(236,198,109,.35) transparent;padding-right:2px}
+.panel{margin-bottom:12px;padding:14px}
+.hintlist{max-height:none}
+.sheet-bar,.hands-btn{display:none}
+@media(max-width:1180px){.layout{grid-template-columns:minmax(0,1fr) 290px}}
+
+/* phones and narrow tablets: table + rack fill the screen, hand panels open as a sheet */
+@media(max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr);padding-block:8px;gap:8px}
+  .lbl{display:none}
+  .brand small{display:none}
+  .bar-in{gap:8px 10px}
+  .brand{flex:1 1 100%;min-width:0}
+  #btnSound{display:none}
+  .tools{gap:4px}.tools .btn{padding:7px}
+  .tools .btn svg{width:15px;height:15px}
+  h1{font-size:16px;letter-spacing:1px;white-space:nowrap}
+  .emblem{width:34px;height:30px}.emblem .tile{--w:17px}.emblem .tile:last-child{left:15px}
+  .scores{order:3;width:auto;margin-left:0;justify-content:flex-start;gap:4px;flex-wrap:nowrap}
+  .chip{font-size:11px;padding:2px 6px 2px 2px;gap:3px}
+  .chip b{min-width:0}
+  .bar-in{column-gap:6px}
+  .chip>span:not(.bullet){display:none}
+  .tools{order:4;margin-left:auto}
+  #btnNew{font-size:0;gap:0}#btnNew svg{width:16px;height:16px}
+  .chip .bullet{width:18px;height:18px;font-size:10px}
+  .tools{margin-left:auto}
+  .btn.icon,.tools .btn{padding:8px}
+  .tools .btn-gold{padding:8px}
+  .felt{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"top top" "left right" "pool pool";grid-template-rows:auto auto minmax(0,1fr);padding:8px;gap:6px;border-width:6px;border-radius:20px}
+  .seat-top{width:100%}
+  .seat{padding:6px 8px;border-radius:12px}
+  .avatar,.avatar .bullet{width:26px;height:26px;font-size:12px}
+  .pname{font-size:13px}.pinfo{font-size:10.5px}
+  .seat .backs{display:none}
+  .pool{overflow:hidden}
+  .seat .exps{margin-top:4px;gap:3px}
+  .seat .exps .tile.xs{--w:16px}
+  .seat .reveal .tile.xs{--w:17px}
+  .status{font-size:17px}.banner .sub{font-size:11.5px}
+  .dir{width:26px;height:26px;margin-bottom:3px}.dir svg{width:15px;height:15px}
+  .discards .tile.sm{--w:22px}
+  .wallmeter{font-size:11px;margin-top:6px}
+  .me{padding:8px 10px 10px;border-radius:16px}
+  .me-head{gap:6px}
+  .sortbtns{margin-left:auto;width:auto}
+  .btn.sm{padding:5px 8px;font-size:11.5px}
+  .hands-btn{display:inline-flex;background:rgba(236,198,109,.16);border-color:rgba(236,198,109,.6);color:var(--gold-hi)}
+  .rack{padding:12px 4px 14px;gap:3px;margin-top:6px}
+  .rack .tile{--w:clamp(26px,calc((100vw - 84px)/7.5),44px)}
+  .exps .tile.md{--w:28px}
+  .actions{margin-top:8px;gap:8px}
+  .actions .btn{padding:9px 13px}
+  .callbar{padding:8px 10px;gap:6px}
+  .side{display:none}
+  body.show-hands .side{display:block;position:fixed;left:0;right:0;bottom:0;max-height:78vh;z-index:40;padding:0 max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));
+    background:var(--sky-3);border-top:1px solid var(--gold);border-radius:18px 18px 0 0;box-shadow:0 -20px 50px rgba(0,0,0,.6);animation:rise .3s}
+  body.show-hands .sheet-bar{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1;padding:12px 2px 10px;background:var(--sky-3);color:var(--gold)}
+}
+/* very short windows (phone held sideways, tiny laptop windows): let the page scroll rather than squash it */
+@media(max-height:560px){body{height:auto;min-height:100vh;overflow:auto}.side{overflow:visible}.felt{min-height:300px}}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -379,6 +467,7 @@ code{background:#efe4c8;padding:1px 5px;border-radius:4px}
     <div class="me" id="me"></div>
   </section>
   <aside class="side">
+    <div class="sheet-bar"><b>Your hands</b><button class="btn btn-ghost sm" id="bHandsClose">Close</button></div>
     <div class="panel" id="stars"></div>
     <div class="panel" id="hints"></div>
   </aside>
@@ -1332,7 +1421,7 @@ function render(){
   const me=$('#me');
   me.className='me'+(yourTurn?' turn':'');
   me.innerHTML=`<div class="me-head"><div class="avatar">${bulletHTML(0)}</div><div class="meta"><div class="pname">Your rack</div><div class="pinfo">${windOf(0)} · ${p.hand.length} in hand</div></div>${yourTurn?'<span class="turnpill">YOUR TURN</span>':''}${dead[0]?'<span class="turnpill" style="background:#e5484d;color:#fff;box-shadow:none">DEAD HAND</span>':''}
-     <div class="sortbtns"><button class="btn btn-ghost sm" id="bSortS">Sort by suit</button><button class="btn btn-ghost sm" id="bSortN">Sort by number</button></div></div>
+     <div class="sortbtns"><button class="btn btn-ghost sm hands-btn" id="bHands">Hands</button><button class="btn btn-ghost sm" id="bSortS">Sort by suit</button><button class="btn btn-ghost sm" id="bSortN">Sort by number</button></div></div>
     ${expHTML(p,'md')}${buildHTML()}
     <div class="rack" id="rack">${p.hand.map(t=>tileHTML(t,(sel.has(t.id)||selected===t.id?'sel ':'')+(newIds.has(t.id)?'new ':'')+(dealAnim?'deal ':'')+(building&&canAdd(t)?'can':''),true)).join('')}</div>
     <div class="actions">${acts}</div>`;
@@ -1341,7 +1430,7 @@ function render(){
   bindRack();
   const bind=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
   bind('bPass',doPass);bind('bGo',()=>chDecide(true));bind('bStop',()=>chDecide(false));bind('bSortS',()=>sortMine('suit'));bind('bSortN',()=>sortMine('num'));
-  bind('bDis',humanDiscard);bind('bCancel',cancelBuild);document.querySelectorAll('.pending .tile[data-id]').forEach(e=>e.onclick=()=>unbuildTap(+e.dataset.id));bind('bSwap',humanSwap);bind('bMJ',humanMJ);bind('bNext',newGame);bind('bStart2',startFromSplash);
+  bind('bDis',humanDiscard);bind('bHands',()=>document.body.classList.add('show-hands'));bind('bCancel',cancelBuild);document.querySelectorAll('.pending .tile[data-id]').forEach(e=>e.onclick=()=>unbuildTap(+e.dataset.id));bind('bSwap',humanSwap);bind('bMJ',humanMJ);bind('bNext',newGame);bind('bStart2',startFromSplash);
   document.querySelectorAll('[data-call]').forEach(b=>b.onclick=()=>{const v=b.dataset.call,cs=callState;if(!cs)return;
     finishCalls(cs.i,cs.t,cs.botMJ,cs.botExp,v==='mj'?{mj:true}:v==='pass'?null:v==='build'?{build:true}:{n:+v})});
   renderStars();renderHints();renderLog();flushFly();saveProgress();
@@ -1649,6 +1738,7 @@ $('#btnHelp').onclick=showHelp;
 $('#btnNew').onclick=askNew;
 $('#btnStart').onclick=startFromSplash;
 $('#btnSettings').onclick=showSettings;
+$('#bHandsClose').onclick=()=>document.body.classList.remove('show-hands');
 $('#btnResume').onclick=resumeGame;
 if(savedGame()){$('#btnResume').hidden=false;$('#btnStart').textContent='New game'}
 addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#modal').innerHTML)closeModal()});
