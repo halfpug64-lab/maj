@@ -25,6 +25,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{font-family:var(--body);color:var(--txt);min-height:100vh;overflow-x:hidden;
   background:radial-gradient(1400px 800px at 50% -10%,var(--sky-1) 0,var(--sky-2) 55%,var(--sky-3) 100%) fixed,var(--sky-3);
@@ -797,10 +798,11 @@ const SPEED=760;
 let wall=[],players=[0,1,2,3].map(()=>({hand:[],exp:[]})),discards=[],phase='idle',turn=0,step='discard',passIdx=0;
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
 // Settings are always saved on this device. Progress (scores, East rotation, an unfinished game) only when "Save progress" is on.
-const SET_DEFAULT={dblDiscard:false,startWind:0,save:false,expMode:'quick',diff:1,botDiff:{},house:false,
+const SET_DEFAULT={v:2,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
   hr:{threeExp:true,wallPoints:false,deadNoPay:false,noBlind:false,noCourtesy:false,alwaysSecond:false}};
 let settings=JSON.parse(JSON.stringify(SET_DEFAULT));
-try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={...settings,...sv,hr:{...SET_DEFAULT.hr,...(sv.hr||{})}}}}catch(e){}
+try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={...settings,...sv,hr:{...SET_DEFAULT.hr,...(sv.hr||{})}};
+  if(sv.v!==2){settings.v=2;settings.save=true}}}catch(e){}   // save progress became on by default in v2
 function saveSettings(){try{localStorage.setItem('amj_settings',JSON.stringify(settings))}catch(e){}}
 const houseOn=k=>settings.house&&!!settings.hr[k];
 const LEVELS=['Easy','Default','Hard'];
@@ -809,6 +811,7 @@ const isBlind=st=>!!(st&&st.blind&&!houseOn('noBlind'));
 let scores=[0,0,0,0];
 let dealer=-1,pendingStart=true;
 let building=null;   // exposure you're placing yourself: {t, from, tiles, botMJ, botExp}   // pendingStart: the next new game seats you at your chosen starting wind
+if(!settings.save){try{localStorage.removeItem('amj_progress');localStorage.removeItem('amj_game')}catch(e){}}   // off: nothing carries over
 if(settings.save){try{const pr=JSON.parse(localStorage.getItem('amj_progress'));
   if(pr&&Array.isArray(pr.scores)&&pr.scores.length===4){scores=pr.scores;if(pr.dealer>=0){dealer=pr.dealer;pendingStart=false}}}catch(e){}}
 let dead=[false,false,false,false];   // declared-dead hands (Part 12)
@@ -1436,7 +1439,7 @@ function showSettings(){
    <div id="botList" class="hrlist" hidden>
      <p class="setnote">Set each bot on its own. Moving the main slider resets all three.</p>
      ${[1,2,3].map(i=>`<div class="setrow col"><span class="st"><b class="botname">${bulletHTML(i)} ${NAMES[i]}</b></span>${diffSlider('s_bot'+i,botLevel(i),i)}</div>`).join('')}</div>
-   ${swRow('s_save','Save progress','Keep scores, the East rotation and an unfinished game between visits. When off, they reset every time you reload.',settings.save)}
+   ${swRow('s_save','Save progress','Keep scores, the East rotation and an unfinished game between visits. On by default. When off, nothing is saved, so a reload starts fresh with no scores and no game to resume.',settings.save)}
    <div class="set-sec">House rules</div>
    ${swRow('s_house','Use house rules','When off, the game uses only the standard rules.',settings.house)}
    <button class="morebtn" id="s_more" aria-expanded="false" aria-controls="hrList">More <span class="chev">▾</span></button>
