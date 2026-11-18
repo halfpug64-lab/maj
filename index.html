@@ -285,6 +285,15 @@ code{background:#efe4c8;padding:1px 5px;border-radius:4px}
 .rack .tile.can{box-shadow:inset 0 0 0 calc(var(--w)*.045) #fff,inset 0 0 0 calc(var(--w)*.075) #e2d5b5,0 0 0 2px rgba(236,198,109,.85),0 calc(var(--w)*.16) calc(var(--w)*.2) rgba(0,0,0,.45)}
 
 /* ---------- settings ---------- */
+.btn-danger{background:linear-gradient(180deg,#ef5a50,#c2302a);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 2px 0 #7e1a14}
+.btn-danger:hover{filter:brightness(1.07)}
+.danger-zone{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;padding:14px;border-radius:12px;border:1px solid rgba(194,48,42,.35);background:rgba(229,72,77,.06)}
+.danger-zone b{display:block;font-size:14.5px;color:#9b2620}
+.danger-zone .d{font-size:12.5px;color:var(--paper-muted)}
+.confirm{position:fixed;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(2,8,14,.55);animation:fade .2s}
+.confirm .cbox{max-width:440px;width:100%;background:linear-gradient(180deg,var(--paper),var(--paper-2));color:var(--paper-ink);border-radius:16px;padding:20px;border:2px solid #c2302a;box-shadow:0 24px 60px rgba(0,0,0,.55);animation:modalin .35s cubic-bezier(.2,1.25,.4,1)}
+.confirm h3{margin:0 0 6px;font-family:var(--display);font-weight:400;color:#9b2620;font-size:22px}
+.confirm p{margin:0;font-size:14px;line-height:1.5}
 .setrow.col{flex-direction:column;align-items:stretch;cursor:default;gap:10px}
 .slider{width:100%;max-width:420px}
 .slider input{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:8px;cursor:pointer;
@@ -1412,6 +1421,20 @@ function resumeGame(){
 }
 
 // ================= Settings =================
+function askConfirm({title,body,yes,onYes}){
+  const m=$('#modal .modal');if(!m)return;
+  const d=document.createElement('div');d.className='confirm';d.setAttribute('role','alertdialog');d.setAttribute('aria-modal','true');
+  d.innerHTML=`<div class="cbox"><h3>${title}</h3><p>${body}</p><div class="mrow"><button class="btn btn-danger" data-c="yes">${yes}</button><button class="btn btn-ghost" data-c="no">Cancel</button></div></div>`;
+  const close=()=>d.remove();
+  d.onclick=e=>{if(e.target===d)close()};
+  d.querySelector('[data-c="no"]').onclick=close;
+  d.querySelector('[data-c="yes"]').onclick=()=>{close();onYes()};
+  m.appendChild(d);d.querySelector('[data-c="no"]').focus();
+}
+function resetProgress(){
+  clearProgress();scores=[0,0,0,0];shown=[0,0,0,0];dealer=-1;pendingStart=true;
+  closeModal();toast('Progress reset');newGame();
+}
 function diffSlider(id,v,bot){return `<div class="slider"><input type="range" id="${id}" min="0" max="2" step="1" value="${v}" ${bot?`data-bot="${bot}"`:''} aria-valuetext="${LEVELS[v]}" aria-label="${bot?NAMES[bot]+' difficulty':'Bot difficulty'}"><div class="ticks">${LEVELS.map((l,x)=>`<span class="${x===v?'on':''}">${l}</span>`).join('')}</div></div>`}
 function paintSlider(el){const v=+el.value;el.setAttribute('aria-valuetext',LEVELS[v]);el.style.setProperty('--fill',(v*50)+'%');
   el.parentElement.querySelectorAll('.ticks span').forEach((s,x)=>s.classList.toggle('on',x===v))}
@@ -1446,12 +1469,20 @@ function showSettings(){
    <div id="hrList" class="hrlist${settings.house?'':' off'}" hidden>
      <p class="setnote">${settings.house?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'}</p>
      ${HR.map(([k,l,d])=>swRow('hr_'+k,l,d,settings.hr[k])).join('')}</div>
+   <div class="danger-zone"><div><b>Reset progress</b><span class="d">Clears scores, the East rotation and any saved game.</span></div><button class="btn btn-danger" id="s_reset">Reset progress</button></div>
    <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Done</button></div>`);
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{fn(e.checked);saveSettings();render()}};
   on('s_dbl',v=>settings.dblDiscard=v);
   on('s_sound',v=>{Sound.on=v;try{localStorage.setItem('amj_sound',v?'on':'off')}catch(e){}renderSoundBtn();if(v){Sound.init();Sound.chime()}});
   on('s_hints',v=>{showHints=v;try{localStorage.setItem('amj_hints',v?'on':'off')}catch(e){}});
-  on('s_save',v=>{settings.save=v;if(v)saveProgress();else clearProgress()});
+  $('#s_save').onchange=e=>{
+    if(e.target.checked){settings.save=true;saveSettings();saveProgress();return}
+    e.target.checked=true;   // stays on unless confirmed
+    askConfirm({title:'Turn off Save progress?',body:'Your saved scores and unfinished game will be deleted, and nothing will be saved from now on. Reloading the page will start fresh.',
+      yes:'Turn it off',onYes:()=>{settings.save=false;saveSettings();clearProgress();$('#s_save').checked=false;toast('Save progress is off')}});
+  };
+  $('#s_reset').onclick=()=>askConfirm({title:'Reset progress?',body:'All scores go back to 0, the saved game is deleted, and a fresh game is dealt with you at your starting seat. Your settings stay the same.',
+    yes:'Reset progress',onYes:resetProgress});
   on('s_house',v=>{settings.house=v;const l=$('#hrList');l.classList.toggle('off',!v);l.querySelector('.setnote').textContent=v?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'});
   HR.forEach(([k])=>on('hr_'+k,v=>settings.hr[k]=v));
   document.querySelectorAll('[data-wind]').forEach(b=>b.onclick=()=>{settings.startWind=+b.dataset.wind;pendingStart=true;saveSettings();
