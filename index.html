@@ -434,6 +434,24 @@ h1{font-size:20px}
     background:var(--sky-3);border-top:1px solid var(--gold);border-radius:18px 18px 0 0;box-shadow:0 -20px 50px rgba(0,0,0,.6);animation:rise .3s}
   body.show-hands .sheet-bar{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1;padding:12px 2px 10px;background:var(--sky-3);color:var(--gold)}
 }
+
+/* ================= Scroll layout (Settings > Screen layout > Scroll) ================= */
+body.scroll-layout{display:block;height:auto;min-height:100vh;overflow-x:hidden;overflow-y:auto}
+body.scroll-layout .topbar{position:sticky;top:0}
+body.scroll-layout .layout{height:auto;grid-template-rows:auto;padding-block:18px 40px}
+body.scroll-layout .felt{flex:none;min-height:440px}
+body.scroll-layout .discards{flex:none;overflow:visible;min-height:96px}
+body.scroll-layout .wash{flex:none;height:150px}
+body.scroll-layout .side{overflow:visible}
+body.scroll-layout .rack .tile{--w:50px}
+@media(max-width:900px){
+  body.scroll-layout .felt{min-height:0}
+  body.scroll-layout .side{display:block;position:static;max-height:none;padding:0;background:none;border:0;box-shadow:none;animation:none}
+  body.scroll-layout .sheet-bar,body.scroll-layout .hands-btn{display:none}
+  body.scroll-layout .seat .backs{display:flex;margin-top:5px;gap:1px}
+  body.scroll-layout .seat .back{width:8px;height:11px;box-shadow:inset 0 0 0 1px rgba(236,198,109,.65),0 1px 0 #efe3c4}
+  body.scroll-layout .rack .tile{--w:clamp(26px,calc((100vw - 84px)/7.5),44px)}
+}
 /* very short windows (phone held sideways, tiny laptop windows): let the page scroll rather than squash it */
 @media(max-height:560px){body{height:auto;min-height:100vh;overflow:auto}.side{overflow:visible}.felt{min-height:300px}}
 
@@ -900,11 +918,12 @@ const SPEED=760;
 let wall=[],players=[0,1,2,3].map(()=>({hand:[],exp:[]})),discards=[],phase='idle',turn=0,step='discard',passIdx=0;
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
 // Settings are always saved on this device. Progress (scores, East rotation, an unfinished game) only when "Save progress" is on.
-const SET_DEFAULT={v:2,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
+const SET_DEFAULT={v:2,layout:'fit',dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
   hr:{threeExp:true,wallPoints:false,deadNoPay:false,noBlind:false,noCourtesy:false,alwaysSecond:false}};
 let settings=JSON.parse(JSON.stringify(SET_DEFAULT));
 try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={...settings,...sv,hr:{...SET_DEFAULT.hr,...(sv.hr||{})}};
   if(sv.v!==2){settings.v=2;settings.save=true}}}catch(e){}   // save progress became on by default in v2
+function applyLayout(){document.body.classList.toggle('scroll-layout',settings.layout==='scroll')}
 function saveSettings(){try{localStorage.setItem('amj_settings',JSON.stringify(settings))}catch(e){}}
 const houseOn=k=>settings.house&&!!settings.hr[k];
 const LEVELS=['Easy','Default','Hard'];
@@ -1591,6 +1610,8 @@ function swRow(id,label,desc,on){return `<label class="setrow" for="${id}"><span
 function showSettings(){
   openModal(`<h2>Settings</h2><p class="setnote">Settings are saved on this device.</p>
    <div class="set-sec">Gameplay</div>
+   <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Fit to screen keeps everything in the window with no page scrolling. Scroll shows everything at full size and you scroll the page.</span></span>
+     <span class="seg" role="group" aria-label="Screen layout">${[['fit','Fit to screen'],['scroll','Scroll']].map(([v,l])=>`<button class="${settings.layout===v?'on':''}" data-layout="${v}" aria-pressed="${settings.layout===v}">${l}</button>`).join('')}</span></div>
    ${swRow('s_dbl','Double-tap to discard','Tap a selected tile again to throw it. When off, tapping it again just deselects it.',settings.dblDiscard)}
    ${swRow('s_sound','Sound effects','Tile clicks, calls and the Mah Jongg fanfare.',Sound.on)}
    ${swRow('s_hints','Best hands panel','Suggests which hands on the card your tiles fit.',showHints)}
@@ -1629,6 +1650,8 @@ function showSettings(){
   HR.forEach(([k])=>on('hr_'+k,v=>settings.hr[k]=v));
   document.querySelectorAll('[data-wind]').forEach(b=>b.onclick=()=>{settings.startWind=+b.dataset.wind;pendingStart=true;saveSettings();
     document.querySelectorAll('[data-wind]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)});render()});
+  document.querySelectorAll('[data-layout]').forEach(b=>b.onclick=()=>{settings.layout=b.dataset.layout;saveSettings();applyLayout();document.body.classList.remove('show-hands');
+    document.querySelectorAll('[data-layout]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)});render()});
   document.querySelectorAll('[data-exp]').forEach(b=>b.onclick=()=>{settings.expMode=b.dataset.exp;saveSettings();
     document.querySelectorAll('[data-exp]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)});render()});
   const diffNote=()=>{$('#diffNote').textContent=[1,2,3].some(i=>botLevel(i)!==settings.diff)?'Bots are set individually below.':''};
@@ -1744,7 +1767,7 @@ if(savedGame()){$('#btnResume').hidden=false;$('#btnStart').textContent='New gam
 addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#modal').innerHTML)closeModal()});
 $('#emblem').innerHTML=tileHTML({k:'F',v:3})+tileHTML('J');
 $('#fan').innerHTML=[{k:'F',v:3},'R','J','G',{k:'F',v:0}].map((t,x)=>`<div class="fan-slot" style="--r:${(x-2)*13}deg;--d:${x*90}ms">${tileHTML(t)}</div>`).join('');
-renderSoundBtn();
+applyLayout();renderSoundBtn();
 render();
 </script>
 </body>
