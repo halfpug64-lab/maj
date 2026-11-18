@@ -215,6 +215,7 @@ h1{font-family:var(--display);font-weight:400;font-size:22px;letter-spacing:1.5p
 .grp{display:flex;flex-wrap:nowrap;gap:2px}
 .hint .foot{font-size:11px;color:var(--muted);margin-top:7px}
 .gap{width:5px}
+.held{width:100%;font-size:11.5px;color:var(--violet);margin-top:4px}
 .tile.jtap{cursor:pointer;transition:opacity .15s,box-shadow .15s}
 .tile.jtap:hover,.tile.jtap:focus-visible{opacity:.75;filter:none;box-shadow:0 0 0 2px var(--violet)}
 .hintlist{position:relative;max-height:var(--three,560px);overflow-y:auto;overscroll-behavior:contain;margin:0 -6px;padding:0 6px;scrollbar-width:thin;scrollbar-color:rgba(236,198,109,.35) transparent;
@@ -848,7 +849,7 @@ function newGame(){
   gid++;closeModal();Sound.init();
   wall=buildWall();discards=[];logs=[];logVer++;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];
   if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false}else dealer=(dealer+1)%4;
-  jokerPrefs.clear();dead=[false,false,false,false];building=null;turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
+  jokerPlans.clear();dead=[false,false,false,false];building=null;turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
   log('Everyone pushes their tiles in. Washing the tiles…');
   render();Sound.wash();
   later(deal,REDUCED?60:1550);
@@ -1348,32 +1349,56 @@ function buildHTML(){
   return`<div class="building"><div class="exp pending">${building.tiles.map(t=>tileHTML(t,'md'+(t===building.t?' called':''),true)).join('')}${Array.from({length:Math.max(0,3-n)},()=>'<span class="slot"></span>').join('')}</div>
     <div class="bmsg${ok?' ok':''}">${msg}<span class="sub">${building.committed?' Tap a tile in the group to take it back. The call can no longer be canceled.':' You can still cancel the call until you add one of your own tiles.'}</span></div></div>`;
 }
-// Which groups you've asked your Jokers to cover, per hand pattern (newest request last). Tap a faded tile to move a Joker there.
-const jokerPrefs=new Map(),CPI=new Map();
+// Your Joker placements in the hand panels, per hand pattern.
+// Once you touch a hand, every Joker is pinned to a group (picks, oldest first) or deliberately left unplaced (held).
+const jokerPlans=new Map(),CPI=new Map();
 const cpIndex=cp=>{if(!CPI.has(cp))CPI.set(cp,ALL.indexOf(cp));return CPI.get(cp)};
-function moveJoker(cpi,gi){
-  const cp=ALL[cpi];if(!cp)return;const {j}=countTiles(players[0].hand);
-  if(!j){toast('You have no Jokers to move');return}
-  const pref=(jokerPrefs.get(cp)||[]).concat(gi);while(pref.length>j)pref.shift();
-  jokerPrefs.set(cp,pref);Sound.tap();render();
-}
-function patternTilesHTML(cp,tiles,exps){
+function jokerLayout(cp,tiles,exps){
   const {c,j}=countTiles(tiles);const avail={...c};
-  // match each exposure to its group the same way evalPat does, so exposed groups show their real tiles
-  const expFor={},taken=new Set();
+  const expFor={},taken=new Set();   // match exposures to groups the same way evalPat does
   for(const e of exps)for(let i=0;i<cp.groups.length;i++){const g=cp.groups[i];if(!taken.has(i)&&g.k===e.k&&g.n===e.n){taken.add(i);expFor[i]=e;break}}
   const info=cp.groups.map((g,i)=>{if(expFor[i])return null;const have=Math.min(g.n,avail[g.k]||0);avail[g.k]=(avail[g.k]||0)-have;return{have,rest:g.n-have,jf:0}});
-  let jl=j;const pref=jokerPrefs.get(cp)||[];
-  for(let x=pref.length-1;x>=0&&jl>0;x--){const gi=pref[x],f=info[gi];if(!f||cp.groups[gi].n<3||f.jf>=f.rest)continue;f.jf++;jl--}
-  info.forEach((f,i)=>{if(!f||cp.groups[i].n<3||!jl)return;const add=Math.min(f.rest-f.jf,jl);f.jf+=add;jl-=add});
-  const cpi=cpIndex(cp);
-  return cp.groups.map((g,i)=>{let h='';
+  const room=gi=>info[gi]&&cp.groups[gi].n>=3&&info[gi].jf<info[gi].rest;
+  let jl=j,held=0;const plan=jokerPlans.get(cp);
+  if(plan){
+    while(plan.picks.length+plan.held>j){if(plan.held)plan.held--;else plan.picks.shift()}
+    for(const gi of plan.picks)if(jl>0&&room(gi)){info[gi].jf++;jl--}
+    held=Math.min(plan.held,jl);jl-=held;
+  }
+  info.forEach((f,i)=>{while(jl>0&&room(i)){f.jf++;jl--}});
+  return{info,expFor,j,held};
+}
+function planFor(cp){
+  let plan=jokerPlans.get(cp);
+  if(!plan){const L=jokerLayout(cp,players[0].hand,players[0].exp);const picks=[];L.info.forEach((f,i)=>{if(f)for(let x=0;x<f.jf;x++)picks.push(i)});
+    plan={picks,held:0};jokerPlans.set(cp,plan)}
+  return plan;
+}
+function moveJoker(cpi,gi){   // tap a faded tile: put a Joker there
+  const cp=ALL[cpi];if(!cp)return;
+  if(!countTiles(players[0].hand).j){toast('You have no Jokers to move');return}
+  const plan=planFor(cp);
+  if(plan.held>0)plan.held--;
+  else{const from=plan.picks.find(x=>x!==gi);if(from===undefined)return;plan.picks.splice(plan.picks.indexOf(from),1);
+    toast(`Moved a Joker from the ${tname(cp.groups[from].k)} group`)}
+  plan.picks.push(gi);Sound.tap();render();
+}
+function freeJoker(cpi,gi){   // tap a purple tile: take its Joker off that group
+  const cp=ALL[cpi];if(!cp)return;const plan=planFor(cp);const x=plan.picks.lastIndexOf(gi);if(x<0)return;
+  plan.picks.splice(x,1);plan.held++;Sound.tap();render();
+}
+function patternTilesHTML(cp,tiles,exps){
+  const {info,expFor,j,held}=jokerLayout(cp,tiles,exps);const cpi=cpIndex(cp);
+  const attr=(html,a,label)=>html.replace('<div class="tile',`<div role="button" tabindex="0" aria-label="${label}" ${a} class="tile`);
+  const body=cp.groups.map((g,i)=>{let h='';
     if(expFor[i]){const ts=expFor[i].tiles||[];for(let x=0;x<g.n;x++){const t=ts[x];h+=tileHTML(g.k,'xs'+(t&&t.k==='J'?' wj':''))}}
     else{const f=info[i],tap=j>0&&g.n>=3;
-      for(let x=0;x<f.have;x++)h+=tileHTML(g.k,'xs');for(let x=0;x<f.jf;x++)h+=tileHTML(g.k,'xs wj');
-      for(let x=0;x<f.rest-f.jf;x++)h+=tap?tileHTML(g.k,'xs miss jtap').replace('<div class="tile',`<div role="button" tabindex="0" aria-label="Move a Joker here" data-jg="${cpi}:${i}" class="tile`):tileHTML(g.k,'xs miss');
+      for(let x=0;x<f.have;x++)h+=tileHTML(g.k,'xs');
+      for(let x=0;x<f.jf;x++)h+=attr(tileHTML(g.k,'xs wj jtap'),`data-jr="${cpi}:${i}"`,'Take the Joker off this group');
+      for(let x=0;x<f.rest-f.jf;x++)h+=tap?attr(tileHTML(g.k,'xs miss jtap'),`data-jg="${cpi}:${i}"`,'Put a Joker here'):tileHTML(g.k,'xs miss');
     }
     return `<span class="grp">${h}</span>`}).join('');
+  return body+(held?`<div class="held">${held} Joker${held>1?'s':''} not placed. Tap a faded tile to place ${held>1?'them':'it'}.</div>`:'');
 }
 function renderHints(){
   const head=`<div class="ph"><h3>Best hands</h3><label class="switch" for="hintToggle"><input type="checkbox" id="hintToggle" ${showHints?'checked':''}><span class="track"><span class="knob"></span></span><span>${showHints?'On':'Off'}</span></label></div>`;
@@ -1384,7 +1409,7 @@ function renderHints(){
     const p=players[0];const ranked=rankHands(p.hand,p.exp);const seen=new Set(),top=[];
     for(const r of ranked){if(seen.has(r.cp.hand.id))continue;seen.add(r.cp.hand.id);top.push(r);if(top.length===10)break}
     const size=p.hand.length+p.exp.reduce((s,e)=>s+e.n,0);
-    body=top.length?`<div class="sub" style="margin-bottom:8px">Ranked by what you can realistically finish. Faded = still need · purple ring = a joker covers it. Tap a faded tile to move a joker there.</div>`+
+    body=top.length?`<div class="sub" style="margin-bottom:8px">Ranked by what you can realistically finish. Faded = still need · purple ring = a joker covers it. Tap a purple tile to free its joker, or a faded one to put a joker there.</div>`+
       `<div class="hintlist" id="hintlist">${top.map((r,x)=>hintHTML(r,p,size,x===0)).join('')}${top.length>3?`<div class="more">${top.length-3} more below · scroll</div>`:''}</div>`
       :'<div class="muted-note">No live hand on the card fits your exposures and the tiles still out there. Throw safe tiles and play defense.</div>';
   }
@@ -1403,7 +1428,7 @@ function hintHTML(r,p,size,best){
     <div class="foot">${note?note+' · ':''}${h.conc?'C':'X'} ${h.pts}</div>${best?`<div class="why">${whyText(r)}</div>`:''}</div>`;
 }
 function bindStars(sel){document.querySelectorAll(sel+' [data-star]').forEach(b=>b.onclick=()=>{if(toggleStar(HANDS[+b.dataset.star]))render()});
-  document.querySelectorAll(sel+' [data-jg]').forEach(e=>{const go=()=>{const [a,g]=e.dataset.jg.split(':').map(Number);moveJoker(a,g)};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go()}}})}
+  document.querySelectorAll(sel+' [data-jg],'+sel+' [data-jr]').forEach(e=>{const go=()=>{const put=!!e.dataset.jg;const [a,g]=(e.dataset.jg||e.dataset.jr).split(':').map(Number);put?moveJoker(a,g):freeJoker(a,g)};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go()}}})}
 function renderStars(){
   const list=HANDS.filter(isStar);
   let body;
