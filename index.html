@@ -912,6 +912,15 @@ function botCall(p,k){
   return null;
 }
 function swapTargets(t){const out=[];players.forEach((q,qi)=>q.exp.forEach((e,ei)=>{if(e.k===t.k&&e.tiles.some(x=>x.k==='J'))out.push([qi,ei])}));return out}
+// When several exposures hold a matching Joker, take the one that helps everyone else least:
+// your own exposure first, then a dead hand's, then the opponent left with the most Jokers (so they stay far from a Jokerless double)
+// and the fewest exposures (furthest from winning).
+function bestSwap(pi,tg){
+  const cost=([qi,ei])=>{if(qi===pi)return -1000;if(dead[qi])return -500;
+    const jLeft=players[qi].exp.reduce((s,e)=>s+e.tiles.filter(x=>x.k==='J').length,0)-1;
+    return (jLeft===0?100:0)-jLeft*5+players[qi].exp.length*10};
+  return [...tg].sort((a,b)=>cost(a)-cost(b))[0];
+}
 function doSwap(pi,t,[qi,ei]){
   const e=players[qi].exp[ei];const ji=e.tiles.findIndex(x=>x.k==='J');const jt=e.tiles[ji];
   const fT=tileRect(t.id)||mini(rectOf('#seat'+pi)),fJ=tileRect(jt.id);
@@ -926,7 +935,7 @@ function botSwaps(pi){
   while(again){again=false;const cur=analyze(p.hand,p.exp).res[0]?.dist??99;
     for(const t of p.hand){if(t.k==='J')continue;const tg=swapTargets(t);if(!tg.length)continue;
       const hyp=p.hand.filter(x=>x!==t).concat([{k:'J'}]);
-      if((analyze(hyp,p.exp).res[0]?.dist??99)<=cur){doSwap(pi,t,tg[0]);again=true;break}}}
+      if((analyze(hyp,p.exp).res[0]?.dist??99)<=cur){doSwap(pi,t,bestSwap(pi,tg));again=true;break}}}
 }
 
 // ================= Charleston =================
@@ -1199,7 +1208,7 @@ function onTileClick(id){
 }
 function humanDiscard(){const t=players[0].hand.find(x=>x.id===selected);if(t)humanThrow(t)}
 function humanSwap(){const t=players[0].hand.find(x=>x.id===selected);if(!t)return;
-  if(building){if(!buildValid()){toast('Finish your exposure before swapping for a Joker');return}finalizeBuild()}  /* 8.16: a Joker exchange locks the new exposure */const tg=swapTargets(t);if(!tg.length)return;doSwap(0,t,tg[0]);selected=null;render()}
+  if(building){if(!buildValid()){toast('Finish your exposure before swapping for a Joker');return}finalizeBuild()}  /* 8.16: a Joker exchange locks the new exposure */const tg=swapTargets(t);if(!tg.length)return;doSwap(0,t,bestSwap(0,tg));selected=null;render()}
 function humanMJ(){if(building){if(!buildValid())return;finalizeBuild()}const w=isWin(players[0].hand,players[0].exp);if(w)win(0,w,phase==='charleston'?null:turnSrc)}
 
 // ================= Hand coach =================
