@@ -975,12 +975,13 @@ const SPEED=760;
 let wall=[],players=[0,1,2,3].map(()=>({hand:[],exp:[]})),discards=[],phase='idle',turn=0,step='discard',passIdx=0;
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
 // Settings are always saved on this device. Progress (scores, East rotation, an unfinished game) only when "Save progress" is on.
-const SET_DEFAULT={v:2,layout:'fit',tableView:true,topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
+const SET_DEFAULT={v:2,layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
   hr:{threeExp:true,wallPoints:false,deadNoPay:false,noBlind:false,noCourtesy:false,alwaysSecond:false}};
 let settings=JSON.parse(JSON.stringify(SET_DEFAULT));
 try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={...settings,...sv,hr:{...SET_DEFAULT.hr,...(sv.hr||{})}};
+  if('tableView' in sv){if(sv.layout!=='scroll')settings.layout=sv.tableView===false?'fit':'table';delete settings.tableView}   // Table view is now one of the Screen layout choices
   if(sv.v!==2){settings.v=2;settings.save=true}}}catch(e){}   // save progress became on by default in v2
-function applyLayout(){document.body.classList.toggle('scroll-layout',settings.layout==='scroll');document.body.classList.toggle('table-view',!!settings.tableView)}
+function applyLayout(){document.body.classList.toggle('scroll-layout',settings.layout==='scroll');document.body.classList.toggle('table-view',settings.layout==='table')}
 function saveSettings(){try{localStorage.setItem('amj_settings',JSON.stringify(settings))}catch(e){}}
 const houseOn=k=>settings.house&&!!settings.hr[k];
 const LEVELS=['Easy','Default','Hard'];
@@ -1598,7 +1599,7 @@ function bestFor(h,an,seen,liveJ){
   return best;
 }
 function bubblesHTML(){
-  if(!settings.tableView||phase==='idle'||phase==='shuffle')return'';
+  if(phase==='idle'||phase==='shuffle')return'';
   const p=players[0];const an=analyze(p.hand,p.exp);const seen=seenCounts();const liveJ=Math.max(0,8-(seen.J||0));
   const items=HANDS.filter(isStar).map(h=>({h,kind:'star'}));
   if(settings.topBubble&&showHints){const top=rankHands(p.hand,p.exp)[0];if(top&&!items.some(x=>x.h===top.cp.hand))items.push({h:top.cp.hand,kind:'top'})}
@@ -1691,10 +1692,9 @@ function swRow(id,label,desc,on){return `<label class="setrow" for="${id}"><span
 function showSettings(){
   openModal(`<h2>Settings</h2><p class="setnote">Settings are saved on this device.</p>
    <div class="set-sec">Gameplay</div>
-   ${swRow('s_table','Table view','Just the game board with big tiles. Open your hands and the card from the Hands button, and keep starred hands in bubbles above your rack.',settings.tableView)}
-   ${swRow('s_topbub','Top suggestion bubble','In Table view, also keep the top suggested hand in a bubble above your rack.',settings.topBubble)}
-   <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Fit to screen keeps everything in the window with no page scrolling. Scroll shows everything at full size and you scroll the page.</span></span>
-     <span class="seg" role="group" aria-label="Screen layout">${[['fit','Fit to screen'],['scroll','Scroll']].map(([v,l])=>`<button class="${settings.layout===v?'on':''}" data-layout="${v}" aria-pressed="${settings.layout===v}">${l}</button>`).join('')}</span></div>
+   <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Table view: just the game board with big tiles, and your hands open from the Hands button. Fit to screen: board plus the hands panels, no page scrolling. Scroll: everything at full size and you scroll the page.</span></span>
+     <span class="seg" role="group" aria-label="Screen layout">${[['table','Table view'],['fit','Fit to screen'],['scroll','Scroll']].map(([v,l])=>`<button class="${settings.layout===v?'on':''}" data-layout="${v}" aria-pressed="${settings.layout===v}">${l}</button>`).join('')}</span></div>
+   ${swRow('s_topbub','Top suggestion bubble','Keep the top suggested hand in a bubble above your rack, next to your starred hands. Works in every screen layout.',settings.topBubble)}
    ${swRow('s_dbl','Double-tap to discard','Tap a selected tile again to throw it. When off, tapping it again just deselects it.',settings.dblDiscard)}
    ${swRow('s_sound','Sound effects','Tile clicks, calls and the Mah Jongg fanfare.',Sound.on)}
    ${swRow('s_hints','Best hands panel','Suggests which hands on the card your tiles fit.',showHints)}
@@ -1719,7 +1719,6 @@ function showSettings(){
    <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Done</button></div>`);
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{fn(e.checked);saveSettings();render()}};
   on('s_dbl',v=>settings.dblDiscard=v);
-  on('s_table',v=>{settings.tableView=v;applyLayout();document.body.classList.remove('show-hands')});
   on('s_topbub',v=>settings.topBubble=v);
   on('s_sound',v=>{Sound.on=v;try{localStorage.setItem('amj_sound',v?'on':'off')}catch(e){}renderSoundBtn();if(v){Sound.init();Sound.chime()}});
   on('s_hints',v=>{showHints=v;try{localStorage.setItem('amj_hints',v?'on':'off')}catch(e){}});
