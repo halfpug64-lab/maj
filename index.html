@@ -1151,7 +1151,7 @@ function finalizeBuild(){
   log(`You exposed a ${WORD[n].toLowerCase()} of ${tname(b.t.k)}.`);toast(`You: ${WORD[n]}!`);
 }
 function cancelBuild(){
-  const b=building;if(!b)return;building=null;
+  const b=building;if(!b||b.committed)return;   // only before any of your own tiles go face upbuilding=null;
   players[0].hand.push(...b.tiles.filter(x=>x!==b.t));discards.push(b.t);turnSrc=null;
   log(`You let the ${tname(b.t.k)} go.`);
   finishCalls(b.from,b.t,b.botMJ,b.botExp,null);
@@ -1160,6 +1160,7 @@ function cancelBuild(){
 function buildTap(t){
   if(building.tiles.length>=6){toast('Six tiles is the most a group can have');return}
   const p=players[0];const r=tileRect(t.id);p.hand.splice(p.hand.indexOf(t),1);building.tiles.push(t);
+  if(!building.committed){building.committed=true;log('You exposed one of your own tiles, so the call can no longer be canceled.')}
   selected=null;queueFly(t,r,0,300);Sound.tap();render();
 }
 function unbuildTap(id){
@@ -1298,7 +1299,7 @@ function render(){
       <button class="btn btn-ghost" data-call="pass">Let it go</button></div>`;
   }else if(phase==='play'&&turn===0&&step==='discard'){
     const t=p.hand.find(x=>x.id===selected);const canSwap=t&&t.k!=='J'&&swapTargets(t).length;const w=isWin(p.hand,buildExps());const bv=!building||buildValid();
-    acts=`${w?'<button class="btn btn-red" id="bMJ">Mah Jongg!</button>':''}<button class="btn btn-gold" id="bDis" ${t&&bv?'':'disabled'}>${building?'Discard and lock in':'Discard'}</button>${canSwap?'<button class="btn btn-ghost" id="bSwap">Swap for Joker</button>':''}${building?'<button class="btn btn-ghost" id="bCancel">Cancel call</button>':''}`;
+    acts=`${w?'<button class="btn btn-red" id="bMJ">Mah Jongg!</button>':''}<button class="btn btn-gold" id="bDis" ${t&&bv?'':'disabled'}>${building?'Discard and lock in':'Discard'}</button>${canSwap?'<button class="btn btn-ghost" id="bSwap">Swap for Joker</button>':''}${building&&!building.committed?'<button class="btn btn-ghost" id="bCancel">Cancel call</button>':''}`;
   }else if(phase==='over')acts='<button class="btn btn-gold" id="bNext">New game</button>';
   const yourTurn=turn===0&&phase==='play'&&step==='discard'&&!callState;
   const me=$('#me');
@@ -1322,7 +1323,7 @@ function buildHTML(){
   if(!building)return'';const n=building.tiles.length,ok=buildValid();
   const msg=ok?`${WORD[n].toUpperCase()} (${n}) ready. It locks in when you discard.`:n<3?`Add ${3-n} more to make a pung. Up to 6 for a sextet.`:`A ${WORD[n].toLowerCase()} of ${tname(building.t.k)} doesn't fit any exposed hand on the card.`;
   return`<div class="building"><div class="exp pending">${building.tiles.map(t=>tileHTML(t,'md'+(t===building.t?' called':''),true)).join('')}${Array.from({length:Math.max(0,3-n)},()=>'<span class="slot"></span>').join('')}</div>
-    <div class="bmsg${ok?' ok':''}">${msg}<span class="sub"> Tap a tile in the group to take it back.</span></div></div>`;
+    <div class="bmsg${ok?' ok':''}">${msg}<span class="sub">${building.committed?' Tap a tile in the group to take it back. The call can no longer be canceled.':' You can still cancel the call until you add one of your own tiles.'}</span></div></div>`;
 }
 function patternTilesHTML(cp,tiles,exps){
   const {c,j}=countTiles(tiles);const avail={...c};let jl=j;
@@ -1538,7 +1539,7 @@ function showHelp(){openModal(`<div class="help"><h2>How to play</h2>
  <p>Bot difficulty is in Settings: one slider for all three, or set each bot under More.</p>
  <p>You can't call a tile for a single, a pair, a run, NEWS or 2026 unless it finishes Mah Jongg. You can claim any tile, even for a pair or single, when it completes your whole hand, including a concealed (C) hand. A discarded Joker can never be called. If several players want a tile, Mah Jongg wins over an exposure. Between two of the same kind of call, the player next in turn after the thrower gets it. You never have to call.</p>
  <h4>Exposures</h4>
- <p>In Settings you can switch to Build your own: press CALL, add the matching tiles or Jokers yourself, and the group locks in when you discard (or when you swap for a Joker). Exposed groups stay face up and can't grow. Calling another of the same tile makes a new group, not a bigger one. You can switch to a different hand as long as all your exposures still fit it.</p>
+ <p>In Settings you can switch to Build your own: press CALL, add the matching tiles or Jokers yourself, and the group locks in when you discard (or when you swap for a Joker). You can cancel the call only until you put one of your own tiles in the group. Exposed groups stay face up and can't grow. Calling another of the same tile makes a new group, not a bigger one. You can switch to a different hand as long as all your exposures still fit it.</p>
  <h4>Jokers</h4>
  <p>Jokers fill in for tiles in groups of 3 or more identical tiles, including Flowers. They never go in singles, pairs, runs, NEWS or 2026. On your turn, after you draw or call, you can trade the real tile for any exposed Joker, yours or anyone's, as many times as you can. Select the tile and hit Swap for Joker. You can't swap with a discard. A win made by a Joker swap counts as self-drawn.</p>
  <h4>Dead hands</h4>
