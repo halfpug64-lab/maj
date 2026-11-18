@@ -1053,7 +1053,7 @@ function onTileClick(id){
     if(sel.has(id))sel.delete(id);else if(sel.size<3)sel.add(id);else{toast('Three tiles max');return}
     Sound.tap();render();return;
   }
-  if(phase==='play'&&turn===0&&step==='discard'&&!callState){Sound.tap();if(selected===id){discard(0,t);return}selected=id;render()}
+  if(phase==='play'&&turn===0&&step==='discard'&&!callState){Sound.tap();selected=selected===id?null:id;render()}
 }
 function humanDiscard(){const t=players[0].hand.find(x=>x.id===selected);if(t)discard(0,t)}
 function humanSwap(){const t=players[0].hand.find(x=>x.id===selected);if(!t)return;const tg=swapTargets(t);if(!tg.length)return;doSwap(0,t,tg[0]);selected=null;render()}
@@ -1138,7 +1138,7 @@ function render(){
         :`Pass ${(second?passIdx-4:passIdx)+1} of 3. Pick 3 tiles you don't need.`}}
   else if(phase==='play'){
     if(callState){status=`${NAMES[callState.i]} threw ${tname(callState.t.k)}`;sub='You can claim it. Call it or let it go.'}
-    else if(turn===0&&step==='discard'){status='Your turn';sub='Tap a tile, then Discard. Or tap it twice.'}
+    else if(turn===0&&step==='discard'){status='Your turn';sub='Tap a tile to select it, then hit Discard. Tap it again to deselect.'}
     else{status=`${NAMES[turn]} is playing`;sub=dead[0]?'Your hand is dead, so you sit out the rest of this hand.':`${windOf(turn)} seat`}
   }else status='Hand over';
   const changed=status!==lastStatus;lastStatus=status;
@@ -1313,7 +1313,7 @@ function showHelp(){openModal(`<div class="help"><h2>How to play</h2>
  <p><b>Blind pass:</b> on the first left and the second right only, you can pass fewer than 3 of your own tiles. The rest come from the tiles being passed to you and go straight on without you seeing them.</p>
  <p><b>Heavenly Hand:</b> if East is dealt a complete hand, East declares Mah Jongg right away. If East completes a hand during the Charleston, East declares before the first discard.</p>
  <h4>Your turn</h4>
- <p>Draw (automatic), swap for Jokers if you want, declare Mah Jongg if your hand is complete, otherwise discard. You can throw the tile you just drew. Tap a tile and hit Discard, or tap it twice.</p>
+ <p>Draw (automatic), swap for Jokers if you want, declare Mah Jongg if your hand is complete, otherwise discard. You can throw the tile you just drew. Tap a tile to select it and hit Discard. Tap it again to deselect.</p>
  <h4>Calling</h4>
  <p>Only the newest discard can be claimed. Call it for a PUNG (3), KONG (4), QUINT (5) or SEXTET (6) of identical tiles, using matching tiles, Jokers or both. The group must fit an exposed (X) hand on the card. It goes face up, you discard without drawing, and play continues to your right. Seats you skip lose their turn.</p>
  <p>You can't call a tile for a single, a pair, a run, NEWS or 2026 unless it finishes Mah Jongg. You can claim any tile, even for a pair or single, when it completes your whole hand, including a concealed (C) hand. A discarded Joker can never be called. If several players want a tile, Mah Jongg wins over an exposure. Between two of the same kind of call, the player next in turn after the thrower gets it. You never have to call.</p>
