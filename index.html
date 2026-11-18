@@ -215,6 +215,7 @@ h1{font-family:var(--display);font-weight:400;font-size:22px;letter-spacing:1.5p
 .grp{display:flex;flex-wrap:nowrap;gap:2px}
 .hint .foot{font-size:11px;color:var(--muted);margin-top:7px}
 .gap{width:5px}
+.chnote{display:inline-block;color:var(--gold-hi);background:rgba(0,0,0,.25);border:1px solid rgba(236,198,109,.4);border-radius:8px;padding:4px 10px;margin-bottom:6px;font-weight:600}
 .held{width:100%;font-size:11.5px;color:var(--violet);margin-top:4px}
 .tile.jtap{cursor:pointer;transition:opacity .15s,box-shadow .15s}
 .tile.jtap:hover,.tile.jtap:focus-visible{opacity:.75;filter:none;box-shadow:0 0 0 2px var(--violet)}
@@ -849,7 +850,7 @@ function newGame(){
   gid++;closeModal();Sound.init();
   wall=buildWall();discards=[];logs=[];logVer++;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];
   if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false}else dealer=(dealer+1)%4;
-  jokerPlans.clear();dead=[false,false,false,false];building=null;turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
+  chNote='';jokerPlans.clear();dead=[false,false,false,false];building=null;turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
   log('Everyone pushes their tiles in. Washing the tiles…');
   render();Sound.wash();
   later(deal,REDUCED?60:1550);
@@ -986,10 +987,12 @@ function doPass(){
   if(blind.length)toast(blind.length===3?'Blind pass':`${blind.length} passed blind`);
   sel.clear();passIdx++;houseSkips();render();
 }
-function botWantsStop(i){const p=players[i];const r=analyze(p.hand,p.exp).res[0];const d=r?r.dist-(14-p.hand.length):99;return d<=3||Math.random()<.12}
+// A bot stops the Charleston when it's happy with its hand (within 2 tiles), plus a small 4% chance of just wanting to start.
+function botWantsStop(i){const p=players[i];const r=analyze(p.hand,p.exp).res[0];const d=r?r.dist-(14-p.hand.length):99;return d<=2||Math.random()<.04}
+let chNote='';
 function chDecide(goOn){
   if(goOn){const stopper=[1,2,3].find(botWantsStop);
-    if(stopper){passIdx=CH.indexOf('courtesy');log(`${NAMES[stopper]} wants to stop, so there's no second Charleston.`);toast(`${NAMES[stopper]} stops the Charleston`)}
+    if(stopper){passIdx=CH.indexOf('courtesy');chNote=`${NAMES[stopper]} voted to stop, so there's no second Charleston. Any one player can stop it.`;log(chNote);toast(`${NAMES[stopper]} voted to stop`)}
     else{passIdx++;log('All four players agree to a second Charleston.')}}
   else{passIdx=CH.indexOf('courtesy');log('You stopped the Charleston after the first left.')}
   newIds=new Set();houseSkips();render();
@@ -1000,7 +1003,7 @@ function houseSkips(){
 }
 // 5.6: each pair across trades the smaller number either player wants
 function botCourtesy(i){const sc=tileScores(players[i]);return Math.min(3,players[i].hand.filter(t=>t.k!=='J'&&sc[t.k]<.25).length)}
-function startPlay(){phase='play';turn=dealer;step='discard';sel.clear();passIdx=CH.length;
+function startPlay(){chNote='';phase='play';turn=dealer;step='discard';sel.clear();passIdx=CH.length;
   log(dealer===0?'Charleston done. You are East: discard a tile.':`Charleston done. ${NAMES[dealer]} is East and throws first.`);
   if(dealer!==0)later(()=>botAct(dealer),SPEED)}
 
@@ -1287,7 +1290,7 @@ function render(){
   else if(phase==='shuffle'){status='Washing the tiles';sub='All 152 tiles go face down and get mixed before the deal.'}
   else if(phase==='charleston'){
     if(st==='decide'){status='First Charleston done';sub='Keep going with a second Charleston (left, across, right), or stop here.'}
-    else if(st==='courtesy'){status='Courtesy pass';dir='across';sub='Optional: pick 0 to 3 tiles to trade with Bronx. Bronx gives back the same number.'}
+    else if(st==='courtesy'){status='Courtesy pass';dir='across';sub=(chNote?`<b class="chnote">${chNote}</b><br>`:'')+'Optional: pick 0 to 3 tiles to trade with Bronx. You both trade the smaller number either of you wants.'}
     else{const second=passIdx>3;dir=st.n;status=`${second?'Second':'First'} Charleston · Pass ${st.n}`;
       sub=isBlind(st)?`Pick 3 tiles to pass ${st.n}. This is a blind pass: pick fewer and the rest are passed straight along from the tiles coming to you, unseen.`
         :`Pass ${(second?passIdx-4:passIdx)+1} of 3. Pick 3 tiles you don't need.`}}
