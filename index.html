@@ -144,7 +144,7 @@ h1{font-family:var(--display);font-weight:400;font-size:22px;letter-spacing:1.5p
 .wallstack .back{position:absolute}
 .wallstack .back:nth-child(1){left:0;top:4px}.wallstack .back:nth-child(2){left:5px;top:2px}.wallstack .back:nth-child(3){left:10px;top:0}
 /* washing the tiles */
-.wash{position:relative;width:100%;max-width:600px;height:150px;border-radius:16px;background:rgba(0,0,0,.14);box-shadow:inset 0 2px 14px rgba(0,0,0,.3);overflow:hidden}
+.wash{position:relative;container-type:size;width:100%;max-width:600px;height:150px;border-radius:16px;background:rgba(0,0,0,.14);box-shadow:inset 0 2px 14px rgba(0,0,0,.3);overflow:hidden}
 .wash .back{position:absolute;left:calc(50% - 9px);top:calc(50% - 12px);width:18px;height:25px;animation:wash 1.45s cubic-bezier(.45,0,.3,1) var(--d) both}
 @keyframes wash{0%{transform:none}30%{transform:translate(var(--x1),var(--y1)) rotate(var(--r1))}65%{transform:translate(var(--x2),var(--y2)) rotate(var(--r2))}100%{transform:translate(calc(var(--x2)*.15),calc(var(--y2)*.1)) rotate(0)}}
 
@@ -944,6 +944,19 @@ body.table-view .pool>.discards.denser .tile.sm{--w:clamp(26px,min(3vw,5.2vh),46
   body.table-view .pool>.discards.dense .tile.sm{--w:clamp(26px,8.6vw,38px)}
   body.table-view .pool>.discards.denser .tile.sm{--w:clamp(22px,7vw,32px)}
 }
+
+/* the shuffle area takes the same space as the discard area that replaces it */
+body.table-view .pool>.wash{flex:1;width:100%;max-width:none;min-height:0;height:auto;align-self:stretch;border-radius:16px}
+.pool>.wash{align-self:center}
+.wash .back{width:clamp(18px,2.4vw,30px);height:clamp(25px,3.4vw,42px);left:calc(50% - clamp(9px,1.2vw,15px));top:calc(50% - clamp(12px,1.7vw,21px))}
+
+/* keep the rack its normal height while it's empty (shuffling), so the table doesn't jump when tiles are dealt */
+.rack:empty::before{content:"";display:block;width:1px;height:calc(var(--rackw,50px) * 1.4 + 6px)}
+body.table-view .rack{--rackw:clamp(40px,min(6.6vh,calc((100vw - 150px)/15.3)),70px)}
+@media(max-width:900px){.rack:empty::before{height:calc((var(--rackw,40px) * 1.4 + 6px) * 2)}body.table-view .rack{--rackw:clamp(28px,calc((100vw - 84px)/7.5),58px)}}
+
+.orack .backs:empty::before{content:"";display:block;width:1px;height:clamp(31px,3.7vw,42px)}
+@media(max-width:900px){.orack .backs:empty::before{display:none}}
 
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -1996,7 +2009,7 @@ function render(){
   const dirHTML=dir?`<div class="dir" style="--r:${ARROW_ROT[dir]}deg" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h14M12 6l6 6-6 6"/></svg></div>`:'';
   const rnd=(a,b)=>Math.round(a+Math.random()*(b-a));
   const middle=phase==='shuffle'
-    ?`<div class="wash">${Array.from({length:30},(_,x)=>`<i class="back" style="--x1:${rnd(-200,200)}px;--y1:${rnd(-55,55)}px;--r1:${rnd(-200,200)}deg;--x2:${rnd(-220,220)}px;--y2:${rnd(-55,55)}px;--r2:${rnd(-200,200)}deg;--d:${x*14}ms"></i>`).join('')}</div>`
+    ?wallsHTML(`<div class="wash">${Array.from({length:30},(_,x)=>`<i class="back" style="--x1:${rnd(-38,38)}cqw;--y1:${rnd(-36,36)}cqh;--r1:${rnd(-200,200)}deg;--x2:${rnd(-42,42)}cqw;--y2:${rnd(-38,38)}cqh;--r2:${rnd(-200,200)}deg;--d:${x*14}ms"></i>`).join('')}</div>`)
     :wallsHTML(`<div class="discards${discards.length>72?' denser':discards.length>40?' dense':''}">${discards.length?discards.map((t,i)=>`<span class="dw" style="rotate:${((t.id*37)%7-3)*.6}deg">${tileHTML(t,'sm'+(i===last?' last':''),true)}</span>`).join(''):'<div class="empty">Discards land here</div>'}</div>`);
   const od=document.querySelector('#center .discards');const keepTop=od?od.scrollTop:0;
   const bannerHTML=`<div class="banner${changed?' swap':''}">${dirHTML}<div class="status">${status}</div><div class="sub">${sub}</div></div>`;
@@ -2155,7 +2168,7 @@ function bestFor(h,an,seen,liveJ){
   return best;
 }
 function bubblesHTML(){
-  if(phase==='idle'||phase==='shuffle')return'';
+  if(phase==='idle'||phase==='shuffle')return (settings.topBubble&&showHints)||HANDS.some(isStar)?'<div class="bubbles placeholder"><div class="bubble" style="visibility:hidden"><button class="bhead" tabindex="-1"><span class="bk">Top</span><span class="hpat">&nbsp;</span><span class="pill">&nbsp;</span></button></div></div>':'';
   const p=players[0];const an=analyze(p.hand,p.exp);const seen=seenCounts();const liveJ=Math.max(0,8-(seen.J||0));
   const items=HANDS.filter(isStar).map(h=>({h,kind:'star'}));
   if(settings.topBubble&&showHints){const top=rankHands(p.hand,p.exp)[0];if(top&&!items.some(x=>x.h===top.cp.hand))items.push({h:top.cp.hand,kind:'top'})}
