@@ -455,6 +455,9 @@ body.tiles-easy .tile{background:linear-gradient(160deg,#ffffff,#f4efe2)}
 
 /* ================= Paris (tiles and background) ================= */
 .pface{position:absolute;inset:0;border-radius:inherit;background-size:cover;background-position:center;background-repeat:no-repeat}
+.pbadge{position:absolute;z-index:2;left:calc(var(--w) * .05);top:calc(var(--w) * .05);min-width:calc(var(--w) * .36);height:calc(var(--w) * .36);padding:0 calc(var(--w) * .04);
+  border-radius:calc(var(--w) * .1);background:var(--c);color:#fff;font:900 calc(var(--w) * .27)/calc(var(--w) * .36) Inter,Arial,sans-serif;text-align:center;
+  box-shadow:0 0 0 calc(var(--w) * .02) rgba(255,255,255,.9),0 1px 2px rgba(0,0,0,.3);pointer-events:none}
 body.tiles-paris{--tile-back:#1f2a4d;--tile-back-2:#121a33}
 body.tiles-paris .tile{background:#faf6ee}
 body.tiles-paris .back,body.tiles-paris .wtile,body.tiles-paris .tile.back-tile{background:url(tiles/paris/back.webp) center/cover,#1f2a4d}
@@ -1108,7 +1111,15 @@ function faceSVG(k,v=0){
   if(FACE2[key])return FACE2[key];
   return FACE2[key]=th==='paris'?faceParis(k,v):th==='nyc'?faceNYC(k,v):th==='easy'?faceEasy(k,v):faceRegular(k,v);
 }
-function faceParis(k,v=0){const n=k==='F'?'F'+(v%8):k;return `<i class="pface" style="background-image:url(tiles/paris/${n}.webp)"></i>`}
+// Paris tiles: Dylan's artwork plus a bold corner badge so tiles read at a glance (number + suit color).
+const PBADGE={B:'#2e7d4f',C:'#c0392b',D:'#2557b8'};
+function faceParis(k,v=0){const n=k==='F'?'F'+(v%8):k;
+  let t,c;
+  if(SUITS.includes(k[0])&&k.length===2){t=k[1];c=PBADGE[k[0]]}
+  else if('NEWS'.includes(k)){t=k;c='#4a4f5c'}
+  else if(k==='R'){t='R';c='#c0392b'}else if(k==='G'){t='G';c='#2e7d4f'}else if(k==='0'){t='0';c='#2557b8'}
+  else if(k==='F'){t='F';c='#7b4bb7'}else{t='J';c='#a8781c'}
+  return `<i class="pface" style="background-image:url(tiles/paris/${n}.webp)"></i><b class="pbadge" style="--c:${c}">${t}</b>`}
 const HAN='"Noto Serif SC","Songti SC","STSong","SimSun","Noto Serif CJK SC",serif';
 const RB='#1f5fbf',RG='#17803f',RR='#c8102e',RK='#1d2445';
 const DOTCOL={1:[RB],2:[RG,RB],3:[RB,RR,RG],4:[RB,RG,RG,RB],5:[RB,RG,RR,RG,RB],6:[RG,RG,RR,RR,RR,RR],7:[RG,RG,RG,RR,RR,RR,RR],8:[RB,RB,RB,RB,RB,RB,RB,RB],9:[RB,RB,RB,RR,RR,RR,RG,RG,RG]};
