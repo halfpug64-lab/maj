@@ -495,7 +495,8 @@ body.table-view .pname{font-size:15px}
 body.table-view .felt{grid-template-columns:minmax(150px,240px) minmax(0,1fr) minmax(150px,240px)}
 /* bubbles */
 .bubbles{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;margin-top:8px}
-.bubble{border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(236,198,109,.35);overflow:hidden;max-width:100%;animation:rise .3s}
+.bubble{border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(236,198,109,.35);overflow:hidden;max-width:100%}
+.bubble.fresh{animation:rise .3s}
 .bubble.open{background:rgba(0,0,0,.4)}
 .bhead{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--txt);padding:6px 10px 6px 8px;cursor:pointer;font:inherit;max-width:100%}
 .bhead:hover{background:rgba(236,198,109,.08)}
@@ -532,13 +533,13 @@ body.show-hands .backdrop{display:block}
 
 /* ================= The walls (Settings > Show walls) ================= */
 .wallbox{flex:1;min-height:0;width:100%;container-type:size;display:flex;align-items:center;justify-content:center}
-.wallsq{--S:min(100cqw,100cqh);--u:calc(var(--S) / 20.4);position:relative;width:var(--S);height:var(--S);flex:none}
-.wtile{position:absolute;left:calc(var(--x) * var(--u));top:calc(var(--y) * var(--u));width:calc(var(--u) - 1px);height:calc(var(--u) * 1.4 - 1px);
+.wallsq{--H:min(100cqh,100cqw);--W:min(100cqw,calc(var(--H) * 1.25));--u:calc(var(--H) / 20.4);--sh:calc((var(--W) - 2.4 * var(--u)) / 18);--sv:calc((var(--H) - 2.4 * var(--u)) / 18);position:relative;width:var(--W);height:var(--H);flex:none}
+.wtile{position:absolute;width:calc(var(--sh) - 1px);height:calc(var(--u) * 1.4 - 1px);
   border-radius:calc(var(--u) * .14);background:var(--back-img,none) center/62% no-repeat,linear-gradient(180deg,var(--tile-back),var(--tile-back-2));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.22),
     0 calc(var(--u) * .08) 0 var(--ivory-edge),0 calc(var(--u) * .12) 0 #a8956a,
     0 calc(var(--u) * .22) 0 var(--ivory-edge),0 calc(var(--u) * .26) 0 #9a865c,0 calc(var(--u) * .4) calc(var(--u) * .3) rgba(0,0,0,.45)}
-.wtile.v{width:calc(var(--u) * 1.4 - 1px);height:calc(var(--u) - 1px);background-size:auto 62%}
+.wtile.v{width:calc(var(--u) * 1.4 - 1px);height:calc(var(--sv) - 1px);background-size:auto 62%}
 .wtile.one{transform:translateY(calc(var(--u) * .14));box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.22),
     0 calc(var(--u) * .08) 0 var(--ivory-edge),0 calc(var(--u) * .12) 0 #9a865c,0 calc(var(--u) * .26) calc(var(--u) * .24) rgba(0,0,0,.4)}
 .wtile.next{outline:1.5px solid rgba(236,198,109,.95);outline-offset:1px;filter:drop-shadow(0 0 5px rgba(236,198,109,.55))}
@@ -548,7 +549,10 @@ body.show-hands .backdrop{display:block}
   display:flex;flex-direction:column;gap:6px;min-height:0}
 .discards.dense .tile.sm,body.table-view .discards.dense .tile.sm{--w:25px}
 .discards.denser .tile.sm,body.table-view .discards.denser .tile.sm{--w:21px}
-.wallin .discards{flex:1;overflow-y:auto;min-height:0;width:100%;max-width:none;padding:6px;align-content:flex-start}
+.wallin .discards .tile.sm{--w:clamp(30px,calc(var(--u) * 1.75),46px)}
+.wallin .discards.dense .tile.sm{--w:clamp(26px,calc(var(--u) * 1.45),38px)}
+.wallin .discards.denser .tile.sm{--w:clamp(22px,calc(var(--u) * 1.2),32px)}
+.wallin .discards{flex:1;gap:5px;overflow-y:auto;min-height:0;width:100%;max-width:none;padding:6px;align-content:flex-start}
 .wallcount{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--felt-txt);font-variant-numeric:tabular-nums;opacity:.92}
 .wallcount b{color:var(--txt);font-size:13px}
 body.scroll-layout .wallbox{flex:none;height:min(560px,92vw)}
@@ -1386,7 +1390,7 @@ function newGame(){
   wall=buildWall();discards=[];logs=[];logVer++;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];
   if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false}else dealer=(dealer+1)%4;
   wallBreak=Math.floor(Math.random()*76)*2;wallBuild=true;
-  chNote='';jokerPlans.clear();dead=[false,false,false,false];building=null;turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
+  discUp=false;chNote='';jokerPlans.clear();dead=[false,false,false,false];building=null;turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
   log('Everyone pushes their tiles in. Washing the tiles…');
   render();Sound.wash();
   later(deal,REDUCED?60:1550);
@@ -1819,7 +1823,7 @@ function animateScores(){
   requestAnimationFrame(stepFn);
 }
 const ARROW_ROT={right:0,across:-90,left:180};
-let rackHold=false,renderPending=false;
+let rackHold=false,renderPending=false,discUp=false;
 function render(){
   if(rackHold){renderPending=true;return}
   renderScores();
@@ -1846,9 +1850,13 @@ function render(){
   const middle=phase==='shuffle'
     ?`<div class="wash">${Array.from({length:30},(_,x)=>`<i class="back" style="--x1:${rnd(-200,200)}px;--y1:${rnd(-55,55)}px;--r1:${rnd(-200,200)}deg;--x2:${rnd(-220,220)}px;--y2:${rnd(-55,55)}px;--r2:${rnd(-200,200)}deg;--d:${x*14}ms"></i>`).join('')}</div>`
     :wallsHTML(`<div class="discards${discards.length>72?' denser':discards.length>40?' dense':''}">${discards.length?discards.map((t,i)=>`<span class="dw" style="rotate:${((t.id*37)%7-3)*.6}deg">${tileHTML(t,'sm'+(i===last?' last':''),true)}</span>`).join(''):'<div class="empty">Discards land here</div>'}</div>`);
-  const od=document.querySelector('#center .discards');const keep=od?{top:od.scrollTop,atEnd:od.scrollTop+od.clientHeight>=od.scrollHeight-8,n:od.querySelectorAll('.tile').length}:null;
+  const od=document.querySelector('#center .discards');const keepTop=od?od.scrollTop:0;
   $('#center').innerHTML=`<div class="banner${changed?' swap':''}">${dirHTML}<div class="status">${status}</div><div class="sub">${sub}</div></div>${middle}`;
-  {const nd=document.querySelector('#center .discards');if(nd&&keep){if(keep.atEnd)nd.scrollTop=nd.scrollHeight;else nd.scrollTop=keep.top}}
+  {const nd=document.querySelector('#center .discards');if(nd){
+    // follow the newest discard unless you've scrolled up to look at older ones
+    const toEnd=()=>{if(!discUp)nd.scrollTop=nd.scrollHeight};
+    if(discUp)nd.scrollTop=keepTop;else{toEnd();requestAnimationFrame(toEnd);setTimeout(toEnd,500)}
+    nd.onscroll=()=>{discUp=nd.scrollTop+nd.clientHeight<nd.scrollHeight-12}}}
 
   const p=players[0];let acts='';
   if(phase==='idle')acts='<button class="btn btn-gold" id="bStart2">Deal me in</button>';
@@ -1936,11 +1944,13 @@ function freeJoker(cpi,gi){   // tap a purple tile: take its Joker off that grou
 // Walls meet in a pinwheel: top and bottom stacks stand upright, side walls lie turned 90 degrees.
 // Positions are in tile-width units; the square is 20.4 units on a side.
 // Stack k (0-75) holds draw positions 2k (top tile) and 2k+1 (bottom tile), counted from the break.
+// Each stack's spot: fixed part in tile units (fx,fy) plus a number of steps along its wall (sx,sy).
+// The walls form a rectangle that uses the space on the table; stacks spread evenly along each wall.
 function wallPos(k){const s=Math.floor(k/19),i=k%19;
-  if(s===0)return{x:1.4+i,y:19,v:0};          // yours, left to right
-  if(s===1)return{x:19,y:18-i,v:1};           // Queens, bottom to top
-  if(s===2)return{x:18-i,y:0,v:0};            // Bronx, right to left
-  return{x:0,y:1.4+i,v:1};                    // Brooklyn, top to bottom
+  if(s===0)return{fx:1.4,sx:i,fy:'B',sy:0,v:0};       // yours, left to right
+  if(s===1)return{fx:'R',sx:0,fy:0,sy:18-i,v:1};      // Queens, bottom to top
+  if(s===2)return{fx:0,sx:18-i,fy:0,sy:0,v:0};        // Bronx, right to left
+  return{fx:0,sx:0,fy:1.4,sy:i,v:1};                  // Brooklyn, top to bottom
 }
 function wallsHTML(center){
   const count=`<div class="wallcount"><span><b>${wall.length}</b> in the wall</span><span><b>${discards.length}</b> thrown</span></div>`;
@@ -1948,7 +1958,8 @@ function wallsHTML(center){
   const drawn=152-wall.length,next=Math.floor(drawn/2)*2;let tiles='';
   for(let k=0;k<76;k++){const order=((2*k-wallBreak)%152+152)%152;const left=Math.max(0,Math.min(2,order+2-drawn));if(!left)continue;
     const p=wallPos(k),isNext=wall.length>0&&order===next;
-    tiles+=`<i class="wtile${p.v?' v':''}${p.v&&p.x>10?' rt':''}${left===1?' one':''}${isNext?' next':''}"${isNext?' id="wallStack"':''} style="--x:${p.x};--y:${p.y};--i:${k}"></i>`}
+    const fx=p.fx==='R'?'calc(var(--W) - 1.4 * var(--u))':`calc(${p.fx} * var(--u))`,fy=p.fy==='B'?'calc(var(--H) - 1.4 * var(--u))':`calc(${p.fy} * var(--u))`;
+    tiles+=`<i class="wtile${p.v?' v':''}${p.fx==='R'?' rt':''}${left===1?' one':''}${isNext?' next':''}"${isNext?' id="wallStack"':''} style="left:calc(${fx} + ${p.sx} * var(--sh));top:calc(${fy} + ${p.sy} * var(--sv));--i:${k}"></i>`}
   const html=`<div class="wallbox"><div class="wallsq${wallBuild?' build':''}">${tiles}<div class="wallin">${center}${count}</div></div></div>`;
   if(wallBuild&&phase!=='shuffle')wallBuild=false;
   return html;
@@ -1986,7 +1997,7 @@ function renderHints(){
   $('#hintToggle').onchange=e=>{setHints(e.target.checked);render()};
 }
 // ---- Table view bubbles: starred hands (and optionally the top suggestion) kept in view above your rack ----
-const bubOpen=new Set();
+const bubOpen=new Set();let bubSeen=new Set();
 function bestFor(h,an,seen,liveJ){
   const p=players[0];let best=null;
   for(const r of an.res){if(r.cp.hand!==h)continue;const a=assess(r.cp,an.c,an.j,p.exp,seen,liveJ);const sc=a?a.score:999+r.dist;if(!best||sc<best.sc)best={sc,cp:r.cp,dist:r.dist}}
@@ -1997,10 +2008,11 @@ function bubblesHTML(){
   const p=players[0];const an=analyze(p.hand,p.exp);const seen=seenCounts();const liveJ=Math.max(0,8-(seen.J||0));
   const items=HANDS.filter(isStar).map(h=>({h,kind:'star'}));
   if(settings.topBubble&&showHints){const top=rankHands(p.hand,p.exp)[0];if(top&&!items.some(x=>x.h===top.cp.hand))items.push({h:top.cp.hand,kind:'top'})}
-  if(!items.length)return'';
+  if(!items.length){bubSeen=new Set();return''}
+  const seenBefore=bubSeen;bubSeen=new Set(items.map(x=>x.kind+x.h.id));
   return `<div class="bubbles">${items.map(({h,kind})=>{const b=bestFor(h,an,seen,liveJ);const open=bubOpen.has(h.id);
     const pill=b?(b.dist<=0?'<span class="pill done">Mah Jongg!</span>':`<span class="pill">${b.dist} away</span>`):'<span class="pill dead">Out of reach</span>';
-    return `<div class="bubble${open?' open':''}"><button class="bhead" data-bub="${h.id}" aria-expanded="${open}"><span class="bk">${kind==='star'?'★':'Top'}</span><span class="hpat">${patColored(displayPat(h))}</span>${pill}</button>${open&&b?`<div class="tiles">${patternTilesHTML(b.cp,p.hand,p.exp)}</div>`:''}</div>`}).join('')}</div>`;
+    return `<div class="bubble${open?' open':''}${seenBefore.has(kind+h.id)?'':' fresh'}"><button class="bhead" data-bub="${h.id}" aria-expanded="${open}"><span class="bk">${kind==='star'?'★':'Top'}</span><span class="hpat">${patColored(displayPat(h))}</span>${pill}</button>${open&&b?`<div class="tiles">${patternTilesHTML(b.cp,p.hand,p.exp)}</div>`:''}</div>`}).join('')}</div>`;
 }
 function bindBubbles(){
   document.querySelectorAll('[data-bub]').forEach(e=>e.onclick=()=>{const id=+e.dataset.bub;bubOpen.has(id)?bubOpen.delete(id):bubOpen.add(id);Sound.tap();render()});
