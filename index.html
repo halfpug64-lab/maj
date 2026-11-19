@@ -789,6 +789,21 @@ body.table-view.theme-paris .orack .exps{background:radial-gradient(circle at 50
   body.table-view .orack .exps.ledge-empty{min-height:8px}
   .wallcount{gap:8px;font-size:10.5px}
 }
+/* bigger tiles and text in the hand bubbles and hand panels */
+.bubble .tiles .tile.xs{--w:clamp(30px,3.6vw,42px)}
+.bubble .tiles{gap:6px 10px;padding:4px 12px 12px}
+.bhead{padding:8px 12px 8px 9px;gap:10px}
+.bhead .hpat{font-size:16px;letter-spacing:1.5px}
+.bk{font-size:12.5px;padding:3px 9px}
+.bubble .pill{font-size:13px;padding:3px 10px}
+.hint .tiles .tile.xs{--w:30px}
+.hpat{font-size:14.5px}
+@media(max-width:900px){
+  .bubble .tiles .tile.xs{--w:clamp(24px,7.4vw,32px)}
+  .bubble .tiles{gap:4px 6px;padding:2px 8px 8px}
+  .bhead .hpat{font-size:13.5px;letter-spacing:1px}
+  .hint .tiles .tile.xs{--w:26px}
+}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
