@@ -505,34 +505,27 @@ body.show-hands .backdrop{display:block}
   body.table-view.show-hands .side{display:block}
 }
 
-/* ================= The walls ================= */
-.wallring{flex:1;min-height:0;width:100%;max-width:680px;display:grid;gap:7px;
-  grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:". t ." "l c r" ". b ."}
-.wside{display:flex;gap:1.5px;min-width:0;min-height:0}
-.wside.t{grid-area:t;padding-bottom:3px}.wside.b{grid-area:b;padding-bottom:3px}
-.wside.l{grid-area:l;flex-direction:column;justify-content:center}.wside.r{grid-area:r;flex-direction:column;justify-content:center}
-.wside.t .st,.wside.b .st{flex:1 1 0;max-width:24px;aspect-ratio:3/4;min-width:0}
-.wside.l .st,.wside.r .st{flex:1 1 0;width:22px;max-height:17px;min-height:3px}
-.st{display:block;border-radius:3px;background:linear-gradient(180deg,var(--tile-back),var(--tile-back-2));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.2),0 1.5px 0 var(--ivory-edge),0 2.5px 0 #b5a277,0 4px 0 var(--ivory-edge),0 5px 0 #a8956a,0 7px 6px rgba(0,0,0,.4)}
-.st.s1{transform:translateY(2.5px);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.2),0 1.5px 0 var(--ivory-edge),0 2.5px 0 #a8956a,0 5px 5px rgba(0,0,0,.35)}
-.st.s0{visibility:hidden}
-.st.next{box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 0 0 1.5px rgba(236,198,109,.9),0 0 10px rgba(236,198,109,.5),0 1.5px 0 var(--ivory-edge),0 4px 0 var(--ivory-edge),0 7px 6px rgba(0,0,0,.4)}
-.st.s1.next{box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 0 0 1.5px rgba(236,198,109,.9),0 0 10px rgba(236,198,109,.5),0 1.5px 0 var(--ivory-edge),0 5px 5px rgba(0,0,0,.35)}
-.wallring.build .st{animation:stackin .45s cubic-bezier(.2,1.2,.4,1) backwards;animation-delay:calc(var(--i)*9ms)}
-@keyframes stackin{from{opacity:0;transform:translateY(-10px) scale(.85)}}
-.wcenter{grid-area:c;min-height:0;min-width:0;display:flex;flex-direction:column;gap:6px}
-.wcenter .discards{flex:1;width:100%;max-width:none}
-.wallcount{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--felt-txt);font-variant-numeric:tabular-nums;opacity:.9}
+/* ================= The walls (Settings > Show walls) ================= */
+.wallbox{flex:1;min-height:0;width:100%;container-type:size;display:flex;align-items:center;justify-content:center}
+.wallsq{--S:min(100cqw,100cqh);--u:calc(var(--S) / 20.4);position:relative;width:var(--S);height:var(--S);flex:none}
+.wtile{position:absolute;left:calc(var(--x) * var(--u));top:calc(var(--y) * var(--u));width:calc(var(--u) - 1px);height:calc(var(--u) * 1.4 - 1px);
+  border-radius:calc(var(--u) * .14);background:var(--back-img,none) center/62% no-repeat,linear-gradient(180deg,var(--tile-back),var(--tile-back-2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.22),
+    0 calc(var(--u) * .08) 0 var(--ivory-edge),0 calc(var(--u) * .12) 0 #a8956a,
+    0 calc(var(--u) * .22) 0 var(--ivory-edge),0 calc(var(--u) * .26) 0 #9a865c,0 calc(var(--u) * .4) calc(var(--u) * .3) rgba(0,0,0,.45)}
+.wtile.v{width:calc(var(--u) * 1.4 - 1px);height:calc(var(--u) - 1px);background-size:auto 62%}
+.wtile.one{transform:translateY(calc(var(--u) * .14));box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.22),
+    0 calc(var(--u) * .08) 0 var(--ivory-edge),0 calc(var(--u) * .12) 0 #9a865c,0 calc(var(--u) * .26) calc(var(--u) * .24) rgba(0,0,0,.4)}
+.wtile.next{outline:1.5px solid rgba(236,198,109,.95);outline-offset:1px;filter:drop-shadow(0 0 5px rgba(236,198,109,.55))}
+.wallsq.build .wtile{animation:stackin .45s cubic-bezier(.2,1.2,.4,1) backwards;animation-delay:calc(var(--i) * 9ms)}
+@keyframes stackin{from{opacity:0;translate:0 calc(var(--u) * -.8)}}
+.wallin{position:absolute;left:calc(var(--u) * 1.4 + 8px);right:calc(var(--u) * 1.4 + 8px);top:calc(var(--u) * 1.4 + 10px);bottom:calc(var(--u) * 1.4 + 12px);
+  display:flex;flex-direction:column;gap:6px;min-height:0}
+.wallin .discards{flex:1;min-height:0;width:100%;max-width:none;padding:6px;align-content:flex-start}
+.wallcount{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--felt-txt);font-variant-numeric:tabular-nums;opacity:.92}
 .wallcount b{color:var(--txt);font-size:13px}
-body.scroll-layout .wallring{flex:none}
-body.scroll-layout .wcenter .discards{min-height:110px}
-@media(max-width:900px){
-  .wallring{gap:4px}.wside{gap:1px}
-  .wside.t .st,.wside.b .st{max-width:15px}
-  .wside.l .st,.wside.r .st{width:14px;max-height:12px}
-  .wallcount{font-size:11px;gap:10px}
-}
+body.scroll-layout .wallbox{flex:none;height:min(560px,92vw)}
+@media(max-width:900px){.wallcount{font-size:11px;gap:10px}.wallin{left:calc(var(--u) * 1.4 + 4px);right:calc(var(--u) * 1.4 + 4px);top:calc(var(--u) * 1.4 + 5px);bottom:calc(var(--u) * 1.4 + 7px)}}
 /* ================= Scroll layout (Settings > Screen layout > Scroll) ================= */
 body.scroll-layout{display:block;height:auto;min-height:100vh;overflow-x:hidden;overflow-y:auto}
 body.scroll-layout .topbar{position:sticky;top:0}
@@ -1181,7 +1174,7 @@ const SPEED=760;
 let wall=[],players=[0,1,2,3].map(()=>({hand:[],exp:[]})),discards=[],phase='idle',turn=0,step='discard',passIdx=0;
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
 // Settings are always saved on this device. Progress (scores, East rotation, an unfinished game) only when "Save progress" is on.
-const SET_DEFAULT={v:2,bg:'default',tiles:'regular',layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
+const SET_DEFAULT={v:2,walls:true,bg:'default',tiles:'regular',layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
   hr:{threeExp:true,wallPoints:false,deadNoPay:false,noBlind:false,noCourtesy:false,alwaysSecond:false}};
 let settings=JSON.parse(JSON.stringify(SET_DEFAULT));
 try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={...settings,...sv,hr:{...SET_DEFAULT.hr,...(sv.hr||{})}};
@@ -1775,16 +1768,24 @@ function freeJoker(cpi,gi){   // tap a purple tile: take its Joker off that grou
 }
 // The four walls, laid out like a real table: yours at the bottom, Queens on the right, Bronx across, Brooklyn on the left.
 // Stack k (0-75) holds draw positions 2k (top) and 2k+1 (bottom), counted from the break.
+// The four walls, laid out like a real table seen from your seat. Each wall is 19 stacks, two tiles high.
+// Walls meet in a pinwheel: top and bottom stacks stand upright, side walls lie turned 90 degrees.
+// Positions are in tile-width units; the square is 20.4 units on a side.
+// Stack k (0-75) holds draw positions 2k (top tile) and 2k+1 (bottom tile), counted from the break.
+function wallPos(k){const s=Math.floor(k/19),i=k%19;
+  if(s===0)return{x:1.4+i,y:19,v:0};          // yours, left to right
+  if(s===1)return{x:19,y:18-i,v:1};           // Queens, bottom to top
+  if(s===2)return{x:18-i,y:0,v:0};            // Bronx, right to left
+  return{x:0,y:1.4+i,v:1};                    // Brooklyn, top to bottom
+}
 function wallsHTML(center){
-  const drawn=152-wall.length;const nextStack=Math.floor(drawn/2);
-  const st=k=>{const order=((2*k-wallBreak)%152+152)%152;const left=Math.max(0,Math.min(2,order+2-drawn));
-    const isNext=wall.length>0&&order===nextStack*2;
-    return `<i class="st s${left}${isNext?' next':''}" ${isNext?'id="wallStack"':''} style="--i:${k}"></i>`};
-  const side=(a,rev)=>{let out=[];for(let k=a;k<a+19;k++)out.push(st(k));if(rev)out.reverse();return out.join('')};
-  const html=`<div class="wallring${wallBuild?' build':''}">
-    <div class="wside t">${side(38,true)}</div><div class="wside l">${side(57,false)}</div>
-    <div class="wcenter">${center}<div class="wallcount"><span><b>${wall.length}</b> tiles in the wall</span><span><b>${discards.length}</b> thrown</span></div></div>
-    <div class="wside r">${side(19,true)}</div><div class="wside b">${side(0,false)}</div></div>`;
+  const count=`<div class="wallcount"><span><b>${wall.length}</b> tiles in the wall</span><span><b>${discards.length}</b> thrown</span></div>`;
+  if(!settings.walls)return `${center}<div class="wallmeter"><div class="wallstack" id="wallStack"><i class="back"></i><i class="back"></i><i class="back"></i></div><span>Wall <b>${wall.length}</b></span><div class="bar"><i style="width:${(wall.length/152*100).toFixed(1)}%"></i></div><span><b>${discards.length}</b> thrown</span></div>`;
+  const drawn=152-wall.length,next=Math.floor(drawn/2)*2;let tiles='';
+  for(let k=0;k<76;k++){const order=((2*k-wallBreak)%152+152)%152;const left=Math.max(0,Math.min(2,order+2-drawn));if(!left)continue;
+    const p=wallPos(k),isNext=wall.length>0&&order===next;
+    tiles+=`<i class="wtile${p.v?' v':''}${left===1?' one':''}${isNext?' next':''}"${isNext?' id="wallStack"':''} style="--x:${p.x};--y:${p.y};--i:${k}"></i>`}
+  const html=`<div class="wallbox"><div class="wallsq${wallBuild?' build':''}">${tiles}<div class="wallin">${center}${count}</div></div></div>`;
   if(wallBuild&&phase!=='shuffle')wallBuild=false;
   return html;
 }
@@ -1930,6 +1931,7 @@ function showSettings(){
    <div class="set-sec">Gameplay</div>
    <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Table view: just the game board with big tiles, and your hands open from the Hands button. Fit to screen: board plus the hands panels, no page scrolling. Scroll: everything at full size and you scroll the page.</span></span>
      <span class="seg" role="group" aria-label="Screen layout">${[['table','Table view'],['fit','Fit to screen'],['scroll','Scroll']].map(([v,l])=>`<button class="${settings.layout===v?'on':''}" data-layout="${v}" aria-pressed="${settings.layout===v}">${l}</button>`).join('')}</span></div>
+   ${swRow('s_walls','Show walls','Build the four walls around the discards like a real table, and draw tiles from them. When off, a simple counter shows how many tiles are left.',settings.walls)}
    ${swRow('s_topbub','Top suggestion bubble','Keep the top suggested hand in a bubble above your rack, next to your starred hands. Works in every screen layout.',settings.topBubble)}
    ${swRow('s_dbl','Double-tap to discard','Tap a selected tile again to throw it. When off, tapping it again just deselects it.',settings.dblDiscard)}
    ${swRow('s_sound','Sound effects','Tile clicks, calls and the Mah Jongg fanfare.',Sound.on)}
@@ -1956,6 +1958,7 @@ function showSettings(){
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{fn(e.checked);saveSettings();render()}};
   on('s_dbl',v=>settings.dblDiscard=v);
   on('s_topbub',v=>settings.topBubble=v);
+  on('s_walls',v=>settings.walls=v);
   on('s_sound',v=>{Sound.on=v;try{localStorage.setItem('amj_sound',v?'on':'off')}catch(e){}renderSoundBtn();if(v){Sound.init();Sound.chime()}});
   on('s_hints',v=>{showHints=v;try{localStorage.setItem('amj_hints',v?'on':'off')}catch(e){}});
   $('#s_save').onchange=e=>{
