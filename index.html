@@ -536,7 +536,7 @@ body.show-hands .backdrop{display:block}
 
 /* ================= The walls (Settings > Show walls) ================= */
 .wallbox{flex:1;min-height:0;width:100%;container-type:size;display:flex;align-items:center;justify-content:center}
-.wallsq{--S:min(100cqw,100cqh);--u:calc(var(--S) / 20.4);position:relative;width:var(--S);height:var(--S);flex:none}
+.wallsq{--H:min(100cqh,100cqw);--W:min(100cqw,calc(var(--H) * 1.95));--u:calc(var(--H) / 20.4);--sh:calc((var(--W) - 2.4 * var(--u)) / 18);position:relative;width:var(--W);height:var(--H);flex:none}
 .wtile{position:absolute;
   border-radius:calc(var(--u) * .14);background:var(--back-img,none) center/62% no-repeat,linear-gradient(180deg,var(--tile-back),var(--tile-back-2));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.22),
@@ -2050,14 +2050,14 @@ function freeJoker(cpi,gi){   // tap a purple tile: take its Joker off that grou
 // Walls meet in a pinwheel: top and bottom stacks stand upright, side walls lie turned 90 degrees.
 // Positions are in tile-width units; the square is 20.4 units on a side.
 // Stack k (0-75) holds draw positions 2k (top tile) and 2k+1 (bottom tile), counted from the break.
-// The four walls form a square, as on a real table: 19 stacks per wall, every tile the same size,
-// each tile's long side pointing at the middle. Walls meet in a pinwheel so corners never overlap.
-// Units are tile widths (u); the square is 20.4u on a side.
+// The four walls fill the table. Every tile is the same size with its long side toward the middle:
+// side walls lie sideways (1.4u x u) and run flush; top and bottom walls stand upright (u x 1.4u),
+// spread evenly along the wider edge. Walls meet in a pinwheel so corners never overlap.
 function wallPos(k){const s=Math.floor(k/19),i=k%19;
-  if(s===0)return{x:1.4+i,y:19,h:0,side:''};      // yours: upright, left to right
-  if(s===1)return{x:19,y:18-i,h:1,side:'rt'};     // Queens: lying sideways, bottom to top
-  if(s===2)return{x:18-i,y:0,h:0,side:''};        // Bronx: upright, right to left
-  return{x:0,y:1.4+i,h:1,side:'lt'};              // Brooklyn: lying sideways, top to bottom
+  if(s===0)return{l:`calc(1.4 * var(--u) + ${i} * var(--sh))`,t:'calc(var(--H) - 1.4 * var(--u))',y:19,h:0,side:''};   // yours
+  if(s===1)return{l:'calc(var(--W) - 1.4 * var(--u))',t:`calc(${18-i} * var(--u))`,y:18-i,h:1,side:'rt'};                // Queens
+  if(s===2)return{l:`calc(${18-i} * var(--sh))`,t:'0px',y:0,h:0,side:''};                                                    // Bronx
+  return{l:'0px',t:`calc(1.4 * var(--u) + ${i} * var(--u))`,y:1.4+i,h:1,side:'lt'};                                          // Brooklyn
 }
 function wallsHTML(center){
   const s1=left=>left===1?' one':'';
@@ -2066,7 +2066,7 @@ function wallsHTML(center){
   const drawn=152-wall.length,next=Math.floor(drawn/2)*2;let tiles='';
   for(let k=0;k<76;k++){const order=((2*k-wallBreak)%152+152)%152;const left=Math.max(0,Math.min(2,order+2-drawn));if(!left)continue;
     const p=wallPos(k),isNext=wall.length>0&&order===next;
-    tiles+=`<i class="wtile ${p.h?'vv':'up'} ${p.side}${s1(left)}${isNext?' next':''}"${isNext?' id="wallStack"':''} style="left:calc(${p.x} * var(--u));top:calc(${p.y} * var(--u));z-index:${Math.round(p.y*10)+1};--i:${k}"></i>`}
+    tiles+=`<i class="wtile ${p.h?'vv':'up'} ${p.side}${s1(left)}${isNext?' next':''}"${isNext?' id="wallStack"':''} style="left:${p.l};top:${p.t};z-index:${Math.round(p.y*10)+1};--i:${k}"></i>`}
   const html=`<div class="wallbox"><div class="wallsq${wallBuild?' build':''}">${tiles}<div class="wallin">${center}${count}</div></div></div>`;
   if(wallBuild&&phase!=='shuffle')wallBuild=false;
   return html;
