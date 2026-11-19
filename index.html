@@ -451,6 +451,30 @@ body.tiles-easy .tile{background:linear-gradient(160deg,#ffffff,#f4efe2)}
 .tile-preview{display:flex;flex-wrap:wrap;gap:5px;padding:12px;border-radius:12px;background:#0b1622;justify-content:center}
 .seg button[data-tiles]{white-space:nowrap}
 .setrow.col .seg{align-self:flex-start}
+
+/* ================= Paris (tiles and background) ================= */
+.pface{position:absolute;inset:0;border-radius:inherit;background-size:cover;background-position:center;background-repeat:no-repeat}
+body.tiles-paris{--tile-back:#1f2a4d;--tile-back-2:#121a33}
+body.tiles-paris .tile{background:#faf6ee}
+body.tiles-paris .back,body.tiles-paris .wtile,body.tiles-paris .tile.back-tile{background:url(tiles/paris/back.webp) center/cover,#1f2a4d}
+body.tiles-paris .wtile.v{background:radial-gradient(ellipse 30% 36% at 50% 50%,rgba(217,169,58,.9) 0 32%,transparent 36%),#1f2a4d}
+body.theme-paris{--sky-1:#24305a;--sky-2:#151d38;--sky-3:#0b1022;--felt-hi:#33507f;--felt:#243d69;--felt-lo:#172b4e;--felt-edge:#0e1b36;
+  --panel-1:rgba(30,42,78,.9);--panel-2:rgba(14,20,40,.96);--muted:#aab4cf;--felt-txt:#d7def0;--display:"Playfair Display",Georgia,"Times New Roman",serif;--gold:#e2b04a;--gold-hi:#f6d993;--gold-lo:#b07d24}
+body.theme-paris::after{display:none}
+body.theme-paris h1,body.theme-paris .splash-title{font-style:italic;font-weight:700;letter-spacing:.3px}
+body.theme-paris .splash-skyline{display:none}
+body.theme-paris .topbar{background:linear-gradient(180deg,rgba(10,15,32,.9),rgba(10,15,32,.7))}
+body.theme-paris #splash{background:radial-gradient(900px 620px at 50% 38%,rgba(38,54,98,.985),rgba(8,11,24,.995))}
+body.theme-paris .felt{background:radial-gradient(120% 95% at 50% 38%,var(--felt-hi) 0,var(--felt) 40%,var(--felt-lo) 80%,var(--felt-edge) 100%) padding-box,
+    linear-gradient(150deg,#2c3a6b,#141d3a 38%,#26345f 66%,#0b1228) border-box}
+body.theme-paris .felt::after{border-color:rgba(226,176,74,.45)}
+body.theme-paris .rack{background:linear-gradient(180deg,#27355f,#18213f 60%,#10172d);box-shadow:inset 0 2px 0 rgba(255,255,255,.08),inset 0 -14px 22px rgba(0,0,0,.4),0 18px 34px rgba(0,0,0,.45)}
+body.theme-paris .rack::after{left:10px;right:10px;bottom:5px;height:24px;border-radius:6px;
+  background:radial-gradient(circle at 50% 50%,#e2b04a 0 2.2px,transparent 2.8px 5.6px,#e2b04a 5.7px 7.2px,transparent 7.7px) 0 0/26px 100% repeat-x,
+    linear-gradient(90deg,#e2b04a 0 1.6px,transparent 1.6px) 13px 0/26px 100% repeat-x,#17203e;
+  box-shadow:inset 0 2px 0 #e2b04a,inset 0 -2px 0 #e2b04a,0 3px 6px rgba(0,0,0,.45)}
+body.theme-paris .rack{padding-bottom:34px}
+body.theme-paris .btn-gold{background:linear-gradient(180deg,#f7dc96 0%,#dfae4a 48%,#b78428 100%)}
 /* ================= Table view (Settings > Table view) ================= */
 #btnHands,#btnFull{display:none}
 body.table-view #btnHands{display:inline-flex}
@@ -521,7 +545,9 @@ body.show-hands .backdrop{display:block}
 @keyframes stackin{from{opacity:0;translate:0 calc(var(--u) * -.8)}}
 .wallin{position:absolute;left:calc(var(--u) * 1.4 + 8px);right:calc(var(--u) * 1.4 + 8px);top:calc(var(--u) * 1.4 + 10px);bottom:calc(var(--u) * 1.4 + 12px);
   display:flex;flex-direction:column;gap:6px;min-height:0}
-.wallin .discards{flex:1;min-height:0;width:100%;max-width:none;padding:6px;align-content:flex-start}
+.discards.dense .tile.sm,body.table-view .discards.dense .tile.sm{--w:25px}
+.discards.denser .tile.sm,body.table-view .discards.denser .tile.sm{--w:21px}
+.wallin .discards{flex:1;overflow-y:auto;min-height:0;width:100%;max-width:none;padding:6px;align-content:flex-start}
 .wallcount{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--felt-txt);font-variant-numeric:tabular-nums;opacity:.92}
 .wallcount b{color:var(--txt);font-size:13px}
 body.scroll-layout .wallbox{flex:none;height:min(560px,92vw)}
@@ -650,6 +676,78 @@ body.theme-default .splash-title{margin-bottom:12px}
 #splash{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 body.theme-default #splash{background:radial-gradient(900px 620px at 50% 38%,rgba(34,58,50,.985),rgba(8,14,12,.995))}
 body.theme-nyc #splash{background:radial-gradient(900px 620px at 50% 38%,rgba(20,52,76,.985),rgba(4,9,14,.995))}
+
+
+/* ===================================================================
+   Table view, immersive: the whole screen is the table.
+   =================================================================== */
+body.table-view{background:radial-gradient(1300px 900px at 50% 40%,var(--felt-hi) 0,var(--felt) 42%,var(--felt-lo) 78%,var(--felt-edge) 100%) fixed,var(--felt-edge)}
+body.table-view::after{display:block;opacity:.13;mix-blend-mode:overlay;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");background-size:200px 200px;z-index:0}
+body.table-view .layout,body.table-view .topbar{position:relative;z-index:1}
+body.table-view .topbar{background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,.18) 70%,rgba(0,0,0,0));border-bottom:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+body.table-view .topbar::after{display:none}
+body.table-view .layout{padding-block:4px 10px}
+/* the felt box dissolves into the page */
+body.table-view .felt{background:none;border:0;box-shadow:none;border-radius:0;padding:2px 6px;gap:8px;
+  grid-template-columns:minmax(120px,190px) minmax(0,1fr) minmax(120px,190px)}
+body.table-view .felt::before,body.table-view .felt::after{display:none}
+/* opponents: a nameplate and a row of standing tiles */
+body.table-view .seat,body.table-view .seat.turn{background:none;border:0;box-shadow:none;padding:2px;overflow:visible}
+body.table-view .seat-left,body.table-view .seat-right{align-self:center}
+body.table-view .plate{display:inline-flex;width:auto;max-width:100%;padding:4px 14px 4px 4px;border-radius:999px;background:rgba(0,0,0,.34);border:1px solid rgba(255,255,255,.08);box-shadow:0 6px 16px rgba(0,0,0,.25)}
+body.table-view .seat.turn .plate{border-color:rgba(236,198,109,.8);box-shadow:0 0 0 3px rgba(236,198,109,.18),0 0 26px rgba(236,198,109,.35)}
+body.table-view .seat-top{justify-self:center;width:auto;display:flex;flex-direction:column;align-items:center}
+body.table-view .seat .backs{gap:2px;margin-top:8px;justify-content:center}
+body.table-view .seat .back{width:19px;height:27px;border-radius:4px}
+body.table-view .seat-left .back,body.table-view .seat-right .back{width:15px;height:21px}
+body.table-view .seat .exps{justify-content:center}
+body.table-view .seat .pinfo{color:var(--felt-txt)}
+/* status floats as a label */
+body.table-view .pool{min-height:0}
+body.table-view .banner{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:7px 18px 8px;margin-bottom:6px;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+body.table-view .status{font-size:19px}
+body.table-view .banner .sub{font-size:12.5px;margin-top:2px}
+body.table-view .dir{width:26px;height:26px;margin-bottom:2px}
+/* the walls sit on the table at an angle */
+body.table-view .wallsq{transform:perspective(1200px) rotateX(26deg);transform-origin:50% 62%}
+body.table-view .wallbox{overflow:visible}
+body.table-view .wallin .discards{background:rgba(0,0,0,.14);box-shadow:inset 0 2px 14px rgba(0,0,0,.3)}
+/* your seat: the rack sits on the table edge, controls float just above it */
+body.table-view .me,body.table-view .me.turn{background:none;border:0;box-shadow:none;padding:0 4px 4px;display:flex;flex-direction:column}
+body.table-view .me>.me-head{order:1}body.table-view .me>.bubbles{order:2}body.table-view .me>.exps{order:3}body.table-view .me>.building{order:4}
+body.table-view .me>.actions{order:5;margin:6px 0 8px;min-height:44px}body.table-view .me>.rack{order:6;margin-top:0}
+body.table-view .me-head .avatar{width:30px;height:30px}body.table-view .me-head .avatar .bullet{width:30px;height:30px;font-size:14px}
+body.table-view .me-head{padding:0 6px}
+body.table-view .rack{border-radius:22px 22px 16px 16px;padding:22px 14px 24px;box-shadow:inset 0 2px 0 rgba(255,255,255,.1),inset 0 -16px 24px rgba(0,0,0,.45),0 -2px 0 rgba(0,0,0,.25),0 24px 40px rgba(0,0,0,.5)}
+body.table-view.theme-paris .rack{padding-bottom:38px}
+body.table-view .actions .btn{box-shadow:0 10px 24px rgba(0,0,0,.35)}
+body.table-view .actions .btn-ghost{background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+@media(max-width:900px){
+  body.table-view .felt{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  body.table-view .seat .back{width:11px;height:16px}
+  body.table-view .seat-left .back,body.table-view .seat-right .back{width:10px;height:14px}
+  body.table-view .plate{padding:3px 10px 3px 3px}
+  body.table-view .wallsq{transform:perspective(900px) rotateX(20deg)}
+  body.table-view .banner{padding:5px 12px 6px}
+}
+
+/* compact status and bigger walls in Table view */
+body.table-view .banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;column-gap:12px;row-gap:2px;padding:6px 16px;max-width:min(760px,100%)}
+body.table-view .banner .dir{margin:0}
+body.table-view .status{font-size:18px}
+body.table-view .banner .sub{margin:0;font-size:12.5px;opacity:.85}
+body.table-view .seat-top{flex-direction:row;align-items:center;gap:14px}
+body.table-view .seat-top .backs{margin-top:0}
+body.table-view .wallsq{transform:perspective(1300px) rotateX(24deg) scale(1.08)}
+@media(max-width:900px){
+  body.table-view .seat-top{flex-direction:column;gap:4px}
+  body.table-view .banner{padding:4px 10px;column-gap:8px}
+  body.table-view .status{font-size:15px}
+  body.table-view .banner .sub{font-size:11px;line-height:1.3;max-height:2.7em;overflow:hidden}
+  body.table-view .wallsq{transform:perspective(900px) rotateX(18deg) scale(1.06)}
+  body.table-view .me-head .pinfo{display:none}
+}
 
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -828,8 +926,9 @@ const FACE2={};
 function faceSVG(k,v=0){
   const th=(typeof settings!=='undefined'&&settings.tiles)||'regular';const key=th+'|'+k+'|'+v;
   if(FACE2[key])return FACE2[key];
-  return FACE2[key]=th==='nyc'?faceNYC(k,v):th==='easy'?faceEasy(k,v):faceRegular(k,v);
+  return FACE2[key]=th==='paris'?faceParis(k,v):th==='nyc'?faceNYC(k,v):th==='easy'?faceEasy(k,v):faceRegular(k,v);
 }
+function faceParis(k,v=0){const n=k==='F'?'F'+(v%8):k;return `<i class="pface" style="background-image:url(tiles/paris/${n}.webp)"></i>`}
 const HAN='"Noto Serif SC","Songti SC","STSong","SimSun","Noto Serif CJK SC",serif';
 const RB='#1f5fbf',RG='#17803f',RR='#c8102e',RK='#1d2445';
 const DOTCOL={1:[RB],2:[RG,RB],3:[RB,RR,RG],4:[RB,RG,RG,RB],5:[RB,RG,RR,RG,RB],6:[RG,RG,RR,RR,RR,RR],7:[RG,RG,RG,RR,RR,RR,RR],8:[RB,RB,RB,RB,RB,RB,RB,RB],9:[RB,RB,RB,RR,RR,RR,RG,RG,RG]};
@@ -1123,7 +1222,10 @@ addEventListener('keydown',()=>Sound.init(),true);
 const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $=s=>document.querySelector(s);
 let gid=0;
-function later(fn,ms){const g=gid;setTimeout(()=>{if(g===gid)fn()},ms)}
+let paused=false,pausedQ=[];
+function later(fn,ms){const g=gid;const run=()=>{if(g!==gid)return;if(paused){pausedQ.push(run);return}fn()};setTimeout(run,ms)}
+function pauseGame(){paused=true}
+function unpauseGame(){if(!paused)return;paused=false;const q=pausedQ;pausedQ=[];q.forEach((r,x)=>setTimeout(r,120+x*40))}
 function rectOf(s){const e=typeof s==='string'?$(s):s;if(!e)return null;const r=e.getBoundingClientRect();return r.width?r:null}
 const tileRect=id=>rectOf(`.tile[data-id="${id}"]`);
 function mini(r,w=28){return r?{left:r.left+r.width/2-w/2,top:r.top+r.height/2-w*.7,width:w,height:w*1.4}:null}
@@ -1170,11 +1272,13 @@ const SEATPOS={1:'right',2:'top',3:'left'};
 const BULLET=[{c:'#ecc66d',t:'★',fg:'#2a1d00'},{c:'#9b3fb5',t:'7'},{c:'#00933c',t:'4'},{c:'#0039a6',t:'A'}];
 const bulletHTML=i=>`<span class="bullet" style="background:${BULLET[i].c};color:${BULLET[i].fg||'#fff'}">${BULLET[i].t}</span>`;
 const WORD={3:'Pung',4:'Kong',5:'Quint',6:'Sextet'};
-const SPEED=760;
+let SPEED=760;
+const SPEEDS={slow:1400,normal:760,fast:380,instant:110};
+const applySpeed=()=>{SPEED=SPEEDS[settings.botSpeed]||760};
 let wall=[],players=[0,1,2,3].map(()=>({hand:[],exp:[]})),discards=[],phase='idle',turn=0,step='discard',passIdx=0;
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
 // Settings are always saved on this device. Progress (scores, East rotation, an unfinished game) only when "Save progress" is on.
-const SET_DEFAULT={v:2,walls:true,bg:'default',tiles:'regular',layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
+const SET_DEFAULT={v:2,botSpeed:'normal',walls:true,bg:'default',tiles:'regular',layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
   hr:{threeExp:true,wallPoints:false,deadNoPay:false,noBlind:false,noCourtesy:false,alwaysSecond:false}};
 let settings=JSON.parse(JSON.stringify(SET_DEFAULT));
 try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={...settings,...sv,hr:{...SET_DEFAULT.hr,...(sv.hr||{})}};
@@ -1182,8 +1286,11 @@ try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={.
   if(sv.v!==2){settings.v=2;settings.save=true}}}catch(e){}   // save progress became on by default in v2
 function applyTheme(){
   const b=document.body;['theme-default','theme-nyc','tiles-regular','tiles-nyc','tiles-easy'].forEach(c=>b.classList.remove(c));
+  ['theme-paris','tiles-paris'].forEach(c=>b.classList.remove(c));
   b.classList.add('theme-'+settings.bg,'tiles-'+settings.tiles);
-  document.title=settings.bg==='nyc'?'American Mah Jongg · NYC':'American Mah Jongg';
+  const ed={nyc:'NEW YORK EDITION',paris:'ÉDITION DE PARIS'}[settings.bg]||'';
+  document.querySelectorAll('.brand small,.splash-tag').forEach(e=>e.textContent=ed);
+  document.title={nyc:'American Mah Jongg · NYC',paris:'American Mah Jongg · Paris'}[settings.bg]||'American Mah Jongg';
   const em=document.getElementById('emblem');if(em)em.innerHTML=tileHTML({k:'F',v:3})+tileHTML('J');
   const fan=document.getElementById('fan');if(fan)fan.innerHTML=[{k:'F',v:3},'R','J','G',{k:'F',v:0}].map((t,x)=>`<div class="fan-slot" style="--r:${(x-2)*13}deg;--d:${x*90}ms">${tileHTML(t)}</div>`).join('');
 }
@@ -1683,8 +1790,10 @@ function render(){
   const rnd=(a,b)=>Math.round(a+Math.random()*(b-a));
   const middle=phase==='shuffle'
     ?`<div class="wash">${Array.from({length:30},(_,x)=>`<i class="back" style="--x1:${rnd(-200,200)}px;--y1:${rnd(-55,55)}px;--r1:${rnd(-200,200)}deg;--x2:${rnd(-220,220)}px;--y2:${rnd(-55,55)}px;--r2:${rnd(-200,200)}deg;--d:${x*14}ms"></i>`).join('')}</div>`
-    :wallsHTML(`<div class="discards">${discards.length?discards.map((t,i)=>`<span class="dw" style="rotate:${((t.id*37)%7-3)*.6}deg">${tileHTML(t,'sm'+(i===last?' last':''),true)}</span>`).join(''):'<div class="empty">Discards land here</div>'}</div>`);
+    :wallsHTML(`<div class="discards${discards.length>72?' denser':discards.length>40?' dense':''}">${discards.length?discards.map((t,i)=>`<span class="dw" style="rotate:${((t.id*37)%7-3)*.6}deg">${tileHTML(t,'sm'+(i===last?' last':''),true)}</span>`).join(''):'<div class="empty">Discards land here</div>'}</div>`);
+  const od=document.querySelector('#center .discards');const keep=od?{top:od.scrollTop,atEnd:od.scrollTop+od.clientHeight>=od.scrollHeight-8,n:od.querySelectorAll('.tile').length}:null;
   $('#center').innerHTML=`<div class="banner${changed?' swap':''}">${dirHTML}<div class="status">${status}</div><div class="sub">${sub}</div></div>${middle}`;
+  {const nd=document.querySelector('#center .discards');if(nd&&keep){if(keep.atEnd)nd.scrollTop=nd.scrollHeight;else nd.scrollTop=keep.top}}
 
   const p=players[0];let acts='';
   if(phase==='idle')acts='<button class="btn btn-gold" id="bStart2">Deal me in</button>';
@@ -1779,7 +1888,7 @@ function wallPos(k){const s=Math.floor(k/19),i=k%19;
   return{x:0,y:1.4+i,v:1};                    // Brooklyn, top to bottom
 }
 function wallsHTML(center){
-  const count=`<div class="wallcount"><span><b>${wall.length}</b> tiles in the wall</span><span><b>${discards.length}</b> thrown</span></div>`;
+  const count=`<div class="wallcount"><span><b>${wall.length}</b> in the wall</span><span><b>${discards.length}</b> thrown</span></div>`;
   if(!settings.walls)return `${center}<div class="wallmeter"><div class="wallstack" id="wallStack"><i class="back"></i><i class="back"></i><i class="back"></i></div><span>Wall <b>${wall.length}</b></span><div class="bar"><i style="width:${(wall.length/152*100).toFixed(1)}%"></i></div><span><b>${discards.length}</b> thrown</span></div>`;
   const drawn=152-wall.length,next=Math.floor(drawn/2)*2;let tiles='';
   for(let k=0;k<76;k++){const order=((2*k-wallBreak)%152+152)%152;const left=Math.max(0,Math.min(2,order+2-drawn));if(!left)continue;
@@ -1921,16 +2030,19 @@ const HR=[
   ['alwaysSecond','Always do the second Charleston','Nobody can stop after the first Charleston.']];
 function swRow(id,label,desc,on){return `<label class="setrow" for="${id}"><span class="st"><b>${label}</b><span class="d">${desc}</span></span><span class="switch"><input type="checkbox" id="${id}" ${on?'checked':''}><span class="track"><span class="knob"></span></span></span></label>`}
 function showSettings(){
-  openModal(`<h2>Settings</h2><p class="setnote">Settings are saved on this device.</p>
+  pauseGame();
+  openModal(`<h2>Settings</h2><p class="setnote">Settings are saved on this device. The game is paused while this is open.</p>
    <div class="set-sec">Style</div>
-   <div class="setrow"><span class="st"><b>Background</b><span class="d">Default is a classic green card room. NYC is navy Art Deco with the skyline.</span></span>
-     <span class="seg" role="group" aria-label="Background">${[['default','Default'],['nyc','NYC']].map(([v,l])=>`<button class="${settings.bg===v?'on':''}" data-bg="${v}" aria-pressed="${settings.bg===v}">${l}</button>`).join('')}</span></div>
-   <div class="setrow col"><span class="st"><b>Tiles</b><span class="d">Regular is the traditional look. NYC uses bagels, Big Apples and skyscrapers. Easy to read shows a big number or letter on every tile.</span></span>
-     <span class="seg" role="group" aria-label="Tiles">${[['regular','Regular'],['nyc','NYC'],['easy','Easy to read']].map(([v,l])=>`<button class="${settings.tiles===v?'on':''}" data-tiles="${v}" aria-pressed="${settings.tiles===v}">${l}</button>`).join('')}</span>
+   <div class="setrow"><span class="st"><b>Background</b><span class="d">Default is a classic green card room. NYC is navy Art Deco with the skyline. Paris is navy velvet with gold and a balcony-railing rack.</span></span>
+     <span class="seg" role="group" aria-label="Background">${[['default','Default'],['nyc','NYC'],['paris','Paris']].map(([v,l])=>`<button class="${settings.bg===v?'on':''}" data-bg="${v}" aria-pressed="${settings.bg===v}">${l}</button>`).join('')}</span></div>
+   <div class="setrow col"><span class="st"><b>Tiles</b><span class="d">Regular is the traditional look. Paris uses macarons, asparagus and shopfronts. NYC uses bagels, Big Apples and skyscrapers. Easy to read shows a big number or letter on every tile.</span></span>
+     <span class="seg" role="group" aria-label="Tiles">${[['regular','Regular'],['paris','Paris'],['nyc','NYC'],['easy','Easy to read']].map(([v,l])=>`<button class="${settings.tiles===v?'on':''}" data-tiles="${v}" aria-pressed="${settings.tiles===v}">${l}</button>`).join('')}</span>
      <div class="tile-preview" id="tilePreview">${tilePreview()}</div></div>
    <div class="set-sec">Gameplay</div>
    <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Table view: just the game board with big tiles, and your hands open from the Hands button. Fit to screen: board plus the hands panels, no page scrolling. Scroll: everything at full size and you scroll the page.</span></span>
      <span class="seg" role="group" aria-label="Screen layout">${[['table','Table view'],['fit','Fit to screen'],['scroll','Scroll']].map(([v,l])=>`<button class="${settings.layout===v?'on':''}" data-layout="${v}" aria-pressed="${settings.layout===v}">${l}</button>`).join('')}</span></div>
+   <div class="setrow"><span class="st"><b>Bot speed</b><span class="d">How quickly the other players take their turns. Changes apply right away.</span></span>
+     <span class="seg" role="group" aria-label="Bot speed">${[['slow','Slow'],['normal','Normal'],['fast','Fast'],['instant','Instant']].map(([v,l])=>`<button class="${settings.botSpeed===v?'on':''}" data-speed="${v}" aria-pressed="${settings.botSpeed===v}">${l}</button>`).join('')}</span></div>
    ${swRow('s_walls','Show walls','Build the four walls around the discards like a real table, and draw tiles from them. When off, a simple counter shows how many tiles are left.',settings.walls)}
    ${swRow('s_topbub','Top suggestion bubble','Keep the top suggested hand in a bubble above your rack, next to your starred hands. Works in every screen layout.',settings.topBubble)}
    ${swRow('s_dbl','Double-tap to discard','Tap a selected tile again to throw it. When off, tapping it again just deselects it.',settings.dblDiscard)}
@@ -1976,6 +2088,8 @@ function showSettings(){
   const seg=(attr,key)=>document.querySelectorAll(`[data-${attr}]`).forEach(b=>b.onclick=()=>{settings[key]=b.dataset[attr];saveSettings();applyTheme();
     document.querySelectorAll(`[data-${attr}]`).forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)});$('#tilePreview').innerHTML=tilePreview();render()});
   seg('bg','bg');seg('tiles','tiles');
+  document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{settings.botSpeed=b.dataset.speed;applySpeed();saveSettings();
+    document.querySelectorAll('[data-speed]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
   document.querySelectorAll('[data-layout]').forEach(b=>b.onclick=()=>{settings.layout=b.dataset.layout;saveSettings();applyLayout();document.body.classList.remove('show-hands');
     document.querySelectorAll('[data-layout]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)});render()});
   document.querySelectorAll('[data-exp]').forEach(b=>b.onclick=()=>{settings.expMode=b.dataset.exp;saveSettings();
@@ -1991,7 +2105,7 @@ function showSettings(){
 
 // ================= Modals =================
 function openModal(html){$('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"><div class="box">${html}</div></div>`}
-function closeModal(){$('#modal').innerHTML=''}
+function closeModal(){$('#modal').innerHTML='';unpauseGame()}
 function showResult(pi,cp,from,v,jl,pay,rule){
   const p=players[pi];
   openModal(`<h2>${pi===0?'You made Mah Jongg!':NAMES[pi]+' made Mah Jongg'}</h2>
@@ -2015,6 +2129,7 @@ function handNote(h){
 }
 function patColored(pat){return pat.split(/\s+/).map(t=>{const s=/[grb]$/.test(t)?t.slice(-1):'n';const body=s==='n'?t:t.slice(0,-1);return `<span class="c${s}">${body}</span>`}).join(' ')}
 function showCard(tab='view'){
+  pauseGame();
   const tabs=`<div class="tabs"><button class="${tab==='view'?'on':''}" onclick="showCard('view')">Card in play</button><button class="${tab==='edit'?'on':''}" onclick="showCard('edit')">Load my card</button></div>`;
   if(tab==='view'){
     let html=`<h2>The Card</h2>${tabs}<p style="font-size:13px;color:var(--paper-muted);margin:0">Playing with: <b>${cardMode==='mine'?'a loaded card':'your 2026 card'}</b>. Green, red and blue mean different suits. 0 is Soap. X means exposed, C concealed. Tap ★ on up to 3 hands to track them while you play.</p>`;
@@ -2051,10 +2166,11 @@ function showCard(tab='view'){
 }
 function tileBlurb(){
   if(settings.tiles==='nyc')return 'NYC tiles: Dots are bagels, Bams are Art Deco towers, Craks are Big Apples, Winds are street signs, Red is a hydrant, Green is the Liberty torch, Soap is a Broadway marquee star, Jokers are yellow cabs.';
+  if(settings.tiles==='paris')return 'Paris tiles: Dots are blue macarons, Bams are green asparagus (the 1 Bam is a pigeon), Craks are red Paris shopfronts, Winds are Point Zéro compasses, Red is the Moulin Rouge, Green is a Wallace fountain, Soap is Sacré-Cœur, Flowers are purple landmarks and café life, Jokers are the Eiffel Tower at night.';
   if(settings.tiles==='easy')return 'Easy to read tiles: the big number or letter is the tile, and the word under it is the suit (BAM, CRAK, DOT) or the honor (NORTH, RED, SOAP, FLOWER, JOKER).';
   return 'Regular tiles: Dots are circles, Bams are bamboo sticks (the 1 Bam is a bird), Craks show a Chinese number over 萬, Winds are 東 East, 南 South, 西 West, 北 North, Red is 中, Green is 發, and Soap is the blue frame.';
 }
-function showHelp(){openModal(`<div class="help"><h2>How to play</h2>
+function showHelp(){pauseGame();openModal(`<div class="help"><h2>How to play</h2>
  <p>Be the first to build exactly 14 tiles that match one hand on the card. The card decides what wins. The rules below decide how you get, expose, swap and use tiles.</p>
  <h4>Seats</h4>
  <p>You start as East. East gets 14 tiles and throws first without drawing. After every hand, win or wall game, East moves one seat to the right. Play goes to the right.</p>
@@ -2101,7 +2217,7 @@ $('#btnFull').onclick=()=>{try{document.fullscreenElement?document.exitFullscree
 $('#btnResume').onclick=resumeGame;
 if(savedGame()){$('#btnResume').hidden=false;$('#btnStart').textContent='New game'}
 addEventListener('keydown',e=>{if(e.key!=='Escape')return;if($('#modal').innerHTML)closeModal();else document.body.classList.remove('show-hands')});
-applyTheme();applyLayout();renderSoundBtn();
+applySpeed();applyTheme();applyLayout();renderSoundBtn();
 render();
 </script>
 </body>
