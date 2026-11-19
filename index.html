@@ -533,7 +533,7 @@ body.show-hands .backdrop{display:block}
 
 /* ================= The walls (Settings > Show walls) ================= */
 .wallbox{flex:1;min-height:0;width:100%;container-type:size;display:flex;align-items:center;justify-content:center}
-.wallsq{--H:min(100cqh,100cqw);--W:min(100cqw,calc(var(--H) * 1.25));--u:calc(var(--H) / 20.4);--sh:calc((var(--W) - 2.4 * var(--u)) / 18);--sv:calc((var(--H) - 2.4 * var(--u)) / 18);position:relative;width:var(--W);height:var(--H);flex:none}
+.wallsq{--H:min(100cqh,100cqw);--W:min(100cqw,calc(var(--H) * 1.38));--u:calc(var(--H) / 20.4);--sh:calc((var(--W) - 2.4 * var(--u)) / 18);--sv:calc((var(--H) - 2.4 * var(--u)) / 18);position:relative;width:var(--W);height:var(--H);flex:none}
 .wtile{position:absolute;width:calc(var(--sh) - 1px);height:calc(var(--u) * 1.4 - 1px);
   border-radius:calc(var(--u) * .14);background:var(--back-img,none) center/62% no-repeat,linear-gradient(180deg,var(--tile-back),var(--tile-back-2));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.22),
@@ -808,6 +808,51 @@ body.table-view.theme-paris .orack .exps{background:radial-gradient(circle at 50
   .bhead .hpat{font-size:13.5px;letter-spacing:1px}
   .hint .tiles .tile.xs{--w:26px}
 }
+/* ================= Table view: give the table the whole screen ================= */
+body.table-view .brand small{display:none}
+body.table-view .bar-in{flex-wrap:nowrap;padding-top:6px;padding-bottom:6px}
+body.table-view h1{font-size:19px;white-space:nowrap}
+body.table-view .emblem{width:36px;height:32px}body.table-view .emblem .tile{--w:18px}
+@media(max-width:1750px){body.table-view .lbl{display:none}body.table-view .tools .btn{padding:8px}}
+body.table-view .scores{margin-left:auto}
+body.table-view .tools{margin-left:8px}
+body.table-view .layout{padding-block:2px 8px}
+body.table-view .felt{gap:4px}
+body.table-view .wallin .banner{align-self:center;margin:0 0 4px;padding:4px 14px;background:rgba(0,0,0,.28)}
+body.table-view .wallin .status{font-size:16px}
+body.table-view .wallin .banner .sub{font-size:12px}
+body.table-view .me-head{flex-wrap:nowrap;align-items:center;gap:10px;min-height:40px}
+body.table-view .me-head .bubbles{flex:1;min-width:0;margin:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:2px 0}
+body.table-view .me-head .bubbles::-webkit-scrollbar{display:none}
+body.table-view .me-head .bubble{flex:none}
+body.table-view .me-head .bubble.open{position:absolute;bottom:calc(100% + 6px);left:0;max-width:min(900px,100%);z-index:5;box-shadow:0 18px 40px rgba(0,0,0,.5);background:rgba(8,14,24,.94)}
+body.table-view .me{position:relative}
+body.table-view .me-head .sortbtns{margin-left:0;flex:none}
+body.table-view .me>.actions{margin:4px 0 6px}
+body.table-view .rack .tile{--w:clamp(40px,min(6.6vh,calc((100vw - 150px)/15.3)),70px)}
+body.table-view .rack{padding:16px 10px 18px}
+body.table-view.theme-paris .rack{padding-bottom:34px}
+@media(max-width:900px){
+  body.table-view .bar-in{flex-wrap:wrap}
+  body.table-view .me-head{flex-wrap:wrap}
+  body.table-view .me-head .bubbles{order:3;flex:1 1 100%}
+  /* phones: the three opponents share one compact row; their hidden tiles show as a count */
+  body.table-view .felt{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"left top right" "pool pool pool";grid-template-rows:auto minmax(0,1fr)}
+  body.table-view .seat-top{flex-direction:column;align-items:center;width:100%}
+  body.table-view .seat-left,body.table-view .seat-right{align-self:start;display:flex;flex-direction:column;align-items:center}
+  body.table-view .orack .backs{display:none}
+  body.table-view .orack .exps.ledge-empty{display:none}
+  body.table-view .orack{padding:0;background:none;box-shadow:none}
+  body.table-view .orack .exps{width:auto;margin-top:3px;border-radius:6px}
+  body.table-view .plate{flex-direction:column;align-items:center;padding:4px 8px;border-radius:14px;gap:2px;text-align:center}
+  body.table-view .plate .avatar,body.table-view .plate .avatar .bullet{width:24px;height:24px;font-size:11px}
+  body.table-view .pname{font-size:12px}body.table-view .seat .pinfo{font-size:10px}
+  body.table-view .me-head .avatar,body.table-view .me-head .meta{display:none}
+  body.table-view .wallin .banner{padding:3px 10px;margin-bottom:3px}
+  body.table-view .wallin .status{font-size:14px}
+  body.table-view .wallin .banner .sub{display:none}
+}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -1851,7 +1896,9 @@ function render(){
     ?`<div class="wash">${Array.from({length:30},(_,x)=>`<i class="back" style="--x1:${rnd(-200,200)}px;--y1:${rnd(-55,55)}px;--r1:${rnd(-200,200)}deg;--x2:${rnd(-220,220)}px;--y2:${rnd(-55,55)}px;--r2:${rnd(-200,200)}deg;--d:${x*14}ms"></i>`).join('')}</div>`
     :wallsHTML(`<div class="discards${discards.length>72?' denser':discards.length>40?' dense':''}">${discards.length?discards.map((t,i)=>`<span class="dw" style="rotate:${((t.id*37)%7-3)*.6}deg">${tileHTML(t,'sm'+(i===last?' last':''),true)}</span>`).join(''):'<div class="empty">Discards land here</div>'}</div>`);
   const od=document.querySelector('#center .discards');const keepTop=od?od.scrollTop:0;
-  $('#center').innerHTML=`<div class="banner${changed?' swap':''}">${dirHTML}<div class="status">${status}</div><div class="sub">${sub}</div></div>${middle}`;
+  const bannerHTML=`<div class="banner${changed?' swap':''}">${dirHTML}<div class="status">${status}</div><div class="sub">${sub}</div></div>`;
+  const inside=settings.layout==='table'&&settings.walls&&phase!=='shuffle'&&phase!=='idle';
+  $('#center').innerHTML=inside?middle.replace('<div class="wallin">','<div class="wallin">'+bannerHTML):bannerHTML+middle;
   {const nd=document.querySelector('#center .discards');if(nd){
     // follow the newest discard unless you've scrolled up to look at older ones
     const toEnd=()=>{if(!discUp)nd.scrollTop=nd.scrollHeight};
@@ -1880,8 +1927,8 @@ function render(){
   const me=$('#me');
   me.className='me'+(yourTurn?' turn':'');
   me.innerHTML=`<div class="me-head"><div class="avatar">${bulletHTML(0)}</div><div class="meta"><div class="pname">Your rack</div><div class="pinfo">${windOf(0)} · ${p.hand.length} in hand</div></div>${yourTurn?'<span class="turnpill">YOUR TURN</span>':''}${dead[0]?'<span class="turnpill" style="background:#e5484d;color:#fff;box-shadow:none">DEAD HAND</span>':''}
-     <div class="sortbtns"><button class="btn btn-ghost sm hands-btn" id="bHands">Hands</button><button class="btn btn-ghost sm" id="bSortS">Sort by suit</button><button class="btn btn-ghost sm" id="bSortN">Sort by number</button></div></div>
-    ${bubblesHTML()}${expHTML(p,'md')}${buildHTML()}
+     ${settings.layout==='table'?bubblesHTML():''}<div class="sortbtns"><button class="btn btn-ghost sm hands-btn" id="bHands">Hands</button><button class="btn btn-ghost sm" id="bSortS">Sort by suit</button><button class="btn btn-ghost sm" id="bSortN">Sort by number</button></div></div>
+    ${settings.layout==='table'?'':bubblesHTML()}${expHTML(p,'md')}${buildHTML()}
     <div class="rack" id="rack">${p.hand.map(t=>tileHTML(t,(sel.has(t.id)||selected===t.id?'sel ':'')+(newIds.has(t.id)?'new ':'')+(dealAnim?'deal ':'')+(building&&canAdd(t)?'can':''),true)).join('')}</div>
     <div class="actions">${acts}</div>`;
   document.querySelectorAll('#rack .tile').forEach((e,x)=>{e.tabIndex=0;if(dealAnim)e.style.animationDelay=x*45+'ms'});
