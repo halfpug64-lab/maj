@@ -457,8 +457,9 @@ body.tiles-easy .tile{background:linear-gradient(160deg,#ffffff,#f4efe2)}
 body.tiles-paris{--tile-back:#1f2a4d;--tile-back-2:#121a33}
 body.tiles-paris .tile{background:#faf6ee}
 body.tiles-paris .back,body.tiles-paris .wtile,body.tiles-paris .tile.back-tile{background:url(tiles/paris/back.webp) center/cover,#1f2a4d}
-body.tiles-paris .wtile.vv,body.tiles-paris .wtile.h{background:url(tiles/paris/back-side.webp) center/cover,#1f2a4d}
-body.tiles-paris .wtile.rt{background-image:url(tiles/paris/back-side-r.webp)}
+body.tiles-paris .wtile.up{background:url(tiles/paris/back.webp) center/cover,#1f2a4d}
+body.tiles-paris .wtile.vv{background:url(tiles/paris/back-side.webp) center/cover,#1f2a4d}
+body.tiles-paris .wtile.vv.rt{background-image:url(tiles/paris/back-side-r.webp)}
 body.theme-paris{--sky-1:#24305a;--sky-2:#151d38;--sky-3:#0b1022;--felt-hi:#33507f;--felt:#243d69;--felt-lo:#172b4e;--felt-edge:#0e1b36;
   --panel-1:rgba(30,42,78,.9);--panel-2:rgba(14,20,40,.96);--muted:#aab4cf;--felt-txt:#d7def0;--display:"Playfair Display",Georgia,"Times New Roman",serif;--gold:#e2b04a;--gold-hi:#f6d993;--gold-lo:#b07d24}
 body.theme-paris::after{display:none}
@@ -535,27 +536,26 @@ body.show-hands .backdrop{display:block}
 
 /* ================= The walls (Settings > Show walls) ================= */
 .wallbox{flex:1;min-height:0;width:100%;container-type:size;display:flex;align-items:center;justify-content:center}
-.wallsq{--H:100cqh;--W:min(100cqw,calc(var(--H) * 1.75));--sv:calc((var(--H) - var(--W) / 26.6) / 18.947);--dv:calc(var(--sv) * 1.4);
-  --sh:calc((var(--W) - var(--dv)) / 19);--dh:calc(var(--sh) / 1.4);--u:var(--sv);position:relative;width:var(--W);height:var(--H);flex:none}
+.wallsq{--S:min(100cqw,100cqh);--u:calc(var(--S) / 20.4);position:relative;width:var(--S);height:var(--S);flex:none}
 .wtile{position:absolute;
   border-radius:calc(var(--u) * .14);background:var(--back-img,none) center/62% no-repeat,linear-gradient(180deg,var(--tile-back),var(--tile-back-2));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.22),
     0 calc(var(--u) * .08) 0 var(--ivory-edge),0 calc(var(--u) * .12) 0 #a8956a,
     0 calc(var(--u) * .22) 0 var(--ivory-edge),0 calc(var(--u) * .26) 0 #9a865c,0 calc(var(--u) * .4) calc(var(--u) * .3) rgba(0,0,0,.45)}
-.wtile.h{width:calc(var(--sh) - 1px);height:calc(var(--dh) - 1px)}
-.wtile.vv{width:calc(var(--dv) - 1px);height:calc(var(--sv) - 1px)}
-.wtile.one{transform:translateY(calc(var(--u) * .14));box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.22),
+.wtile.up{width:calc(var(--u) - 1px);height:calc(var(--u) * 1.4 - 1px)}
+.wtile.vv{width:calc(var(--u) * 1.4 - 1px);height:calc(var(--u) - 1px)}
+.wtile.one{box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(0,0,0,.22),
     0 calc(var(--u) * .08) 0 var(--ivory-edge),0 calc(var(--u) * .12) 0 #9a865c,0 calc(var(--u) * .26) calc(var(--u) * .24) rgba(0,0,0,.4)}
 .wtile.next{outline:1.5px solid rgba(236,198,109,.95);outline-offset:1px;filter:drop-shadow(0 0 5px rgba(236,198,109,.55))}
 .wallsq.build .wtile{animation:stackin .45s cubic-bezier(.2,1.2,.4,1) backwards;animation-delay:calc(var(--i) * 9ms)}
 @keyframes stackin{from{opacity:0;translate:0 calc(var(--u) * -.8)}}
-.wallin{position:absolute;left:calc(var(--dv) + 8px);right:calc(var(--dv) + 8px);top:calc(var(--dh) + 8px);bottom:calc(var(--dh) + 10px);display:flex;flex-direction:column;gap:6px;min-height:0}
+.wallin{position:absolute;left:calc(var(--u) * 1.4 + 8px);right:calc(var(--u) * 1.4 + 8px);top:calc(var(--u) * 1.4 + 8px);bottom:calc(var(--u) * 1.4 + 10px);display:flex;flex-direction:column;gap:6px;min-height:0}
   display:flex;flex-direction:column;gap:6px;min-height:0}
 .discards.dense .tile.sm,body.table-view .discards.dense .tile.sm{--w:25px}
 .discards.denser .tile.sm,body.table-view .discards.denser .tile.sm{--w:21px}
-.wallin .discards .tile.sm{--w:clamp(30px,calc(var(--u) * 1.75),46px)}
-.wallin .discards.dense .tile.sm{--w:clamp(26px,calc(var(--u) * 1.45),38px)}
-.wallin .discards.denser .tile.sm{--w:clamp(22px,calc(var(--u) * 1.2),32px)}
+body .wallsq .wallin .discards .tile.sm{--w:clamp(32px,calc(var(--u) * 1.95),58px)}
+body .wallsq .wallin .discards.dense .tile.sm{--w:clamp(28px,calc(var(--u) * 1.6),48px)}
+body .wallsq .wallin .discards.denser .tile.sm{--w:clamp(24px,calc(var(--u) * 1.3),40px)}
 .wallin .discards{flex:1;gap:5px;overflow-y:auto;min-height:0;width:100%;max-width:none;padding:6px;align-content:flex-start}
 .wallcount{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--felt-txt);font-variant-numeric:tabular-nums;opacity:.92}
 .wallcount b{color:var(--txt);font-size:13px}
@@ -905,8 +905,9 @@ body.theme-paris .chip b,body.theme-paris .pill{color:var(--gold-hi)}
 /* face-down tiles use the Eiffel back on the Paris table, whatever tile style */
 body.theme-paris{--tile-back:#1f2a4d;--tile-back-2:#121a33}
 body.theme-paris .back,body.theme-paris .wtile,body.theme-paris .tile.back-tile{background:url(tiles/paris/back.webp) center/cover,#1f2a4d}
-body.theme-paris .wtile.vv,body.theme-paris .wtile.h{background:url(tiles/paris/back-side.webp) center/cover,#1f2a4d}
-body.theme-paris .wtile.rt{background-image:url(tiles/paris/back-side-r.webp)}
+body.theme-paris .wtile.up{background:url(tiles/paris/back.webp) center/cover,#1f2a4d}
+body.theme-paris .wtile.vv{background:url(tiles/paris/back-side.webp) center/cover,#1f2a4d}
+body.theme-paris .wtile.vv.rt{background-image:url(tiles/paris/back-side-r.webp)}
 body.theme-paris .splash-title{font-size:clamp(40px,8vw,76px)}
 body.theme-paris .splash-tag{display:block;letter-spacing:.45em;color:var(--gold-hi);opacity:.8}
 
@@ -2049,13 +2050,14 @@ function freeJoker(cpi,gi){   // tap a purple tile: take its Joker off that grou
 // Walls meet in a pinwheel: top and bottom stacks stand upright, side walls lie turned 90 degrees.
 // Positions are in tile-width units; the square is 20.4 units on a side.
 // Stack k (0-75) holds draw positions 2k (top tile) and 2k+1 (bottom tile), counted from the break.
-// Each stack's spot as CSS. The walls form a wide rectangle around the discards:
-// top and bottom walls hold tiles lying lengthwise (sh x dh), side walls tiles lying crosswise (dv x sv). Every stack sits flush.
+// The four walls form a square, as on a real table: 19 stacks per wall, every tile the same size,
+// each tile's long side pointing at the middle. Walls meet in a pinwheel so corners never overlap.
+// Units are tile widths (u); the square is 20.4u on a side.
 function wallPos(k){const s=Math.floor(k/19),i=k%19;
-  if(s===0)return{l:`calc(var(--dv) + ${i} * var(--sh))`,t:'calc(var(--H) - var(--dh))',h:1};   // yours
-  if(s===1)return{l:'calc(var(--W) - var(--dv))',t:`calc(${18-i} * var(--sv))`,h:0};          // Queens
-  if(s===2)return{l:`calc(${18-i} * var(--sh))`,t:'0px',h:1};                                    // Bronx
-  return{l:'0px',t:`calc(var(--dh) + ${i} * var(--sv))`,h:0};                                    // Brooklyn
+  if(s===0)return{x:1.4+i,y:19,h:0,side:''};      // yours: upright, left to right
+  if(s===1)return{x:19,y:18-i,h:1,side:'rt'};     // Queens: lying sideways, bottom to top
+  if(s===2)return{x:18-i,y:0,h:0,side:''};        // Bronx: upright, right to left
+  return{x:0,y:1.4+i,h:1,side:'lt'};              // Brooklyn: lying sideways, top to bottom
 }
 function wallsHTML(center){
   const s1=left=>left===1?' one':'';
@@ -2064,7 +2066,7 @@ function wallsHTML(center){
   const drawn=152-wall.length,next=Math.floor(drawn/2)*2;let tiles='';
   for(let k=0;k<76;k++){const order=((2*k-wallBreak)%152+152)%152;const left=Math.max(0,Math.min(2,order+2-drawn));if(!left)continue;
     const p=wallPos(k),isNext=wall.length>0&&order===next;
-    tiles+=`<i class="wtile ${p.h?'h':'vv'}${s1(left)}${isNext?' next':''}"${isNext?' id="wallStack"':''} style="left:${p.l};top:${p.t};--i:${k}"></i>`}
+    tiles+=`<i class="wtile ${p.h?'vv':'up'} ${p.side}${s1(left)}${isNext?' next':''}"${isNext?' id="wallStack"':''} style="left:calc(${p.x} * var(--u));top:calc(${p.y} * var(--u));z-index:${Math.round(p.y*10)+1};--i:${k}"></i>`}
   const html=`<div class="wallbox"><div class="wallsq${wallBuild?' build':''}">${tiles}<div class="wallin">${center}${count}</div></div></div>`;
   if(wallBuild&&phase!=='shuffle')wallBuild=false;
   return html;
