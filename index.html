@@ -216,6 +216,7 @@ h1{font-family:var(--display);font-weight:400;font-size:22px;letter-spacing:1.5p
 .grp{display:flex;flex-wrap:nowrap;gap:2px}
 .hint .foot{font-size:11px;color:var(--muted);margin-top:7px}
 .gap{width:5px}
+.eastchip{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:4px;background:var(--gold);color:#2b1d02;font-size:10px;font-weight:900;vertical-align:1px}
 .chnote{display:inline-block;color:var(--gold-hi);background:rgba(0,0,0,.25);border:1px solid rgba(236,198,109,.4);border-radius:8px;padding:4px 10px;margin-bottom:6px;font-weight:600}
 .held{width:100%;font-size:11.5px;color:var(--violet);margin-top:4px}
 .tile.jtap{cursor:pointer;transition:opacity .15s,box-shadow .15s}
@@ -911,6 +912,22 @@ body.theme-paris .wtile.vv.rt{background-image:url(tiles/paris/back-side-r.webp)
 body.theme-paris .splash-title{font-size:clamp(40px,8vw,76px)}
 body.theme-paris .splash-tag{display:block;letter-spacing:.45em;color:var(--gold-hi);opacity:.8}
 
+/* ================= Phone fixes ================= */
+@media(max-width:900px){
+  body.table-view .seat{min-width:0;overflow:hidden}
+  body.table-view .orack-wrap,body.table-view .orack{max-width:100%;min-width:0}
+  body.table-view .orack .exps{flex-wrap:wrap;justify-content:center;gap:3px;padding:3px;max-width:100%;background:rgba(0,0,0,.22);box-shadow:none;border-radius:8px}
+  body.table-view .orack .exp{gap:1px}
+  body.table-view .seat .exps .tile.xs,body.table-view .orack .tile.xs{--w:14px}
+  body.table-view .me>.exps .tile.md{--w:28px}
+  body.table-view .me>.exps{margin-top:4px}
+  body.table-view .me-head .bubbles{margin-top:2px}
+  body.table-view .bhead{max-width:calc(100vw - 48px)}
+  body.table-view .bhead .hpat{overflow:hidden;text-overflow:ellipsis}
+  .callbar{width:100%}
+  .callbar .tile.md{--w:30px}
+}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -1493,6 +1510,7 @@ function newGame(){
   gid++;closeModal();Sound.init();
   wall=buildWall();discards=[];logs=[];logVer++;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];
   if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false}else dealer=(dealer+1)%4;
+  try{if(settings.save)localStorage.setItem('amj_progress',JSON.stringify({scores,dealer}))}catch(e){}
   wallBreak=Math.floor(Math.random()*76)*2;wallBuild=true;
   discUp=false;chNote='';jokerPlans.clear();dead=[false,false,false,false];building=null;turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
   log('Everyone pushes their tiles in. Washing the tiles…');
@@ -1505,6 +1523,7 @@ function deal(){
   phase='charleston';passIdx=0;
   log(`Fresh deal with ${cardMode==='mine'?'your loaded card':'the 2026 card'}. ${dealer===0?"You're East with 14 tiles and throw first.":`${NAMES[dealer]} is East and throws first. You're ${windOf(0)}.`}`);
   dealAnim=true;render();for(let i=0;i<14;i++)later(()=>Sound.tap(),120+i*45);
+  later(()=>toast(dealer===0?"You're East":`${NAMES[dealer]} is East · you're ${windOf(0)}`),700);
   const hv=isWin(players[dealer].hand,[]);
   if(hv&&dealer!==0)later(()=>{log(`${NAMES[dealer]} was dealt a complete hand. Heavenly Hand!`);win(dealer,hv,null)},900);
 }
@@ -1911,7 +1930,7 @@ function renderSeat(i){
   const p=players[i],el=$('#seat'+i);const active=turn===i&&phase==='play';
   el.className=`seat seat-${SEATPOS[i]}${active?' turn':''}${active&&step==='discard'&&!callState?' thinking':''}`;
   const body=phase==='over'?`<div class="reveal">${p.hand.map(t=>tileHTML(t,'xs')).join('')}</div>`:`<div class="backs">${p.hand.map(()=>'<i class="back"></i>').join('')}</div>`;
-  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${windOf(i)} · ${p.hand.length} tiles<span class="lvl"> · ${LEVELS[botLevel(i)]}</span>${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="orack-wrap"><div class="orack">${body}${p.exp.length?expHTML(p,'xs'):'<div class="exps ledge-empty"></div>'}</div></div>`;
+  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${dealer===i?'<span class="eastchip">E</span> ':''}${windOf(i)} · ${p.hand.length} tiles<span class="lvl"> · ${LEVELS[botLevel(i)]}</span>${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="orack-wrap"><div class="orack">${body}${p.exp.length?expHTML(p,'xs'):'<div class="exps ledge-empty"></div>'}</div></div>`;
 }
 function renderScores(){
   if(scoreAnim)return;
@@ -1956,7 +1975,7 @@ function render(){
     :wallsHTML(`<div class="discards${discards.length>72?' denser':discards.length>40?' dense':''}">${discards.length?discards.map((t,i)=>`<span class="dw" style="rotate:${((t.id*37)%7-3)*.6}deg">${tileHTML(t,'sm'+(i===last?' last':''),true)}</span>`).join(''):'<div class="empty">Discards land here</div>'}</div>`);
   const od=document.querySelector('#center .discards');const keepTop=od?od.scrollTop:0;
   const bannerHTML=`<div class="banner${changed?' swap':''}">${dirHTML}<div class="status">${status}</div><div class="sub">${sub}</div></div>`;
-  const inside=settings.layout==='table'&&settings.walls&&phase!=='shuffle'&&phase!=='idle';
+  const inside=false;
   $('#center').innerHTML=inside?middle.replace('<div class="wallin">','<div class="wallin">'+bannerHTML):bannerHTML+middle;
   {const nd=document.querySelector('#center .discards');if(nd){
     // follow the newest discard unless you've scrolled up to look at older ones
@@ -1985,7 +2004,7 @@ function render(){
   const yourTurn=turn===0&&phase==='play'&&step==='discard'&&!callState;
   const me=$('#me');
   me.className='me'+(yourTurn?' turn':'');
-  me.innerHTML=`<div class="me-head"><div class="avatar">${bulletHTML(0)}</div><div class="meta"><div class="pname">Your rack</div><div class="pinfo">${windOf(0)} · ${p.hand.length} in hand</div></div>${yourTurn?'<span class="turnpill">YOUR TURN</span>':''}${dead[0]?'<span class="turnpill" style="background:#e5484d;color:#fff;box-shadow:none">DEAD HAND</span>':''}
+  me.innerHTML=`<div class="me-head"><div class="avatar">${bulletHTML(0)}</div><div class="meta"><div class="pname">Your rack</div><div class="pinfo">${dealer===0?'<span class="eastchip">E</span> ':''}${windOf(0)} · ${p.hand.length} in hand</div></div>${yourTurn?'<span class="turnpill">YOUR TURN</span>':''}${dead[0]?'<span class="turnpill" style="background:#e5484d;color:#fff;box-shadow:none">DEAD HAND</span>':''}
      ${settings.layout==='table'?bubblesHTML():''}<div class="sortbtns"><button class="btn btn-ghost sm hands-btn" id="bHands">Hands</button><button class="btn btn-ghost sm" id="bSortS">Sort by suit</button><button class="btn btn-ghost sm" id="bSortN">Sort by number</button></div></div>
     ${settings.layout==='table'?'':bubblesHTML()}${expHTML(p,'md')}${buildHTML()}
     <div class="rack" id="rack">${p.hand.map(t=>tileHTML(t,(sel.has(t.id)||selected===t.id?'sel ':'')+(newIds.has(t.id)?'new ':'')+(dealAnim?'deal ':'')+(building&&canAdd(t)?'can':''),true)).join('')}</div>
@@ -2062,7 +2081,7 @@ function wallPos(k){const s=Math.floor(k/19),i=k%19;
 function wallsHTML(center){
   const s1=left=>left===1?' one':'';
   const count=`<div class="wallcount"><span><b>${wall.length}</b> in the wall</span><span><b>${discards.length}</b> thrown</span></div>`;
-  if(!settings.walls)return `${center}<div class="wallmeter"><div class="wallstack" id="wallStack"><i class="back"></i><i class="back"></i><i class="back"></i></div><span>Wall <b>${wall.length}</b></span><div class="bar"><i style="width:${(wall.length/152*100).toFixed(1)}%"></i></div><span><b>${discards.length}</b> thrown</span></div>`;
+  if(true)return `${center}<div class="wallmeter"><div class="wallstack" id="wallStack"><i class="back"></i><i class="back"></i><i class="back"></i></div><span>Wall <b>${wall.length}</b></span><div class="bar"><i style="width:${(wall.length/152*100).toFixed(1)}%"></i></div><span><b>${discards.length}</b> thrown</span></div>`;
   const drawn=152-wall.length,next=Math.floor(drawn/2)*2;let tiles='';
   for(let k=0;k<76;k++){const order=((2*k-wallBreak)%152+152)%152;const left=Math.max(0,Math.min(2,order+2-drawn));if(!left)continue;
     const p=wallPos(k),isNext=wall.length>0&&order===next;
@@ -2224,7 +2243,7 @@ function showSettings(){
      <span class="seg" role="group" aria-label="Screen layout">${[['table','Table view'],['fit','Fit to screen'],['scroll','Scroll']].map(([v,l])=>`<button class="${settings.layout===v?'on':''}" data-layout="${v}" aria-pressed="${settings.layout===v}">${l}</button>`).join('')}</span></div>
    <div class="setrow"><span class="st"><b>Bot speed</b><span class="d">How quickly the other players take their turns. Changes apply right away.</span></span>
      <span class="seg" role="group" aria-label="Bot speed">${[['slow','Slow'],['normal','Normal'],['fast','Fast'],['instant','Instant']].map(([v,l])=>`<button class="${settings.botSpeed===v?'on':''}" data-speed="${v}" aria-pressed="${settings.botSpeed===v}">${l}</button>`).join('')}</span></div>
-   ${swRow('s_walls','Show walls','Build the four walls around the discards like a real table, and draw tiles from them. When off, a simple counter shows how many tiles are left.',settings.walls)}
+   ${'' && swRow('s_walls','Show walls','Build the four walls around the discards like a real table, and draw tiles from them. When off, a simple counter shows how many tiles are left.',settings.walls)}
    ${swRow('s_topbub','Top suggestion bubble','Keep the top suggested hand in a bubble above your rack, next to your starred hands. Works in every screen layout.',settings.topBubble)}
    ${swRow('s_dbl','Double-tap to discard','Tap a selected tile again to throw it. When off, tapping it again just deselects it.',settings.dblDiscard)}
    ${swRow('s_sound','Sound effects','Tile clicks, calls and the Mah Jongg fanfare.',Sound.on)}
@@ -2251,7 +2270,6 @@ function showSettings(){
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{fn(e.checked);saveSettings();render()}};
   on('s_dbl',v=>settings.dblDiscard=v);
   on('s_topbub',v=>settings.topBubble=v);
-  on('s_walls',v=>settings.walls=v);
   on('s_sound',v=>{Sound.on=v;try{localStorage.setItem('amj_sound',v?'on':'off')}catch(e){}renderSoundBtn();if(v){Sound.init();Sound.chime()}});
   on('s_hints',v=>setHints(v));
   $('#s_save').onchange=e=>{
