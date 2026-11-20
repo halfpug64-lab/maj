@@ -2726,15 +2726,16 @@ function refreshNames(){NAMES=['You',...SEATNAME.slice(1)];AV=[0,1,2,3].map(a=>a
 // ---- hosting ----
 async function createRoom(px){
   mpMsg(px,'Creating your room…');
-  try{await loadPeerLib()}catch(e){mpMsg(px,"Couldn't load multiplayer. Check your connection and try again.",true);return}
+  try{await loadPeerLib()}catch(e){mpMsg(px,"Couldn't load the multiplayer file (vendor/peerjs.min.js). Refresh the page and try again.",true);return}
   const code=genCode();let peer;
   try{peer=makePeer(ROOM_PREFIX+code)}catch(e){mpMsg(px,"Couldn't start a room on this browser.",true);return}
   NET.peer=peer;
-  peer.on('open',()=>{NET.mode='host';NET.conns={};room={code,started:false,seats:[{name:myName,cid:myCid},null,null,null]};
+  const slow=setTimeout(()=>{if(!room)mpMsg(px,"The multiplayer service didn't answer (step 1 of 2: reaching the server). Check your internet, then try again in a minute.",true)},15000);
+  peer.on('open',()=>{clearTimeout(slow);NET.mode='host';NET.conns={};room={code,started:false,seats:[{name:myName,cid:myCid},null,null,null]};
     SEATNAME=[myName,'Queens','Bronx','Brooklyn'];document.body.classList.add('in-room');startHeartbeat();$('#splash').classList.add('hide');showLobby()});
   peer.on('connection',hostOnConn);
   peer.on('error',e=>{if(e&&e.type==='unavailable-id'){try{peer.destroy()}catch(_){}createRoom(px);return}
-    if(!room)mpMsg(px,"Couldn't reach the multiplayer service. Check your connection and try again.",true)});
+    if(!room)mpMsg(px,`Couldn't reach the multiplayer service (${esc(e&&e.type||'unknown error')}). Check your connection and try again.`,true)});
 }
 function hostOnConn(conn){
   const c={conn,seat:null,live:true,last:Date.now(),cid:null};const key=Math.random().toString(36).slice(2);NET.conns[key]=c;
@@ -2796,15 +2797,19 @@ async function joinRoom(px,code){
   mpMsg(px,'Joining…');
   try{await loadPeerLib()}catch(e){mpMsg(px,"Couldn't load multiplayer. Check your connection and try again.",true);return}
   try{if(NET.peer)NET.peer.destroy()}catch(e){}
-  const peer=makePeer();NET.peer=peer;NET.joined=false;
-  peer.on('open',()=>{
+  const peer=makePeer();NET.peer=peer;NET.joined=false;NET.joinStep=1;
+  const slow=setTimeout(()=>{if(NET.joinStep===1)mpMsg(px,"The multiplayer service didn't answer (step 1 of 3: reaching the server). Check your internet, then try again in a minute.",true)},15000);
+  peer.on('open',()=>{clearTimeout(slow);NET.joinStep=2;mpMsg(px,'Looking for the room…');
     const conn=peer.connect(ROOM_PREFIX+code,{reliable:true,serialization:'json'});NET.hostConn=conn;
-    conn.on('open',()=>conn.send({t:'hello',name:myName,cid:myCid}));
+    conn.on('open',()=>{NET.joinStep=3;mpMsg(px,'Found the room, joining…');conn.send({t:'hello',name:myName,cid:myCid})});
+    conn.on('error',e=>{if(!NET.joined)mpMsg(px,`Couldn't connect to the room (${esc(e&&e.type||'connection error')}).`,true)});
     conn.on('data',m=>{NET.lastHost=Date.now();clientRecv(px,m)});
     conn.on('close',()=>clientLost());
-    setTimeout(()=>{if(!NET.joined)mpMsg(px,"Couldn't find that room. Check the code, and make sure the host still has the game open.",true)},12000)});
+    setTimeout(()=>{if(NET.joined)return;
+      if(NET.joinStep===3)mpMsg(px,"Connected to the room, but the host's game didn't answer (step 3 of 3). Make sure the host has the game open on screen.",true);
+      else mpMsg(px,"Found the server but couldn't connect to the host (step 2 of 3). Check the code. If it's right, the two networks may be blocking a direct connection: try both devices on the same Wi-Fi.",true)},20000)});
   peer.on('error',e=>{if(NET.joined){clientLost();return}
-    mpMsg(px,e&&e.type==='peer-unavailable'?"Couldn't find that room. Check the code, and make sure the host still has the game open.":"Couldn't reach the multiplayer service. Check your connection and try again.",true)});
+    mpMsg(px,e&&e.type==='peer-unavailable'?"Couldn't find that room (step 2 of 3). Check the code, and make sure the host still has the game open.":`Couldn't reach the multiplayer service (${esc(e&&e.type||'unknown error')}). Check your connection and try again.`,true)});
   NET.pendingCode=code;
 }
 function clientRecv(px,m){
