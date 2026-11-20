@@ -1619,11 +1619,15 @@ let wall=[],players=[0,1,2,3].map(()=>({hand:[],exp:[]})),discards=[],phase='idl
 let NET={mode:'solo',rules:null,waiting:[],tags:null,conns:{},seat:0};
 let HUMAN=[true,false,false,false];      // seats played by people; the rest are bots
 const MP=()=>NET.mode!=='solo';
+// Room rules set by the host: suggested hands for everyone, and whether every discard waits for everyone to tap Proceed.
+const roomRule=k=>NET.mode==='client'?!!(NET.rules&&NET.rules[k]):NET.mode==='host'?!!settings[k==='hints'?'mpHints':'mpProceed']:(k==='hints');
+const hintsAllowed=()=>NET.mode==='solo'||roomRule('hints');
+const useProceed=()=>MP()&&roomRule('proceed');
 let chSub={},chVotes={},chStop=-1,callTok=0;   // Charleston submissions and votes per seat; who stopped the second Charleston
 const CALL_MS=12000;                            // multiplayer: time each player gets to call a discard
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
 // Settings are always saved on this device. Progress (scores, East rotation, an unfinished game) only when "Save progress" is on.
-const SET_DEFAULT={v:2,botSpeed:'normal',walls:true,bg:'default',tiles:'regular',layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
+const SET_DEFAULT={v:2,mpHints:true,mpProceed:false,botSpeed:'normal',walls:true,bg:'default',tiles:'regular',layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
   hr:{threeExp:true,wallPoints:false,deadNoPay:false,noBlind:false,noCourtesy:false,alwaysSecond:false}};
 let settings=JSON.parse(JSON.stringify(SET_DEFAULT));
 try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={...settings,...sv,hr:{...SET_DEFAULT.hr,...(sv.hr||{})}};
@@ -1988,11 +1992,12 @@ function resolveCalls(i,t){
       if(botExp&&pos(botExp.j)<pos(j))o.exp=[];   // an exposure caller sits ahead
       if(o.mj||o.exp.length)offers[j]=o}
   }
+  if(useProceed()&&!(botMJ&&!Object.values(offers).some(o=>o.mj)))for(const j of order)if(HUMAN[j]&&!dead[j]&&!offers[j])offers[j]={mj:false,exp:[]};
   const cs={i,t,order,botMJ,botExp,offers,choices:{},o:offers[0]||null};
   if(Object.keys(offers).length){
     callState=cs;
-    if(MP()){cs.deadline=Date.now()+CALL_MS;cs.tok=++callTok;later(()=>{if(callState&&callState.tok===cs.tok)closeCalls()},CALL_MS)}
-    if(cs.o)Sound.chime();render();return}
+    if(MP()&&!useProceed()){cs.deadline=Date.now()+CALL_MS;cs.tok=++callTok;later(()=>{if(callState&&callState.tok===cs.tok)closeCalls()},CALL_MS)}
+    if(cs.o&&(cs.o.mj||cs.o.exp.length))Sound.chime();render();return}
   finishCalls(cs);
 }
 function answerCall(seat,c){             // 'mj', 'pass', 'build' or a group size
@@ -2200,7 +2205,7 @@ function render(){
       sub=isBlind(st)?`Pick 3 tiles to pass ${st.n}. This is a blind pass: pick fewer and the rest are passed straight along from the tiles coming to you, unseen.`
         :`Pass ${(second?passIdx-4:passIdx)+1} of 3. Pick 3 tiles you don't need.`}}
   else if(phase==='play'){
-    if(callState){status=`${NAMES[callState.i]} threw ${tname(callState.t.k)}`;sub=callState.o?'You can claim it. Call it or let it go.':''}
+    if(callState){status=`${NAMES[callState.i]} threw ${tname(callState.t.k)}`;sub=callState.o?((callState.o.mj||callState.o.exp.length)?'You can claim it. Call it or let it go.':'Tap Proceed when you\'re ready.'):''}
     else if(turn===0&&step==='discard'&&building){status='Build your exposure';sub=`Tap matching ${tname(building.t.k)} tiles or Jokers to add them. Pick a tile to throw, and the exposure locks in when you discard.`}
     else if(turn===0&&step==='discard'){status='Your turn';sub=settings.dblDiscard?'Tap a tile, then hit Discard. Or tap it twice to throw it.':'Tap a tile to select it, then hit Discard. Tap it again to deselect.'}
     else{status=`${NAMES[turn]} is playing`;sub=dead[0]?'Your hand is dead, so you sit out the rest of this hand.':`${windOf(turn)} seat`}
@@ -2208,7 +2213,7 @@ function render(){
   const waitList=NET.mode==='client'?NET.waiting:chWaiting();
   const iPassed=phase==='charleston'&&!waitList.includes(0)&&waitList.length>0;
   if(iPassed)sub=`Waiting for ${waitList.map(x=>NAMES[x]).join(' and ')}…`;
-  if(phase==='play'&&callState&&!callState.o){sub=`Waiting for ${(callState.waiting||Object.keys(callState.offers||{}).filter(x=>!(x in (callState.choices||{}))).map(Number)).filter(x=>x!==0).map(x=>NAMES[x]).join(' and ')||'the other players'} to call or pass`}
+  if(phase==='play'&&callState&&!callState.o){sub=`Waiting for ${(callState.waiting||Object.keys(callState.offers||{}).filter(x=>!(x in (callState.choices||{}))).map(Number)).filter(x=>x!==0).map(x=>NAMES[x]).join(' and ')||'the other players'} to ${useProceed()?'call or tap Proceed':'call or pass'}`}
   if(phase==='play'&&!callState&&turn!==0&&MP()&&(NET.mode==='client'?(NET.humanV&&NET.humanV[turn]):HUMAN[turn]))sub=`Waiting for ${NAMES[turn]} to play`;
   const changed=status!==lastStatus;lastStatus=status;
   const last=discards.length-1;
@@ -2237,11 +2242,11 @@ function render(){
     else if(isBlind(st)){const k=sel.size;acts=`<button class="btn btn-gold" id="bPass">${k===3?`Pass 3 ${st.n}`:k===0?`Blind pass all 3 ${st.n}`:`Pass ${k} + ${3-k} blind ${st.n}`}</button>`}
     else acts=`<button class="btn btn-gold" ${sel.size===3?'':'disabled'} id="bPass">Pass ${sel.size}/3 ${st.n}</button>`;
   }else if(phase==='play'&&callState&&callState.o){
-    const o=callState.o;const cd=callState.deadline?Math.max(0,callState.deadline-Date.now()):0;
-    acts=`<div class="callbar">${cd?`<i class="cdbar" style="animation-duration:${CALL_MS}ms;animation-delay:-${CALL_MS-cd}ms"></i>`:''}${tileHTML(callState.t,'md')}<span>Call it?</span>
+    const o=callState.o;const cd=callState.deadline?Math.max(0,callState.deadline-Date.now()):0;const canCall=o.mj||o.exp.length;
+    acts=`<div class="callbar">${cd?`<i class="cdbar" style="animation-duration:${CALL_MS}ms;animation-delay:-${CALL_MS-cd}ms"></i>`:''}${tileHTML(callState.t,'md')}<span>${canCall?'Call it?':'Nothing to call'}</span>
       ${o.mj?'<button class="btn btn-red" data-call="mj">Mah Jongg!</button>':''}
       ${settings.expMode==='build'&&!MP()?(o.exp.length?'<button class="btn btn-ghost" data-call="build">CALL</button>':''):o.exp.map(n=>`<button class="btn btn-ghost" data-call="${n}">${WORD[n].toUpperCase()} (${n})</button>`).join('')}
-      <button class="btn btn-ghost" data-call="pass">Let it go</button></div>`;
+      <button class="btn ${canCall?'btn-ghost':'btn-gold'}" data-call="pass">${canCall?'Let it go':'Proceed'}</button></div>`;
   }else if(phase==='play'&&turn===0&&step==='discard'){
     const t=p.hand.find(x=>x.id===selected);const canSwap=t&&t.k!=='J'&&swapTargets(t).length;const w=isWin(p.hand,buildExps());const bv=!building||buildValid();
     acts=`${w?'<button class="btn btn-red" id="bMJ">Mah Jongg!</button>':''}<button class="btn btn-gold" id="bDis" ${t&&bv?'':'disabled'}>${building?'Discard and lock in':'Discard'}</button>${canSwap?'<button class="btn btn-ghost" id="bSwap">Swap for Joker</button>':''}${building&&!building.committed?'<button class="btn btn-ghost" id="bCancel">Cancel call</button>':''}`;
@@ -2352,6 +2357,7 @@ function patternTilesHTML(cp,tiles,exps){
 function renderHints(){
   const head=`<div class="ph"><h3>Best hands</h3><label class="switch" for="hintToggle"><input type="checkbox" id="hintToggle" ${showHints?'checked':''}><span class="track"><span class="knob"></span></span><span>${showHints?'On':'Off'}</span></label></div>`;
   let body;
+  if(!hintsAllowed()){$('#hints').innerHTML=`<div class="ph"><h3>Best hands</h3></div><div class="muted-note">${NET.mode==='host'?'You turned off suggested hands for this room.':'The host turned off suggested hands for this room.'} Starred hands still work.</div>`;return}
   if(!showHints)body='<div class="muted-note">Hand suggestions are off. Turn them back on any time to see which hands your tiles fit.</div>';
   else if(phase==='idle'||phase==='shuffle')body='<div class="muted-note">Suggestions show up once the tiles are dealt.</div>';
   else{
@@ -2376,10 +2382,10 @@ function bestFor(h,an,seen,liveJ){
   return best;
 }
 function bubblesHTML(){
-  if(phase==='idle'||phase==='shuffle')return (settings.topBubble&&showHints)||HANDS.some(isStar)?'<div class="bubbles placeholder"><div class="bubble" style="visibility:hidden"><button class="bhead" tabindex="-1"><span class="bk">Top</span><span class="hpat">&nbsp;</span><span class="pill">&nbsp;</span></button></div></div>':'';
+  if(phase==='idle'||phase==='shuffle')return (settings.topBubble&&showHints&&hintsAllowed())||HANDS.some(isStar)?'<div class="bubbles placeholder"><div class="bubble" style="visibility:hidden"><button class="bhead" tabindex="-1"><span class="bk">Top</span><span class="hpat">&nbsp;</span><span class="pill">&nbsp;</span></button></div></div>':'';
   const p=players[0];const an=analyze(p.hand,p.exp);const seen=seenCounts();const liveJ=Math.max(0,8-(seen.J||0));
   const items=HANDS.filter(isStar).map(h=>({h,kind:'star'}));
-  if(settings.topBubble&&showHints){const top=rankHands(p.hand,p.exp)[0];if(top&&!items.some(x=>x.h===top.cp.hand))items.push({h:top.cp.hand,kind:'top'})}
+  if(settings.topBubble&&showHints&&hintsAllowed()){const top=rankHands(p.hand,p.exp)[0];if(top&&!items.some(x=>x.h===top.cp.hand))items.push({h:top.cp.hand,kind:'top'})}
   if(!items.length){bubSeen=new Set();return''}
   const seenBefore=bubSeen;bubSeen=new Set(items.map(x=>x.kind+x.h.id));
   return `<div class="bubbles">${items.map(({h,kind})=>{const b=bestFor(h,an,seen,liveJ);const open=bubOpen.has(h.id);
@@ -2484,6 +2490,11 @@ function showSettings(){
    <div class="setrow col"><span class="st"><b>Tiles</b><span class="d">Regular is the traditional look. Paris uses macarons, asparagus and shopfronts. Ocean uses bubbles, kelp and waves. Celestial uses planets, shooting stars and orbits. NYC uses bagels, Big Apples and skyscrapers. Easy to read shows a big number or letter on every tile.</span></span>
      <span class="seg" role="group" aria-label="Tiles">${[['regular','Regular'],['paris','Paris'],['ocean','Ocean'],['celestial','Celestial'],['nyc','NYC'],['easy','Easy to read']].map(([v,l])=>`<button class="${settings.tiles===v?'on':''}" data-tiles="${v}" aria-pressed="${settings.tiles===v}">${l}</button>`).join('')}</span>
      <div class="tile-preview" id="tilePreview">${tilePreview()}</div></div>
+   <div class="set-sec">Multiplayer room</div>
+   <p class="setnote">These apply to everyone in a room you host.${NET.mode==='client'?' <b>You\'re in a friend\'s room, so their choices are used.</b>':''}</p>
+   ${swRow('s_mpHints','Suggested hands','Let everyone see Best hands and the Top suggestion bubble. Starred hands always work.',settings.mpHints!==false)}
+   <div class="setrow"><span class="st"><b>After each discard</b><span class="d">Move on automatically: the game keeps going unless someone can call (they get 12 seconds). Everyone taps Proceed: every other player calls or taps Proceed before the game moves on, with no timer.</span></span>
+     <span class="seg" role="group" aria-label="After each discard">${[[false,'Move on automatically'],[true,'Everyone taps Proceed']].map(([v,l])=>`<button class="${!!settings.mpProceed===v?'on':''}" data-proceed="${v}" aria-pressed="${!!settings.mpProceed===v}">${l}</button>`).join('')}</span></div>
    <div class="set-sec">Gameplay</div>
    <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Table view: just the game board with big tiles, and your hands open from the Hands button. Fit to screen: board plus the hands panels, no page scrolling. Scroll: everything at full size and you scroll the page.</span></span>
      <span class="seg" role="group" aria-label="Screen layout">${[['table','Table view'],['fit','Fit to screen'],['scroll','Scroll']].map(([v,l])=>`<button class="${settings.layout===v?'on':''}" data-layout="${v}" aria-pressed="${settings.layout===v}">${l}</button>`).join('')}</span></div>
@@ -2516,6 +2527,9 @@ function showSettings(){
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{fn(e.checked);saveSettings();render()}};
   on('s_dbl',v=>settings.dblDiscard=v);
   on('s_topbub',v=>settings.topBubble=v);
+  on('s_mpHints',v=>settings.mpHints=v);
+  document.querySelectorAll('[data-proceed]').forEach(b=>b.onclick=()=>{settings.mpProceed=b.dataset.proceed==='true';saveSettings();
+    document.querySelectorAll('[data-proceed]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)});render()});
   on('s_sound',v=>{Sound.on=v;try{localStorage.setItem('amj_sound',v?'on':'off')}catch(e){}renderSoundBtn();if(v){Sound.init();Sound.chime()}});
   on('s_hints',v=>setHints(v));
   $('#s_save').onchange=e=>{
@@ -2715,7 +2729,7 @@ function viewFor(s){
       waiting:Object.keys(cs.offers).map(Number).filter(x=>!(x in cs.choices)).map(R)}:null,
     chStop:chStop<0?-1:R(chStop),waiting:chWaiting().map(R),host:R(0),
     seats:[0,1,2,3].map(v=>{const a=A(v);return{name:SEATNAME[a],abs:a,human:HUMAN[a],tag:seatTag(a)}}),
-    rules:{house:settings.house,hr:settings.hr}};
+    rules:{house:settings.house,hr:settings.hr,hints:settings.mpHints!==false,proceed:!!settings.mpProceed}};
 }
 function netResult(pi,cp,from,v,jl,pay,rule){
   if(NET.mode!=='host')return;
@@ -2925,7 +2939,7 @@ function showLobby(){
     ${host?`<p class="setnote">Friends open the game and tap <b>Multiplayer</b>, then type this code. Or send them the link.</p>
       <div class="mpjoin"><input id="lkInput" readonly value="${esc(inviteLink(room.code))}" aria-label="Invite link"><button class="btn btn-ghost" id="lkCopy">Copy link</button></div>`:''}
     <ul class="lobbyseats">${rows}</ul>
-    ${host&&!started?`<p class="setnote">${nHuman<2?'Waiting for at least one friend to join.':`${nHuman} people are in. ${4-nHuman?`${4-nHuman} bot${4-nHuman>1?'s':''} will fill the empty seat${4-nHuman>1?'s':''}.`:'The table is full.'}`} House rules, bot difficulty and speed come from your Settings.</p>`:''}
+    ${host&&!started?`<p class="setnote">${nHuman<2?'Waiting for at least one friend to join.':`${nHuman} people are in. ${4-nHuman?`${4-nHuman} bot${4-nHuman>1?'s':''} will fill the empty seat${4-nHuman>1?'s':''}.`:'The table is full.'}`} House rules, bot difficulty and speed come from your Settings. Suggested hands are ${settings.mpHints!==false?'on':'off'}, and after each discard ${settings.mpProceed?'everyone taps Proceed':'the game moves on automatically'}.</p>`:''}
     ${!host&&!started?`<p class="setnote"><span class="spin"></span> Waiting for ${esc((seats&&seats[0]&&seats[0].name)||'the host')} to start the game.</p>`:''}
     ${started?'<p class="setnote">The game is on. Close this to get back to the table.</p>':''}
     <div class="mrow">${host&&!started?`<button class="btn btn-gold" id="lbStart" ${nHuman<2?'disabled':''}>Start game</button>`:''}
