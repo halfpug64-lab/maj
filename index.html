@@ -1065,6 +1065,76 @@ body.theme-celestial .felt::after{border-color:rgba(231,194,90,.45)}
 body.table-view.theme-celestial .orack .exps{background:linear-gradient(180deg,#3a3796,#1c1b4d);box-shadow:inset 0 2px 0 rgba(231,194,90,.6)}
 body.table-view.theme-ocean .orack .exps{background:linear-gradient(180deg,#a8927a,#6f5c48)}
 
+/* ================= Short and sideways phone screens (iPhone Duo closed, any phone held sideways) ================= */
+@media (max-width:900px) and (max-height:720px){
+  body.table-view{height:100vh;height:100dvh;overflow:hidden}
+  body.table-view .felt{min-height:0}
+  body.table-view .bar-in{flex-wrap:nowrap;padding-top:4px;padding-bottom:4px;gap:6px}
+  body.table-view .brand{flex:0 0 auto}
+  body.table-view h1{display:none}
+  body.table-view .scores{order:0;width:auto;margin-left:auto}
+  body.table-view .tools{order:0;margin-left:0}
+  body.table-view .tools .btn{padding:6px}
+  body.table-view .layout{padding-block:2px 4px;gap:4px}
+  body.table-view .felt{padding:4px;gap:4px}
+  body.table-view .plate{flex-direction:row;padding:2px 9px 2px 3px;gap:6px;border-radius:999px;text-align:left}
+  body.table-view .plate .avatar,body.table-view .plate .avatar .bullet{width:22px;height:22px;font-size:10px}
+  body.table-view .pname{font-size:12px}body.table-view .seat .pinfo{font-size:10px}
+  body.table-view .banner{padding:3px 12px;margin-bottom:3px}
+  body.table-view .status{font-size:14px}
+  body.table-view .banner .sub{display:none}
+  body.table-view .banner .dir{width:20px;height:20px}
+  body.table-view .pool>.discards{min-height:60px;padding:6px}
+  body.table-view .wallmeter{margin-top:3px;font-size:10.5px}
+  body.table-view .turnpill{display:none}
+  body.table-view .me-head{gap:6px;min-height:30px;flex-wrap:nowrap}
+  body.table-view .me-head .bubbles{order:0;flex:1 1 auto;margin:0}
+  body.table-view .btn.sm{padding:4px 8px;font-size:11px}
+  body.table-view .me>.exps{margin-top:2px}
+  body.table-view .me>.exps .tile.md{--w:24px}
+  body.table-view .me>.actions{margin:3px 0;min-height:34px;gap:6px}
+  body.table-view .actions .btn{padding:6px 14px;min-height:34px;font-size:13px}
+  body.table-view .callbar{padding:5px 8px}
+  body.table-view .rack{padding:9px 4px 11px;margin-top:2px}
+  body.table-view.theme-paris .rack{padding-bottom:28px}
+}
+/* sideways: your rack becomes one row of 14 */
+@media (max-width:900px) and (orientation:landscape){
+  body.table-view .rack{flex-wrap:nowrap}
+  body.table-view .rack .tile{--w:clamp(26px,min(calc((100vw - 76px) / 14.9),calc(100vh * .13)),62px)}
+  body.table-view .rack:empty::before{height:calc(clamp(26px,min(calc((100vw - 76px) / 14.9),calc(100vh * .13)),62px) * 1.4 + 6px)}
+  body.table-view .felt{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:"left top right" "pool pool pool";grid-template-rows:auto minmax(0,1fr)}
+}
+
+/* upright phones: two rows of 7, as big as the width and height allow */
+@media (max-width:900px) and (orientation:portrait){
+  body.table-view .rack .tile{--w:clamp(30px,min(calc((100vw - 70px) / 7.6),calc(100vh * .075)),62px)}
+  body.table-view .rack:empty::before{height:calc((clamp(30px,min(calc((100vw - 70px) / 7.6),calc(100vh * .075)),62px) * 1.4 + 6px) * 2)}
+}
+
+/* compact phones: your exposures, hints, sort and the action buttons share rows; opponents' exposures sit beside their names */
+@media (max-width:900px) and (max-height:720px){
+  body.table-view .me,body.table-view .me.turn{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"head exps act" "build build build" "rack rack rack";align-items:center;column-gap:8px}
+  body.table-view .me>.me-head{grid-area:head;min-width:0}
+  body.table-view .me>.exps{grid-area:exps;margin:0}
+  body.table-view .me>.building{grid-area:build}
+  body.table-view .me>.actions{grid-area:act;margin:2px 0 4px;justify-content:flex-end}
+  body.table-view .me>.rack{grid-area:rack;min-width:0}
+}
+@media (max-width:560px) and (max-height:720px){
+  body.table-view .me,body.table-view .me.turn{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"head head" "exps act" "build build" "rack rack"}
+  body.table-view .me>.actions{min-height:34px}
+  body.table-view .me-head .sortbtns .sl{display:none}
+  body.table-view .me-head .sortbtns .btn{text-transform:capitalize}
+  body.table-view .seat-top,body.table-view .seat-left,body.table-view .seat-right{flex-direction:row;align-items:center;justify-content:center;gap:4px;display:flex}
+  body.table-view .orack .exps{margin-top:0}
+  body.table-view .pool>.discards .tile.sm{--w:clamp(22px,min(6.4vw,6vh),40px)}
+  body.table-view .pool>.discards.dense .tile.sm{--w:clamp(20px,min(5.4vw,5vh),34px)}
+  body.table-view .pool>.discards.denser .tile.sm{--w:clamp(18px,min(4.6vw,4.3vh),30px)}
+  body.table-view .pool>.discards{gap:3px}
+}
+
+@media (max-width:900px){body .me-head .sortbtns .sl{display:none}body .me-head .sortbtns .btn{text-transform:capitalize}body.table-view .me-head .bubbles{min-width:0}}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -2255,7 +2325,7 @@ function render(){
   const me=$('#me');
   me.className='me'+(yourTurn?' turn':'');
   me.innerHTML=`<div class="me-head"><div class="avatar">${bulletHTML(0)}</div><div class="meta"><div class="pname">Your rack</div><div class="pinfo">${dealer===0?'<span class="eastchip">E</span> ':''}${windOf(0)} · ${p.hand.length} in hand</div></div>${yourTurn?'<span class="turnpill">YOUR TURN</span>':''}${dead[0]?'<span class="turnpill" style="background:#e5484d;color:#fff;box-shadow:none">DEAD HAND</span>':''}
-     ${settings.layout==='table'?bubblesHTML():''}<div class="sortbtns"><button class="btn btn-ghost sm hands-btn" id="bHands">Hands</button><button class="btn btn-ghost sm" id="bSortS">Sort by suit</button><button class="btn btn-ghost sm" id="bSortN">Sort by number</button></div></div>
+     ${settings.layout==='table'?bubblesHTML():''}<div class="sortbtns"><button class="btn btn-ghost sm hands-btn" id="bHands">Hands</button><button class="btn btn-ghost sm" id="bSortS"><span class="sl">Sort by </span>suit</button><button class="btn btn-ghost sm" id="bSortN"><span class="sl">Sort by </span>number</button></div></div>
     ${settings.layout==='table'?'':bubblesHTML()}${expHTML(p,'md')}${buildHTML()}
     <div class="rack" id="rack">${p.hand.map(t=>tileHTML(t,(sel.has(t.id)||selected===t.id?'sel ':'')+(newIds.has(t.id)?'new ':'')+(dealAnim?'deal ':'')+(building&&canAdd(t)?'can':''),true)).join('')}</div>
     <div class="actions">${acts}</div>`;
