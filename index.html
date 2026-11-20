@@ -1255,14 +1255,17 @@ const PBADGE={B:'#2e7d4f',C:'#c0392b',D:'#2557b8'};
 // Ocean and Celestial tiles: Dylan's artwork, one image per tile. Four flower designs (two of each),
 // Ocean has two joker designs (Mermaid, Shark), Celestial one (Black hole).
 function faceArt(set,k,v=0){const n=k==='F'?'F'+(v%4):k==='J'?(set==='ocean'?'J'+(v%2):'J0'):k;
-  return `<i class="pface" style="background-image:url(tiles/${set}/${n}.webp)"></i>`}
+  return `<i class="pface" style="background-image:url(tiles/${set}/${n}.webp)"></i>${tileBadge(k)}`}
 function faceParis(k,v=0){const n=k==='F'?'F'+(v%8):k;
+  return `<i class="pface" style="background-image:url(tiles/paris/${n}.webp)"></i>${tileBadge(k)}`}
+// Bold corner badge: the tile's number or letter in its suit color, so picture tiles read at a glance.
+function tileBadge(k){
   let t,c;
   if(SUITS.includes(k[0])&&k.length===2){t=k[1];c=PBADGE[k[0]]}
   else if('NEWS'.includes(k)){t=k;c='#4a4f5c'}
   else if(k==='R'){t='R';c='#c0392b'}else if(k==='G'){t='G';c='#2e7d4f'}else if(k==='0'){t='0';c='#2557b8'}
   else if(k==='F'){t='F';c='#7b4bb7'}else{t='J';c='#a8781c'}
-  return `<i class="pface" style="background-image:url(tiles/paris/${n}.webp)"></i><b class="pbadge" style="--c:${c}">${t}</b>`}
+  return `<b class="pbadge" style="--c:${c}">${t}</b>`}
 const HAN='"Noto Serif SC","Songti SC","STSong","SimSun","Noto Serif CJK SC",serif';
 const RB='#1f5fbf',RG='#17803f',RR='#c8102e',RK='#1d2445';
 const DOTCOL={1:[RB],2:[RG,RB],3:[RB,RR,RG],4:[RB,RG,RG,RB],5:[RB,RG,RR,RG,RB],6:[RG,RG,RR,RR,RR,RR],7:[RG,RG,RG,RR,RR,RR,RR],8:[RB,RB,RB,RB,RB,RB,RB,RB],9:[RB,RB,RB,RR,RR,RR,RG,RG,RG]};
