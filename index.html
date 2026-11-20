@@ -1025,6 +1025,46 @@ body.in-room #btnMP{border-color:rgba(236,198,109,.7);color:var(--gold-hi)}
   body.table-view .seat-left .pname,body.table-view .seat-right .pname{max-width:calc(var(--sidew) - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
 
+/* ================= Ocean and Celestial (tiles and backgrounds) ================= */
+body.tiles-ocean{--tile-back:#1c7e8f;--tile-back-2:#0e5260;--ivory-edge:#d7eef0}
+body.tiles-ocean .tile{background:#f2f9f9}
+body.tiles-celestial{--tile-back:#7466c9;--tile-back-2:#3e3488;--ivory-edge:#8f84dc}
+body.tiles-celestial .tile{background:#1b1b4e}
+body.tiles-celestial .tile::before{opacity:.18}
+body.tiles-ocean .back,body.tiles-ocean .tile.back-tile{background:url(tiles/ocean/back.svg) center/cover,#167684}
+body.tiles-celestial .back,body.tiles-celestial .tile.back-tile{background:url(tiles/celestial/back.svg) center/cover,#1b1b4e}
+
+body.theme-ocean{--sky-1:#0f4a5e;--sky-2:#0a3142;--sky-3:#05202c;--felt-hi:#1d7487;--felt:#135a6b;--felt-lo:#0b4050;--felt-edge:#062a36;
+  --panel-1:rgba(12,62,78,.9);--panel-2:rgba(5,34,45,.96);--muted:#9fc6cf;--felt-txt:#d4eef1;--gold:#f2b48a;--gold-hi:#ffd9bd;--gold-lo:#d97c4f;
+  --display:"Playfair Display",Georgia,"Times New Roman",serif}
+body.theme-ocean::after{display:block;opacity:.08;mix-blend-mode:normal;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='40'><path d='M0 20c15-12 30-12 45 0s30 12 45 0 22-10 30-6' fill='none' stroke='%23bfeef0' stroke-width='2'/></svg>") 0 0/120px 40px}
+body.theme-ocean .topbar{background:linear-gradient(180deg,rgba(3,22,30,.9),rgba(3,22,30,.7));border-bottom-color:rgba(127,214,214,.25)}
+body.theme-ocean .splash-skyline{display:none}
+body.theme-ocean #splash{background:radial-gradient(900px 620px at 50% 38%,rgba(22,96,116,.985),rgba(3,20,28,.995))}
+body.theme-ocean h1,body.theme-ocean .splash-title{font-weight:700;letter-spacing:.5px}
+body.theme-ocean .rack,body.theme-ocean .orack{background:repeating-linear-gradient(92deg,rgba(255,255,255,.05) 0 2px,transparent 2px 14px),linear-gradient(180deg,#8f7a63,#6b5845 55%,#4c3e31)}
+body.theme-ocean .rack::after{background:linear-gradient(#a8927a,#6f5c48)}
+body.theme-ocean .felt{background:radial-gradient(120% 95% at 50% 38%,var(--felt-hi) 0,var(--felt) 40%,var(--felt-lo) 80%,var(--felt-edge) 100%) padding-box,linear-gradient(150deg,#9b866e,#5e4c3b 40%,#8a755e 68%,#3d3127) border-box}
+body.theme-ocean .btn-gold{background:linear-gradient(180deg,#ffd2b3 0%,#f2a27a 48%,#d97c4f 100%);color:#3a1a08}
+
+body.theme-celestial{--sky-1:#1e1d52;--sky-2:#121238;--sky-3:#080822;--felt-hi:#2e2c78;--felt:#212061;--felt-lo:#17164a;--felt-edge:#0c0c2c;
+  --panel-1:rgba(30,29,82,.9);--panel-2:rgba(12,12,40,.96);--muted:#b4b2e0;--felt-txt:#dcdaf6;--gold:#e7c25a;--gold-hi:#f7e2a0;--gold-lo:#b8902c;
+  --display:"Playfair Display",Georgia,"Times New Roman",serif}
+body.theme-celestial::after{display:block;opacity:.9;mix-blend-mode:normal;
+  background:radial-gradient(1.2px 1.2px at 12% 18%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 72% 32%,#fff 50%,transparent 51%),radial-gradient(1.4px 1.4px at 38% 74%,#f7e2a0 50%,transparent 51%),radial-gradient(1px 1px at 88% 82%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 55% 8%,#fff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 22% 58%,#cfcaff 50%,transparent 51%);
+  background-size:260px 260px}
+body.theme-celestial h1,body.theme-celestial .splash-title{font-variant:small-caps;letter-spacing:2px;font-weight:700}
+body.theme-celestial .splash-skyline{display:none}
+body.theme-celestial .topbar{background:linear-gradient(180deg,rgba(6,6,24,.9),rgba(6,6,24,.7));border-bottom-color:rgba(231,194,90,.28)}
+body.theme-celestial #splash{background:radial-gradient(900px 620px at 50% 38%,rgba(40,38,104,.985),rgba(6,6,22,.995))}
+body.theme-celestial .rack,body.theme-celestial .orack{background:linear-gradient(180deg,#2c2a6e,#1c1b4d 60%,#121238);box-shadow:inset 0 2px 0 rgba(231,194,90,.5),inset 0 -14px 22px rgba(0,0,0,.4),0 18px 34px rgba(0,0,0,.45)}
+body.theme-celestial .rack::after{background:linear-gradient(90deg,transparent,#e7c25a 15%,#e7c25a 85%,transparent);height:3px;bottom:10px}
+body.theme-celestial .felt{background:radial-gradient(120% 95% at 50% 38%,var(--felt-hi) 0,var(--felt) 40%,var(--felt-lo) 80%,var(--felt-edge) 100%) padding-box,linear-gradient(150deg,#3a3796,#17164a 40%,#2e2c78 68%,#0c0c2c) border-box}
+body.theme-celestial .felt::after{border-color:rgba(231,194,90,.45)}
+
+body.table-view.theme-celestial .orack .exps{background:linear-gradient(180deg,#3a3796,#1c1b4d);box-shadow:inset 0 2px 0 rgba(231,194,90,.6)}
+body.table-view.theme-ocean .orack .exps{background:linear-gradient(180deg,#a8927a,#6f5c48)}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -1208,10 +1248,14 @@ const FACE2={};
 function faceSVG(k,v=0){
   const th=(typeof settings!=='undefined'&&settings.tiles)||'regular';const key=th+'|'+k+'|'+v;
   if(FACE2[key])return FACE2[key];
-  return FACE2[key]=th==='paris'?faceParis(k,v):th==='nyc'?faceNYC(k,v):th==='easy'?faceEasy(k,v):faceRegular(k,v);
+  return FACE2[key]=th==='ocean'||th==='celestial'?faceArt(th,k,v):th==='paris'?faceParis(k,v):th==='nyc'?faceNYC(k,v):th==='easy'?faceEasy(k,v):faceRegular(k,v);
 }
 // Paris tiles: Dylan's artwork plus a bold corner badge so tiles read at a glance (number + suit color).
 const PBADGE={B:'#2e7d4f',C:'#c0392b',D:'#2557b8'};
+// Ocean and Celestial tiles: Dylan's artwork, one image per tile. Four flower designs (two of each),
+// Ocean has two joker designs (Mermaid, Shark), Celestial one (Black hole).
+function faceArt(set,k,v=0){const n=k==='F'?'F'+(v%4):k==='J'?(set==='ocean'?'J'+(v%2):'J0'):k;
+  return `<i class="pface" style="background-image:url(tiles/${set}/${n}.webp)"></i>`}
 function faceParis(k,v=0){const n=k==='F'?'F'+(v%8):k;
   let t,c;
   if(SUITS.includes(k[0])&&k.length===2){t=k[1];c=PBADGE[k[0]]}
@@ -1440,7 +1484,7 @@ function buildWall(){
   let id=0;const w=[];
   for(const s of SUITS)for(let n=1;n<=9;n++)for(let c=0;c<4;c++)w.push({id:id++,k:s+n});
   for(const k of ['N','E','W','S','R','G','0'])for(let c=0;c<4;c++)w.push({id:id++,k});
-  for(let c=0;c<8;c++){w.push({id:id++,k:'F',v:c});w.push({id:id++,k:'J'})}
+  for(let c=0;c<8;c++){w.push({id:id++,k:'F',v:c});w.push({id:id++,k:'J',v:c})}
   for(let i=w.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[w[i],w[j]]=[w[j],w[i]]}
   return w;
 }
@@ -1583,12 +1627,11 @@ try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={.
   if('tableView' in sv){if(sv.layout!=='scroll')settings.layout=sv.tableView===false?'fit':'table';delete settings.tableView}   // Table view is now one of the Screen layout choices
   if(sv.v!==2){settings.v=2;settings.save=true}}}catch(e){}   // save progress became on by default in v2
 function applyTheme(){
-  const b=document.body;['theme-default','theme-nyc','tiles-regular','tiles-nyc','tiles-easy'].forEach(c=>b.classList.remove(c));
-  ['theme-paris','tiles-paris'].forEach(c=>b.classList.remove(c));
+  const b=document.body;[...b.classList].filter(c=>/^(theme|tiles)-/.test(c)).forEach(c=>b.classList.remove(c));
   b.classList.add('theme-'+settings.bg,'tiles-'+settings.tiles);
-  const ed={nyc:'NEW YORK EDITION',paris:'ÉDITION DE PARIS'}[settings.bg]||'';
+  const ed={nyc:'NEW YORK EDITION',paris:'ÉDITION DE PARIS',ocean:'OCEAN EDITION',celestial:'CELESTIAL EDITION'}[settings.bg]||'';
   document.querySelectorAll('.brand small,.splash-tag').forEach(e=>e.textContent=ed);
-  document.title={nyc:'American Mah Jongg · NYC',paris:'American Mah Jongg · Paris'}[settings.bg]||'American Mah Jongg';
+  document.title={nyc:'American Mah Jongg · NYC',paris:'American Mah Jongg · Paris',ocean:'American Mah Jongg · Ocean',celestial:'American Mah Jongg · Celestial'}[settings.bg]||'American Mah Jongg';
   const em=document.getElementById('emblem');if(em)em.innerHTML=tileHTML({k:'F',v:3})+tileHTML('J');
   const fan=document.getElementById('fan');if(fan)fan.innerHTML=[{k:'F',v:3},'R','J','G',{k:'F',v:0}].map((t,x)=>`<div class="fan-slot" style="--r:${(x-2)*13}deg;--d:${x*90}ms">${tileHTML(t)}</div>`).join('');
 }
@@ -2403,7 +2446,7 @@ function resumeGame(){
 }
 
 // ================= Settings =================
-function tilePreview(){return ['D5','B1','B5','C5','E','R','G','0'].map(k=>tileHTML(k,'md')).join('')+tileHTML({k:'F',v:1},'md')+tileHTML('J','md')}
+function tilePreview(){return ['D5','B1','B5','C5','E','R','G','0'].map(k=>tileHTML(k,'md')).join('')+tileHTML({k:'F',v:1},'md')+tileHTML({k:'J',v:0},'md')+tileHTML({k:'J',v:1},'md')}
 function askConfirm({title,body,yes,onYes}){
   const m=$('#modal .modal');if(!m)return;
   const d=document.createElement('div');d.className='confirm';d.setAttribute('role','alertdialog');d.setAttribute('aria-modal','true');
@@ -2433,10 +2476,10 @@ function showSettings(){
   pauseGame();
   openModal(`<h2>Settings</h2><p class="setnote">Settings are saved on this device. ${NET.mode==='client'?'<b>You\'re in a friend\'s room:</b> house rules, bots and speed follow the host\'s settings. Your look, layout and sound settings still apply.':MP()?'<b>You\'re hosting:</b> your house rules, bots and speed apply to everyone in the room. The game keeps going while this is open.':'The game is paused while this is open.'}</p>
    <div class="set-sec">Style</div>
-   <div class="setrow"><span class="st"><b>Background</b><span class="d">Default is a classic green card room. NYC is navy Art Deco with the skyline. Paris is navy velvet with gold and a balcony-railing rack.</span></span>
-     <span class="seg" role="group" aria-label="Background">${[['default','Default'],['nyc','NYC'],['paris','Paris']].map(([v,l])=>`<button class="${settings.bg===v?'on':''}" data-bg="${v}" aria-pressed="${settings.bg===v}">${l}</button>`).join('')}</span></div>
-   <div class="setrow col"><span class="st"><b>Tiles</b><span class="d">Regular is the traditional look. Paris uses macarons, asparagus and shopfronts. NYC uses bagels, Big Apples and skyscrapers. Easy to read shows a big number or letter on every tile.</span></span>
-     <span class="seg" role="group" aria-label="Tiles">${[['regular','Regular'],['paris','Paris'],['nyc','NYC'],['easy','Easy to read']].map(([v,l])=>`<button class="${settings.tiles===v?'on':''}" data-tiles="${v}" aria-pressed="${settings.tiles===v}">${l}</button>`).join('')}</span>
+   <div class="setrow"><span class="st"><b>Background</b><span class="d">Default is a classic green card room. NYC is navy Art Deco with the skyline. Paris is navy velvet with gold and a balcony-railing rack. Ocean is a deep-sea table with a driftwood rack. Celestial is a starry night sky with a gold-trimmed rack.</span></span>
+     <span class="seg" role="group" aria-label="Background">${[['default','Default'],['nyc','NYC'],['paris','Paris'],['ocean','Ocean'],['celestial','Celestial']].map(([v,l])=>`<button class="${settings.bg===v?'on':''}" data-bg="${v}" aria-pressed="${settings.bg===v}">${l}</button>`).join('')}</span></div>
+   <div class="setrow col"><span class="st"><b>Tiles</b><span class="d">Regular is the traditional look. Paris uses macarons, asparagus and shopfronts. Ocean uses bubbles, kelp and waves. Celestial uses planets, shooting stars and orbits. NYC uses bagels, Big Apples and skyscrapers. Easy to read shows a big number or letter on every tile.</span></span>
+     <span class="seg" role="group" aria-label="Tiles">${[['regular','Regular'],['paris','Paris'],['ocean','Ocean'],['celestial','Celestial'],['nyc','NYC'],['easy','Easy to read']].map(([v,l])=>`<button class="${settings.tiles===v?'on':''}" data-tiles="${v}" aria-pressed="${settings.tiles===v}">${l}</button>`).join('')}</span>
      <div class="tile-preview" id="tilePreview">${tilePreview()}</div></div>
    <div class="set-sec">Gameplay</div>
    <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Table view: just the game board with big tiles, and your hands open from the Hands button. Fit to screen: board plus the hands panels, no page scrolling. Scroll: everything at full size and you scroll the page.</span></span>
@@ -2565,6 +2608,8 @@ function showCard(tab='view'){
 }
 function tileBlurb(){
   if(settings.tiles==='nyc')return 'NYC tiles: Dots are bagels, Bams are Art Deco towers, Craks are Big Apples, Winds are street signs, Red is a hydrant, Green is the Liberty torch, Soap is a Broadway marquee star, Jokers are yellow cabs.';
+  if(settings.tiles==='ocean')return 'Ocean tiles: Dots are bubbles, Bams are kelp, Craks are numbered waves, Winds are compass roses, Red is coral, Green is an octopus, Soap is a jellyfish. Flowers are a starfish, scallop, sand dollar and anemone. Jokers are a mermaid or a shark.';
+  if(settings.tiles==='celestial')return 'Celestial tiles: Dots are planets and moon phases, Bams are shooting stars, Craks are numbered orbits, Winds are constellations shaped like N, E, S and W, Red is the sun, Green is a comet, Soap is the moon. Flowers are an eclipse, galaxy, aurora and North Star. Jokers are a black hole.';
   if(settings.tiles==='paris')return 'Paris tiles: Dots are blue macarons, Bams are green asparagus (the 1 Bam is a pigeon), Craks are red Paris shopfronts, Winds are Point Zéro compasses, Red is the Moulin Rouge, Green is a Wallace fountain, Soap is Sacré-Cœur, Flowers are purple landmarks and café life, Jokers are the Eiffel Tower at night.';
   if(settings.tiles==='easy')return 'Easy to read tiles: the big number or letter is the tile, and the word under it is the suit (BAM, CRAK, DOT) or the honor (NORTH, RED, SOAP, FLOWER, JOKER).';
   return 'Regular tiles: Dots are circles, Bams are bamboo sticks (the 1 Bam is a bird), Craks show a Chinese number over 萬, Winds are 東 East, 南 South, 西 West, 北 North, Red is 中, Green is 發, and Soap is the blue frame.';
