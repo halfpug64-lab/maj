@@ -958,6 +958,73 @@ body.table-view .rack{--rackw:clamp(40px,min(6.6vh,calc((100vw - 150px)/15.3)),7
 .orack .backs:empty::before{content:"";display:block;width:1px;height:clamp(31px,3.7vw,42px)}
 @media(max-width:900px){.orack .backs:empty::before{display:none}}
 
+/* ================= Multiplayer ================= */
+.splash-tabs{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:rgba(0,0,0,.3);border:1px solid var(--line);margin:0 0 18px}
+.splash-tabs button{border:0;background:none;color:var(--muted);font:700 14px var(--body);padding:9px 20px;border-radius:10px;cursor:pointer;transition:background .2s,color .2s}
+.splash-tabs button.on{background:var(--gold);color:#2b1d02}
+#splashSolo,#splashMP{display:flex;flex-direction:column;align-items:center;width:min(420px,100%)}
+#splashMP .mpform{width:100%}
+.mpform{display:flex;flex-direction:column;gap:10px;text-align:left}
+.mpfield{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:700;letter-spacing:.04em}
+.mpfield span{color:var(--muted)}
+.mpform input{font:600 16px var(--body);padding:11px 13px;border-radius:11px;border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--txt);min-width:0}
+.mpform input:focus{outline:2px solid var(--gold);outline-offset:1px}
+.mpjoin{display:flex;gap:8px}
+.mpjoin input{flex:1;min-width:0}
+.mpjoin #spCode,.mpjoin #mmCode{letter-spacing:.3em;text-transform:uppercase;font-weight:800}
+.mpor{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:4px 0}
+.mpor::before,.mpor::after{content:"";flex:1;height:1px;background:var(--line)}
+.mpmsg{min-height:1.2em;margin:2px 0 0;font-size:13px;color:var(--muted)}
+.mpmsg.bad{color:#ff8a80}
+.modal .mpform input{background:#fffdf7;color:var(--paper-ink);border-color:#cdbb8c}
+.modal .mpfield span,.modal .mpor{color:var(--paper-muted)}
+.modal .mpor::before,.modal .mpor::after{background:#d8c79c}
+.modal .mpmsg{color:var(--paper-muted)}.modal .mpmsg.bad{color:#b3261e}
+.modal .mpjoin input#lkInput{font:500 13px var(--mono);background:#fffdf7;color:var(--paper-ink);border:1px solid #cdbb8c;border-radius:10px;padding:9px 11px}
+.roomcode{display:flex;align-items:baseline;gap:14px;margin:4px 0 12px}
+.roomcode .rc-label{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-muted)}
+.roomcode b{font:800 38px var(--mono);letter-spacing:.22em;color:#7d5e18}
+.lobbyseats{list-style:none;margin:14px 0 6px;padding:0;display:grid;gap:6px}
+.lobbyseats li{display:grid;grid-template-columns:34px 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;padding:8px 10px;border-radius:12px;border:1px dashed #cdbb8c;background:rgba(255,255,255,.35)}
+.lobbyseats li.filled{border-style:solid;background:rgba(255,255,255,.7)}
+.lobbyseats .lav{grid-row:1/3;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#1d1a14;border:1.5px dashed #cdbb8c}
+.lobbyseats li.filled .lav{border:0}
+.lobbyseats .lnm{font-weight:800;font-size:14.5px}.lobbyseats .lnm em{font-style:normal;font-weight:600;color:var(--paper-muted)}
+.lobbyseats .lsub{font-size:12px;color:var(--paper-muted)}
+.lobbyseats li.filled .lsub{display:none}.lobbyseats li.filled .lnm{grid-row:1/3}
+.waitnote{display:inline-flex;align-items:center;gap:9px;font-size:14px;color:var(--muted);padding:9px 14px;border-radius:11px;background:rgba(0,0,0,.25);border:1px solid var(--line)}
+.modal .waitnote{color:var(--paper-muted);background:rgba(255,255,255,.5);border-color:#d8c79c}
+.spin{width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;display:inline-block;animation:spin .8s linear infinite;vertical-align:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.callbar{position:relative;overflow:hidden}
+.cdbar{position:absolute;left:0;bottom:0;height:4px;width:100%;background:#7a5815;transform-origin:left;animation-name:cd;animation-timing-function:linear;animation-fill-mode:both}
+@keyframes cd{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+body.mp-client #btnNew{display:none}
+body.table-view .seat-left .reveal .tile.xs,body.table-view .seat-right .reveal .tile.xs{--w:17px}
+body.table-view .seat-left .reveal,body.table-view .seat-right .reveal{gap:1px;flex-wrap:nowrap}
+body.in-room #btnMP{border-color:rgba(236,198,109,.7);color:var(--gold-hi)}
+
+/* ================= Side racks (Table view, computers): upright columns that always fit their space ================= */
+@media(min-width:901px){
+  body.table-view{--sidew:clamp(84px,6.8vw,110px)}
+  body.table-view .felt{padding:0 calc(var(--sidew) + 8px)}
+  body.table-view .seat-left,body.table-view .seat-right{width:var(--sidew);padding:4px 0 0;gap:6px;overflow:hidden}
+  body.table-view .seat-left .orack-wrap,body.table-view .seat-right .orack-wrap{position:relative;flex:1;min-height:0;width:100%;height:auto;max-height:none;container-type:size;display:flex;justify-content:center}
+  body.table-view .seat-left .orack,body.table-view .seat-right .orack{--t:min(calc(100cqh / 15),40px);position:static;rotate:none;translate:none;width:auto;min-width:0;max-width:100%;height:100%;
+    display:flex;flex-direction:row;align-items:center;justify-content:center;gap:5px;padding:6px 7px;border-radius:12px}
+  body.table-view .seat-right .orack{flex-direction:row-reverse}
+  body.table-view .seat-left .orack .backs,body.table-view .seat-right .orack .backs,
+  body.table-view .seat-left .orack .reveal,body.table-view .seat-right .orack .reveal{flex-direction:column;flex-wrap:nowrap;gap:2px;margin:0;align-items:center}
+  body.table-view .seat-left .back,body.table-view .seat-right .back{width:calc(var(--t) * 1.3);height:calc(var(--t) - 2px);border-radius:3px}
+  body.table-view .seat-left .reveal .tile.xs,body.table-view .seat-right .reveal .tile.xs,
+  body.table-view .seat-left .exps .tile.xs,body.table-view .seat-right .exps .tile.xs{--w:calc((var(--t) - 2px) / 1.4)}
+  body.table-view .seat-left .orack .exps,body.table-view .seat-right .orack .exps{flex-direction:column;flex-wrap:nowrap;width:auto;margin:0;padding:3px;gap:4px;border-radius:8px;align-self:center}
+  body.table-view .seat-left .orack .exps.ledge-empty,body.table-view .seat-right .orack .exps.ledge-empty{display:none}
+  body.table-view .seat-left .orack .exp,body.table-view .seat-right .orack .exp{flex-direction:column;gap:1px}
+  body.table-view .seat-left .plate,body.table-view .seat-right .plate{max-width:100%;flex:none}
+  body.table-view .seat-left .pname,body.table-view .seat-right .pname{max-width:calc(var(--sidew) - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -973,6 +1040,7 @@ body.table-view .rack{--rackw:clamp(40px,min(6.6vh,calc((100vw - 150px)/15.3)),7
       <button class="btn btn-ghost" id="btnHelp" title="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5V14"/><path d="M12 17.2h.01"/></svg><span class="lbl">How to play</span></button>
       <button class="btn btn-ghost" id="btnHands" title="Your hands and the card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="14" rx="1.5"/><rect x="10" y="5" width="6" height="14" rx="1.5"/><path d="M19 7l2 1-3 11-2-.6"/></svg><span class="lbl">Hands</span></button>
       <button class="btn btn-ghost icon" id="btnFull" title="Full screen" aria-label="Full screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button class="btn btn-ghost" id="btnMP" title="Multiplayer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.6c3 .2 5.5 2.1 5.5 5.4"/></svg><span class="lbl" id="btnMPLabel">Multiplayer</span></button>
       <button class="btn btn-ghost" id="btnSettings" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Settings</span></button>
       <button class="btn btn-ghost icon" id="btnSound"></button>
       <button class="btn btn-gold" id="btnNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></svg>New game</button>
@@ -1003,8 +1071,12 @@ body.table-view .rack{--rackw:clamp(40px,min(6.6vh,calc((100vw - 150px)/15.3)),7
   <div class="fan" id="fan"></div>
   <h2 class="splash-title">American Mah Jongg</h2>
   <div class="splash-tag">NEW YORK EDITION</div>
-  <p class="splash-sub">Play your 2026 card against three computer players.</p>
-  <div class="splash-btns"><button class="btn btn-gold" id="btnStart">Deal me in</button><button class="btn btn-ghost" id="btnResume" hidden>Resume game</button></div>
+  <div class="splash-tabs" role="tablist" aria-label="Game mode"><button role="tab" id="tabSolo" class="on" aria-selected="true" aria-controls="splashSolo">Solo</button><button role="tab" id="tabMP" aria-selected="false" aria-controls="splashMP">Multiplayer</button></div>
+  <div id="splashSolo" role="tabpanel">
+    <p class="splash-sub">Play your 2026 card against three computer players.</p>
+    <div class="splash-btns"><button class="btn btn-gold" id="btnStart">Deal me in</button><button class="btn btn-ghost" id="btnResume" hidden>Resume game</button></div>
+  </div>
+  <div id="splashMP" role="tabpanel" hidden><p class="splash-sub">Play with 1 to 3 friends. Bots fill any empty seats.</p><div id="splashMPForm"></div></div>
   <svg class="splash-skyline" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true">
     <path fill="#ecc66d" d="M0 46V30h30v-8h18v8h14V18h12v12h20V24h16v-6h10v6h12v22h10V12h8V4h4v8h8v34h18V26h22v-6h14v6h10v20h16V22h26v24h14V16h6V2h3v14h6v30h20V28h18v-8h22v26h14V20h10v-6h12v6h10v26h22V30h18v16h12V18h10V8h6v10h10v28h20V24h24v22h16V14h8V0h3v14h8v32h18V28h14v-8h20v26h22V22h16v24h14V30h24v16h16V20h10v-8h10v8h10v26h18V26h22v20h14V16h12v30h20V24h18v22h20V30h26v16h14V18h10V6h4v12h10v28h18V26h20v20h16V22h26v24h18V28h22v18h24V20h12v26h20V30h28v16h18V24h22v22z"/>
   </svg>
@@ -1442,7 +1514,7 @@ const $=s=>document.querySelector(s);
 let gid=0;
 let paused=false,pausedQ=[];
 function later(fn,ms){const g=gid;const run=()=>{if(g!==gid)return;if(paused){pausedQ.push(run);return}fn()};setTimeout(run,ms)}
-function pauseGame(){paused=true}
+function pauseGame(){if(MP())return;paused=true}
 function unpauseGame(){if(!paused)return;paused=false;const q=pausedQ;pausedQ=[];q.forEach((r,x)=>setTimeout(r,120+x*40))}
 function rectOf(s){const e=typeof s==='string'?$(s):s;if(!e)return null;const r=e.getBoundingClientRect();return r.width?r:null}
 const tileRect=id=>rectOf(`.tile[data-id="${id}"]`);
@@ -1484,16 +1556,24 @@ function confetti(){
 }
 
 // ================= State =================
-const NAMES=['You','Queens','Bronx','Brooklyn'];
+let NAMES=['You','Queens','Bronx','Brooklyn'];   // as seen from this screen: 0 is always you
+let SEATNAME=[...NAMES];                          // the host's absolute seat names (used to word messages for each player)
+let AV=null;                                      // avatars per seat on this screen (multiplayer); null = the borough bullets
 const WIND=['East','South','West','North'];
 const SEATPOS={1:'right',2:'top',3:'left'};
 const BULLET=[{c:'#ecc66d',t:'★',fg:'#2a1d00'},{c:'#9b3fb5',t:'7'},{c:'#00933c',t:'4'},{c:'#0039a6',t:'A'}];
-const bulletHTML=i=>`<span class="bullet" style="background:${BULLET[i].c};color:${BULLET[i].fg||'#fff'}">${BULLET[i].t}</span>`;
+const bulletHTML=i=>{const b=(AV&&AV[i])||BULLET[i];return `<span class="bullet" style="background:${b.c};color:${b.fg||'#fff'}">${b.t}</span>`};
 const WORD={3:'Pung',4:'Kong',5:'Quint',6:'Sextet'};
 let SPEED=760;
 const SPEEDS={slow:1400,normal:760,fast:380,instant:110};
 const applySpeed=()=>{SPEED=SPEEDS[settings.botSpeed]||760};
 let wall=[],players=[0,1,2,3].map(()=>({hand:[],exp:[]})),discards=[],phase='idle',turn=0,step='discard',passIdx=0;
+// Multiplayer: NET.mode is 'solo', 'host' (this screen runs the game) or 'client' (this screen shows the host's game).
+let NET={mode:'solo',rules:null,waiting:[],tags:null,conns:{},seat:0};
+let HUMAN=[true,false,false,false];      // seats played by people; the rest are bots
+const MP=()=>NET.mode!=='solo';
+let chSub={},chVotes={},chStop=-1,callTok=0;   // Charleston submissions and votes per seat; who stopped the second Charleston
+const CALL_MS=12000;                            // multiplayer: time each player gets to call a discard
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
 // Settings are always saved on this device. Progress (scores, East rotation, an unfinished game) only when "Save progress" is on.
 const SET_DEFAULT={v:2,botSpeed:'normal',walls:true,bg:'default',tiles:'regular',layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
@@ -1514,7 +1594,7 @@ function applyTheme(){
 }
 function applyLayout(){document.body.classList.toggle('scroll-layout',settings.layout==='scroll');document.body.classList.toggle('table-view',settings.layout==='table')}
 function saveSettings(){try{localStorage.setItem('amj_settings',JSON.stringify(settings))}catch(e){}}
-const houseOn=k=>settings.house&&!!settings.hr[k];
+const houseOn=k=>{const r=NET.rules||settings;return !!(r.house&&r.hr&&r.hr[k])};
 const LEVELS=['Easy','Default','Hard'];
 const botLevel=i=>{const v=settings.botDiff&&settings.botDiff[i];return v===0||v===1||v===2?v:settings.diff};
 const isBlind=st=>!!(st&&st.blind&&!houseOn('noBlind'));
@@ -1541,6 +1621,10 @@ let shown=[...scores],scoreAnim=false;
 let showHints=true;try{showHints=localStorage.getItem('amj_hints')!=='off'}catch(e){}
 function saveScores(){}
 function log(m){logs.unshift(m);if(logs.length>80)logs.pop();logVer++}
+// Messages worded for each player: f(viewerSeat) returns the text; 'You' when the viewer is the subject.
+const nameV=(seat,v)=>seat===v?'You':SEATNAME[seat];
+function toastAll(f,kind=''){toast(f(0),kind);if(NET.mode==='host')for(const c of Object.values(NET.conns))if(c.seat!=null&&c.live)netTo(c,{t:'toast',m:f(c.seat),kind})}
+function toastTo(seat,m,kind=''){if(seat===0)toast(m,kind);else if(NET.mode==='host'){const c=connFor(seat);if(c)netTo(c,{t:'toast',m,kind})}}
 function toast(m,kind=''){document.querySelectorAll('.toast').forEach(t=>t.remove());const d=document.createElement('div');d.className='toast '+kind;
   d.innerHTML=`<span>${m}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1700)}
 
@@ -1550,7 +1634,7 @@ function newGame(){
   if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false}else dealer=(dealer+1)%4;
   try{if(settings.save)localStorage.setItem('amj_progress',JSON.stringify({scores,dealer}))}catch(e){}
   wallBreak=Math.floor(Math.random()*76)*2;wallBuild=true;
-  discUp=false;chNote='';jokerPlans.clear();dead=[false,false,false,false];building=null;turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
+  discUp=false;chStop=-1;chSub={};chVotes={};jokerPlans.clear();dead=[false,false,false,false];building=null;turnSrc=null;players=[0,1,2,3].map(()=>({hand:[],exp:[]}));phase='shuffle';turn=0;step='discard';passIdx=0;
   log('Everyone pushes their tiles in. Washing the tiles…');
   render();Sound.wash();
   later(deal,REDUCED?60:1550);
@@ -1561,11 +1645,12 @@ function deal(){
   phase='charleston';passIdx=0;
   log(`Fresh deal with ${cardMode==='mine'?'your loaded card':'the 2026 card'}. ${dealer===0?"You're East with 14 tiles and throw first.":`${NAMES[dealer]} is East and throws first. You're ${windOf(0)}.`}`);
   dealAnim=true;render();for(let i=0;i<14;i++)later(()=>Sound.tap(),120+i*45);
-  later(()=>toast(dealer===0?"You're East":`${NAMES[dealer]} is East · you're ${windOf(0)}`),700);
+  later(()=>toastAll(v=>dealer===v?"You're East":`${nameV(dealer,v)} is East · you're ${windOf(v)}`),700);
   const hv=isWin(players[dealer].hand,[]);
-  if(hv&&dealer!==0)later(()=>{log(`${NAMES[dealer]} was dealt a complete hand. Heavenly Hand!`);win(dealer,hv,null)},900);
+  if(hv&&!HUMAN[dealer])later(()=>{log(`${NAMES[dealer]} was dealt a complete hand. Heavenly Hand!`);win(dealer,hv,null)},900);
 }
 function askNew(){
+  if(NET.mode==='client'){toast('Only the host can start a new game');return}
   if(phase==='play'||phase==='charleston'){
     openModal(`<h2>Start a new game?</h2><p>Everyone's tiles go back in the middle, get washed, and a fresh hand is dealt. East moves one seat to the right, to ${NAMES[(dealer+1)%4]==='You'?'you':NAMES[(dealer+1)%4]}. The scoreboard stays unless you reset it.</p>
      <div class="mrow"><button class="btn btn-gold" onclick="newGame()">Shuffle and deal</button><button class="btn btn-ghost" onclick="resetScores();newGame()">Reset scores too</button><button class="btn btn-ghost" onclick="closeModal()">Keep playing</button></div>`);
@@ -1629,10 +1714,10 @@ function bestSwap(pi,tg){
 function doSwap(pi,t,[qi,ei]){
   const e=players[qi].exp[ei];const ji=e.tiles.findIndex(x=>x.k==='J');const jt=e.tiles[ji];
   const fT=tileRect(t.id)||mini(rectOf('#seat'+pi)),fJ=tileRect(jt.id);
-  turnSrc=null;e.tiles[ji]=t;const p=players[pi];p.hand.splice(p.hand.indexOf(t),1);p.hand.push(jt);if(pi!==0)sortHand(p.hand);
+  turnSrc=null;e.tiles[ji]=t;const p=players[pi];p.hand.splice(p.hand.indexOf(t),1);p.hand.push(jt);if(!HUMAN[pi])sortHand(p.hand);
   queueFly(t,fT,0,460);if(pi===0)queueFly(jt,fJ,90,460);
   log(`${NAMES[pi]} swapped a ${tname(t.k)} for a Joker from ${pi===qi?(pi===0?'your own':'their own'):(qi===0?'your':NAMES[qi]+"'s")} exposure.`);
-  Sound.chime();toast(pi===0?'Joker is yours':`${NAMES[pi]} takes a Joker`);
+  Sound.chime();toastAll(v=>pi===v?'Joker is yours':`${nameV(pi,v)} takes a Joker`);
 }
 function botSwaps(pi){
   if(botLevel(pi)===0&&Math.random()<.75)return;
@@ -1649,53 +1734,89 @@ const CH=[{d:1,n:'right'},{d:2,n:'across'},{d:3,n:'left',blind:true},'decide',{d
 function chStep(){return CH[passIdx]}
 function takeSel(){return [...sel].map(id=>{const i=players[0].hand.findIndex(t=>t.id===id);return players[0].hand.splice(i,1)[0]})}
 function botGive(i,n){const out=[];for(let x=0;x<n;x++){const t=chooseDiscard(players[i]);if(!t||t.k==='J')break;players[i].hand.splice(players[i].hand.indexOf(t),1);out.push(t)}return out}
-function doPass(){
-  const st=chStep();
-  if(st==='courtesy'){
-    const want=sel.size,bronx=botCourtesy(2),m=Math.min(want,bronx);
-    [...sel].slice(m).forEach(id=>sel.delete(id));
-    const ids=[...sel],outR=ids.map(tileRect);const mine=takeSel();
-    let theirs=botGive(2,mine.length);
-    if(theirs.length<mine.length){players[0].hand.push(...mine.splice(theirs.length))}
-    if(want>m)log(m?`Bronx only wanted to trade ${m}, so you each passed ${m}.`:'Bronx didn\'t want a courtesy pass, so nothing was traded.');
-    {const m2=Math.min(botCourtesy(1),botCourtesy(3));const a=botGive(1,m2),b=botGive(3,m2);const n2=Math.min(a.length,b.length);
-     players[1].hand.push(...a.splice(n2));players[3].hand.push(...b.splice(n2));players[3].hand.push(...a);players[1].hand.push(...b);
-     sortHand(players[1].hand);sortHand(players[3].hand);log(n2?`Queens and Brooklyn traded ${n2} across.`:'Queens and Brooklyn skipped their courtesy pass.')}
-    players[2].hand.push(...mine);players[0].hand.push(...theirs);sortHand(players[2].hand);
-    newIds=new Set(theirs.map(t=>t.id));
-    const r2=rectOf('#seat2');mine.forEach((t,x)=>flyAway(t,outR[x],r2,x*70));theirs.forEach((t,x)=>queueFly(t,mini(r2),300+x*80,480));
-    if(mine.length)Sound.whoosh();
-    if(want<=m)log(mine.length?`Courtesy pass: you traded ${mine.length} with Bronx.`:'You skipped the courtesy pass.');
-    sel.clear();startPlay();render();return;
-  }
-  const k=sel.size;if(k>3||(!isBlind(st)&&k!==3))return;
-  const ids=[...sel],outR=ids.map(tileRect);
-  const fromSeat=(4-st.d)%4,toSeat=st.d;
-  const out=[[],[],[],[]];
-  for(let i=1;i<4;i++)out[i]=botGive(i,3);
-  const blind=out[fromSeat].splice(0,3-k);
-  out[0]=[...takeSel(),...blind];
+// Each person picks their tiles; the pass goes out once every person has picked. Bots pick on the spot.
+const humanSeats=()=>[0,1,2,3].filter(i=>HUMAN[i]);
+function chWaiting(){if(phase!=='charleston')return[];const st=chStep();
+  if(st==='decide')return humanSeats().filter(x=>!(x in chVotes));
+  if(st===undefined)return[];return humanSeats().filter(x=>!(x in chSub))}
+function doPass(){                       // your Pass / Trade button
+  if(NET.mode==='client'){const st=chStep();const k=sel.size;if(st!=='courtesy'&&!isBlind(st)&&k!==3)return;netSend({t:'act',a:'pass',ids:[...sel]});return}
+  submitPass(0,[...sel]);
+}
+function submitPass(seat,ids){
+  if(phase!=='charleston')return;const st=chStep();if(st==='decide'||st===undefined||seat in chSub)return;
+  const hand=players[seat].hand;ids=[...new Set(ids)].filter(id=>hand.some(t=>t.id===id&&t.k!=='J'));
+  if(ids.length>3)return;if(st!=='courtesy'&&!isBlind(st)&&ids.length!==3)return;
+  chSub[seat]=ids;
+  if(chWaiting().length){render();return}
+  execPass();
+}
+function chMaybeFinish(){if(phase!=='charleston'||chWaiting().length)return;const st=chStep();if(st==='decide')finishVotes();else if(st!==undefined&&Object.keys(chSub).length)execPass()}
+function takeFrom(seat,ids){const h=players[seat].hand;return ids.map(id=>h.splice(h.findIndex(t=>t.id===id),1)[0]).filter(Boolean)}
+function execPass(){
+  const st=chStep();const subs=chSub;chSub={};
+  const mineIds=subs[0]||[];const outR=mineIds.map(tileRect);
+  if(st==='courtesy'){execCourtesy(subs,outR);return}
+  const d=st.d,from=i=>(i+4-d)%4,toSeat=d,fromSeat=from(0);
+  const out=[[],[],[],[]],own=[0,0,0,0],need=[0,0,0,0];
+  for(let i=0;i<4;i++){
+    if(HUMAN[i]){out[i]=takeFrom(i,subs[i]||[]);own[i]=out[i].length;need[i]=Math.max(0,3-own[i])}
+    else{out[i]=botGive(i,3);own[i]=out[i].length}}
+  // blind pass: the missing tiles come straight from what's being passed to you, unseen
+  const blindN=[0,0,0,0];
+  for(let round=0;round<4;round++)for(let i=0;i<4;i++){
+    if(!need[i]||need[from(i)])continue;
+    const take=out[from(i)].splice(0,need[i]);out[i].push(...take);blindN[i]=take.length;need[i]=0}
+  if(need.some(x=>x)){   // everyone blind-passing in a full circle: each passes the same number of their own tiles
+    const m=Math.min(...own);for(let i=0;i<4;i++){players[i].hand.push(...out[i].splice(m));need[i]=0}}
   newIds=new Set();
-  for(let i=0;i<4;i++){const to=(i+st.d)%4;players[to].hand.push(...out[i]);if(to===0)out[i].forEach(t=>newIds.add(t.id))}
-  for(let i=1;i<4;i++)sortHand(players[i].hand);
+  for(let i=0;i<4;i++){const to=(i+d)%4;players[to].hand.push(...out[i]);if(to===0)out[i].forEach(t=>newIds.add(t.id))}
+  for(let i=0;i<4;i++)if(!HUMAN[i])sortHand(players[i].hand);
   const toR=rectOf('#seat'+toSeat),fromR=rectOf('#seat'+fromSeat);
-  out[0].slice(0,k).forEach((t,x)=>flyAway(t,outR[x],toR,x*70));
-  blind.forEach((t,x)=>flyAway(null,mini(fromR,26),toR,120+x*90));
+  out[0].slice(0,own[0]).forEach((t,x)=>flyAway(t,outR[x],toR,x*70));
+  for(let x=0;x<blindN[0];x++)flyAway(null,mini(fromR,26),toR,120+x*90);
   out[fromSeat].forEach((t,x)=>queueFly(t,mini(fromR),320+x*80,480));
   Sound.whoosh();
   const second=passIdx>3;
-  log(`${second?'Second':'First'} Charleston: passed ${st.n}${blind.length?` (${blind.length} blind)`:''}.`);
-  if(blind.length)toast(blind.length===3?'Blind pass':`${blind.length} passed blind`);
+  log(`${second?'Second':'First'} Charleston: passed ${st.n}${blindN[0]?` (${blindN[0]} blind)`:''}.`);
+  for(let i=0;i<4;i++)if(HUMAN[i]&&blindN[i])toastTo(i,blindN[i]===3?'Blind pass':`${blindN[i]} passed blind`);
   sel.clear();passIdx++;houseSkips();render();
+}
+function execCourtesy(subs,outR){
+  for(const [a,b] of [[0,2],[1,3]]){
+    const want=x=>HUMAN[x]?(subs[x]||[]).length:botCourtesy(x);
+    const wa=want(a),wb=want(b),n=Math.min(wa,wb);
+    const give=x=>HUMAN[x]?takeFrom(x,(subs[x]||[]).slice(0,n)):botGive(x,n);
+    const ga=give(a),gb=give(b),m=Math.min(ga.length,gb.length);
+    players[a].hand.push(...ga.splice(m));players[b].hand.push(...gb.splice(m));
+    players[b].hand.push(...ga);players[a].hand.push(...gb);
+    if(!HUMAN[a])sortHand(players[a].hand);if(!HUMAN[b])sortHand(players[b].hand);
+    for(const [x,y,w] of [[a,b,wa],[b,a,wb]])if(HUMAN[x]&&w>m)toastTo(x,m?`${SEATNAME[y]} only wanted to trade ${m}`:`${SEATNAME[y]} skipped the courtesy pass`);
+    if(a===0){newIds=new Set(gb.map(t=>t.id));const r2=rectOf('#seat2');ga.forEach((t,x)=>flyAway(t,outR[x],r2,x*70));gb.forEach((t,x)=>queueFly(t,mini(r2),300+x*80,480));if(m)Sound.whoosh();
+      log(m?`Courtesy pass: you traded ${m} with ${NAMES[2]}.`:'No courtesy pass with the player across.')}
+  }
+  sel.clear();startPlay();render();
 }
 // A bot stops the Charleston when it's happy with its hand (within 2 tiles), plus a small 4% chance of just wanting to start.
 function botWantsStop(i){const p=players[i];const r=analyze(p.hand,p.exp).res[0];const d=r?r.dist-(14-p.hand.length):99;return d<=2||Math.random()<.04}
-let chNote='';
-function chDecide(goOn){
-  if(goOn){const stopper=[1,2,3].find(botWantsStop);
-    if(stopper){passIdx=CH.indexOf('courtesy');chNote=`${NAMES[stopper]} voted to stop, so there's no second Charleston. Any one player can stop it.`;log(chNote);toast(`${NAMES[stopper]} voted to stop`)}
+function chDecide(goOn){                // your Second Charleston / Stop buttons
+  if(NET.mode==='client'){netSend({t:'act',a:'vote',go:!!goOn});return}
+  voteCharleston(0,goOn);
+}
+function voteCharleston(seat,go){
+  if(phase!=='charleston'||chStep()!=='decide'||seat in chVotes)return;
+  chVotes[seat]=!!go;
+  if(chWaiting().length){render();return}
+  finishVotes();
+}
+function finishVotes(){
+  const votes=chVotes;chVotes={};
+  const humanStop=humanSeats().find(x=>votes[x]===false);
+  if(humanStop!==undefined){passIdx=CH.indexOf('courtesy');chStop=humanStop;log(`${SEATNAME[humanStop]} stopped the Charleston after the first left.`);
+    toastAll(v=>v===humanStop?'You stopped the Charleston':`${nameV(humanStop,v)} voted to stop`)}
+  else{const stopper=[0,1,2,3].filter(i=>!HUMAN[i]).find(botWantsStop);
+    if(stopper!==undefined){passIdx=CH.indexOf('courtesy');chStop=stopper;log(`${SEATNAME[stopper]} voted to stop, so there's no second Charleston.`);toastAll(v=>`${nameV(stopper,v)} voted to stop`)}
     else{passIdx++;log('All four players agree to a second Charleston.')}}
-  else{passIdx=CH.indexOf('courtesy');log('You stopped the Charleston after the first left.')}
   newIds=new Set();houseSkips();render();
 }
 function houseSkips(){
@@ -1704,9 +1825,9 @@ function houseSkips(){
 }
 // 5.6: each pair across trades the smaller number either player wants
 function botCourtesy(i){const sc=tileScores(players[i]);return Math.min(3,players[i].hand.filter(t=>t.k!=='J'&&sc[t.k]<.25).length)}
-function startPlay(){chNote='';phase='play';turn=dealer;step='discard';sel.clear();passIdx=CH.length;
+function startPlay(){chStop=-1;chSub={};chVotes={};phase='play';turn=dealer;step='discard';sel.clear();passIdx=CH.length;
   log(dealer===0?'Charleston done. You are East: discard a tile.':`Charleston done. ${NAMES[dealer]} is East and throws first.`);
-  if(dealer!==0)later(()=>botAct(dealer),SPEED)}
+  if(!HUMAN[dealer])later(()=>botAct(dealer),SPEED)}
 
 // ================= Rack arranging =================
 function sortMine(mode){
@@ -1762,8 +1883,8 @@ function provablyDead(pi){
 function checkDead(){
   for(let i=0;i<4;i++){if(dead[i]||!provablyDead(i))continue;dead[i]=true;
     log(i===0?'Your exposures can no longer make any hand on the card with the tiles left. Your hand is dead.':`${NAMES[i]}'s exposures can no longer make any hand on the card. ${NAMES[i]}'s hand is dead.`);
-    toast(i===0?'Your hand is dead':`${NAMES[i]}'s hand is dead`);Sound.sad()}
-  if(dead.filter(x=>!x).length<=1){phase='over';callState=null;log('Three hands are dead, so this hand ends with no winner.');render();
+    toastAll(v=>i===v?'Your hand is dead':`${nameV(i,v)}'s hand is dead`);Sound.sad()}
+  if(dead.filter(x=>!x).length<=1){phase='over';callState=null;log('Three hands are dead, so this hand ends with no winner.');render();netBroadcast({t:'modal',kind:'dead'});
     openModal(`<h2>No winner</h2><p>Three hands are dead, so the hand ends. No points change hands.</p><div class="mrow"><button class="btn btn-gold" onclick="newGame()">New game</button><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);return true}
   return false;
 }
@@ -1775,12 +1896,13 @@ function startTurn(i){
   if(dead[i]){startTurn(nextAlive(i));return}
   if(!wall.length){endWall();return}
   turnSrc=null;
-  const t=wall.pop();players[i].hand.push(t);if(i!==0)sortHand(players[i].hand);turn=i;step='discard';callState=null;
+  const t=wall.pop();players[i].hand.push(t);if(!HUMAN[i])sortHand(players[i].hand);turn=i;step='discard';callState=null;
   if(i===0){newIds=new Set([t.id]);selected=null;log(`You drew ${tname(t.k)}.`);queueFly(t,rectOf('#wallStack'),0,460);render();Sound.tap()}
+  else if(HUMAN[i])render();          // another person's turn: wait for their move
   else{render();later(()=>botAct(i),SPEED)}
 }
 function botAct(i){
-  if(phase!=='play')return;const p=players[i];botSwaps(i);
+  if(phase!=='play'||HUMAN[i]||turn!==i)return;const p=players[i];botSwaps(i);
   const w=isWin(p.hand,p.exp);if(w){win(i,w,turnSrc);return}
   discard(i,chooseDiscard(p));
 }
@@ -1791,7 +1913,7 @@ function discard(i,t){
   selected=null;newIds=new Set();step='wait';
   queueFly(t,from,0,i===0?320:440);render();
   later(()=>Sound.clack(),i===0?250:360);
-  later(()=>resolveCalls(i,t),i===0?480:SPEED);
+  later(()=>resolveCalls(i,t),HUMAN[i]?480:SPEED);
 }
 // Calling rules:
 //  - A discarded Joker can never be called.
@@ -1799,8 +1921,8 @@ function discard(i,t){
 //  - Exposure calls make a pung, kong, quint or sextet with the discard plus matching tiles and/or jokers, and the exposure must fit an exposed hand on the card.
 //  - Singles and pairs can only be claimed to finish Mah Jongg. Concealed hands can only claim a discard for Mah Jongg.
 //  - After calling, the caller discards (no draw) and play continues to the caller's right.
-function humanOptions(k){
-  const p=players[0];const o={mj:false,exp:[]};if(k==='J')return o;
+function humanOptions(k,seat=0){
+  const p=players[seat];const o={mj:false,exp:[]};if(k==='J')return o;
   if(isWin([...p.hand,{k}],p.exp))o.mj=true;
   const {c,j}=countTiles(p.hand);const nk=c[k]||0;
   for(const n of [3,4,5,6])if(nk+j>=n-1&&ALL.some(cp=>evalPat(cp,{},0,[...p.exp,{k,n}])))o.exp.push(n);
@@ -1809,27 +1931,43 @@ function humanOptions(k){
 function resolveCalls(i,t){
   if(phase!=='play')return;
   const order=[1,2,3].map(d=>(i+d)%4),pos=j=>order.indexOf(j);
-  let botMJ=null,botExp=null;
+  let botMJ=null,botExp=null;const offers={};
   if(t.k!=='J'){
-    for(const j of order){if(j===0||dead[j])continue;if(botLevel(j)===0&&Math.random()<.2)continue;const w=isWin([...players[j].hand,t],players[j].exp);if(w){botMJ={j,w};break}}
-    if(!botMJ)for(const j of order){if(j===0||dead[j])continue;const n=botCall(players[j],t.k);if(n){botExp={j,n};break}}
+    for(const j of order){if(HUMAN[j]||dead[j])continue;if(botLevel(j)===0&&Math.random()<.2)continue;const w=isWin([...players[j].hand,t],players[j].exp);if(w){botMJ={j,w};break}}
+    if(!botMJ)for(const j of order){if(HUMAN[j]||dead[j])continue;const n=botCall(players[j],t.k);if(n){botExp={j,n};break}}
+    for(const j of order){if(!HUMAN[j]||dead[j])continue;
+      const o=humanOptions(t.k,j);
+      if(botMJ&&pos(botMJ.j)<pos(j))o.mj=false;   // a Mah Jongg caller sits ahead
+      if(botMJ)o.exp=[];                          // Mah Jongg outranks exposures
+      if(botExp&&pos(botExp.j)<pos(j))o.exp=[];   // an exposure caller sits ahead
+      if(o.mj||o.exp.length)offers[j]=o}
   }
-  if(i!==0&&!dead[0]){
-    const o=humanOptions(t.k);
-    if(botMJ&&pos(botMJ.j)<pos(0))o.mj=false;   // a Mah Jongg caller sits ahead of you
-    if(botMJ)o.exp=[];                          // Mah Jongg outranks exposures
-    if(botExp&&pos(botExp.j)<pos(0))o.exp=[];   // an exposure caller sits ahead of you
-    if(o.mj||o.exp.length){callState={i,t,o,botMJ,botExp};Sound.chime();render();return}
-  }
-  finishCalls(i,t,botMJ,botExp,null);
+  const cs={i,t,order,botMJ,botExp,offers,choices:{},o:offers[0]||null};
+  if(Object.keys(offers).length){
+    callState=cs;
+    if(MP()){cs.deadline=Date.now()+CALL_MS;cs.tok=++callTok;later(()=>{if(callState&&callState.tok===cs.tok)closeCalls()},CALL_MS)}
+    if(cs.o)Sound.chime();render();return}
+  finishCalls(cs);
 }
-function finishCalls(i,t,botMJ,botExp,choice){
-  callState=null;
-  if(choice&&choice.mj){discards.pop();players[0].hand.push(t);sortHand(players[0].hand);win(0,isWin(players[0].hand,players[0].exp),i);return}
-  if(botMJ){discards.pop();players[botMJ.j].hand.push(t);win(botMJ.j,botMJ.w,i);return}
-  if(choice&&choice.build){startBuild(i,t,botMJ,botExp);return}
-  if(choice&&choice.n){doExpose(0,t.k,choice.n,i);render();return}
-  if(botExp){doExpose(botExp.j,t.k,botExp.n,i);render();later(()=>botAct(botExp.j),SPEED);return}
+function answerCall(seat,c){             // 'mj', 'pass', 'build' or a group size
+  const cs=callState;if(!cs||!cs.offers[seat]||seat in cs.choices)return;const o=cs.offers[seat];
+  if(c==='mj'&&!o.mj)return;if(typeof c==='number'&&!o.exp.includes(c))return;if(c==='build'&&(seat!==0||MP()||!o.exp.length))return;
+  if(c!=='mj'&&c!=='pass'&&c!=='build'&&typeof c!=='number')return;
+  cs.choices[seat]=c;if(seat===0)cs.o=null;
+  if(Object.keys(cs.offers).every(x=>x in cs.choices))closeCalls();else render();
+}
+function closeCalls(){const cs=callState;if(!cs)return;callState=null;finishCalls(cs)}
+function finishCalls(cs){
+  callState=null;const {i,t,order,botMJ,botExp,choices}=cs;const pos=j=>order.indexOf(j);
+  let best=null;
+  for(const x in choices){const j=+x;if(choices[x]!=='mj')continue;const w=isWin([...players[j].hand,t],players[j].exp);if(w&&(!best||pos(j)<pos(best.j)))best={j}}
+  if(botMJ&&(!best||pos(botMJ.j)<pos(best.j)))best={j:botMJ.j};
+  if(best){discards.pop();players[best.j].hand.push(t);sortHand(players[best.j].hand);win(best.j,isWin(players[best.j].hand,players[best.j].exp),i);return}
+  let ex=null;
+  for(const x in choices){const j=+x,c=choices[x];if(typeof c==='number'||c==='build')if(!ex||pos(j)<pos(ex.j))ex={j,c}}
+  if(botExp&&(!ex||pos(botExp.j)<pos(ex.j)))ex={j:botExp.j,c:botExp.n,bot:true};
+  if(ex){if(ex.c==='build'){startBuild(i,t,cs);return}
+    doExpose(ex.j,t.k,ex.c,i);render();if(ex.bot)later(()=>botAct(ex.j),SPEED);return}
   startTurn(nextAlive(i));
 }
 function doExpose(pi,k,n,from){
@@ -1839,7 +1977,7 @@ function doExpose(pi,k,n,from){
   p.exp.push({k,n,tiles});
   queueFly(t,fromT,0,480);moves.forEach(([tt,r],x)=>queueFly(tt,r,60+x*45,420));
   log(`${NAMES[pi]} called ${tname(k)} for a ${WORD[n].toLowerCase()}.`);
-  toast(`${NAMES[pi]}: ${WORD[n]}!`);Sound.chime();
+  toastAll(v=>`${nameV(pi,v)}: ${WORD[n]}!`);Sound.chime();
   turn=pi;step='discard';selected=null;newIds=new Set();turnSrc=from;
 }
 function win(pi,cp,from){
@@ -1853,17 +1991,17 @@ function win(pi,cp,from){
   for(let q=0;q<4;q++)scores[q]+=pay[q];saveScores();
   log(`${NAMES[pi]} declared Mah Jongg! ${cp.hand.cat}, ${v} pts${jokerless?' (jokerless x2)':''}.`);
   if(pi===0){Sound.fanfare();confetti();toast('Mah Jongg!','big')}else{Sound.sad();toast(`${NAMES[pi]}: Mah Jongg`)}
-  render();later(()=>showResult(pi,cp,from,v,jokerless,pay,rule),1300);
+  render();netResult(pi,cp,from,v,jokerless,pay,rule);later(()=>showResult(pi,cp,from,v,jokerless,pay,rule),1300);
 }
 function endWall(){phase='over';callState=null;log('The wall is empty. Wall game.');Sound.sad();
   const wp=houseOn('wallPoints');if(wp)for(let q=0;q<4;q++)if(!dead[q])scores[q]+=10;
-  render();
+  render();netBroadcast({t:'modal',kind:'wall',wp});
   openModal(`<h2>Wall game</h2><p>The last tile is gone and nobody made Mah Jongg. ${wp?'<b>House rule:</b> every live hand gets 10 points.':'No points change hands.'}</p><div class="mrow"><button class="btn btn-gold" onclick="newGame()">New game</button><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`)}
 
 // ================= Building your own exposure =================
-function startBuild(i,t,botMJ,botExp){
+function startBuild(i,t,cs){
   const fromT=tileRect(t.id);discards.pop();
-  building={t,from:i,tiles:[t],botMJ,botExp};
+  building={t,from:i,tiles:[t],cs};
   turn=0;step='discard';turnSrc=i;selected=null;newIds=new Set();
   log(`You called ${tname(t.k)}. Add matching tiles or Jokers, then discard to lock it in.`);
   queueFly(t,fromT,0,480);Sound.chime();render();
@@ -1880,10 +2018,11 @@ function finalizeBuild(){
   log(`You exposed a ${WORD[n].toLowerCase()} of ${tname(b.t.k)}.`);toast(`You: ${WORD[n]}!`);
 }
 function cancelBuild(){
-  const b=building;if(!b||b.committed)return;   // only before any of your own tiles go face upbuilding=null;
+  const b=building;if(!b||b.committed)return;   // only before any of your own tiles go face up
+  building=null;
   players[0].hand.push(...b.tiles.filter(x=>x!==b.t));discards.push(b.t);turnSrc=null;
   log(`You let the ${tname(b.t.k)} go.`);
-  finishCalls(b.from,b.t,b.botMJ,b.botExp,null);
+  finishCalls({...b.cs,choices:{}});
   if(phase==='play')render();
 }
 function buildTap(t){
@@ -1898,6 +2037,7 @@ function unbuildTap(id){
   queueFly(t,r,0,300);Sound.tap();render();
 }
 function humanThrow(t){
+  if(NET.mode==='client'){netSend({t:'act',a:'discard',id:t.id});selected=null;return}
   if(building){if(!buildValid()){toast('Finish your exposure first');return}finalizeBuild()}
   discard(0,t);
 }
@@ -1907,6 +2047,7 @@ function onTileClick(id){
   const p=players[0];const t=p.hand.find(x=>x.id===id);if(!t)return;
   if(phase==='charleston'){
     const st=chStep();if(st==='decide')return;
+    if(!(NET.mode==='client'?NET.waiting.includes(0):chWaiting().includes(0)))return;   // already passed: waiting for the others
     if(t.k==='J'){toast('Jokers can\'t be passed');return}
     if(sel.has(id))sel.delete(id);else if(sel.size<3)sel.add(id);else{toast('Three tiles max');return}
     Sound.tap();render();return;
@@ -1916,8 +2057,21 @@ function onTileClick(id){
 }
 function humanDiscard(){const t=players[0].hand.find(x=>x.id===selected);if(t)humanThrow(t)}
 function humanSwap(){const t=players[0].hand.find(x=>x.id===selected);if(!t)return;
+  if(NET.mode==='client'){netSend({t:'act',a:'swap',id:t.id});selected=null;return}
   if(building){if(!buildValid()){toast('Finish your exposure before swapping for a Joker');return}finalizeBuild()}  /* 8.16: a Joker exchange locks the new exposure */const tg=swapTargets(t);if(!tg.length)return;doSwap(0,t,bestSwap(0,tg));selected=null;render()}
-function humanMJ(){if(building){if(!buildValid())return;finalizeBuild()}const w=isWin(players[0].hand,players[0].exp);if(w)win(0,w,phase==='charleston'?null:turnSrc)}
+function humanMJ(){if(NET.mode==='client'){netSend({t:'act',a:'mj'});return}if(building){if(!buildValid())return;finalizeBuild()}const w=isWin(players[0].hand,players[0].exp);if(w)win(0,w,phase==='charleston'?null:turnSrc)}
+
+// Moves from a joined player, checked on the host before they count.
+function actDiscard(seat,id){if(phase!=='play'||turn!==seat||step!=='discard'||callState)return;const t=players[seat].hand.find(x=>x.id===id);if(t)discard(seat,t)}
+function actSwap(seat,id){if(phase!=='play'||turn!==seat||step!=='discard'||callState)return;const t=players[seat].hand.find(x=>x.id===id);if(!t||t.k==='J')return;
+  const tg=swapTargets(t);if(tg.length){doSwap(seat,t,bestSwap(seat,tg));render()}}
+function actMJ(seat){const p=players[seat];const w=isWin(p.hand,p.exp);if(!w)return;
+  if(phase==='play'&&turn===seat&&step==='discard'&&!callState)win(seat,w,turnSrc);
+  else if(phase==='charleston'&&seat===dealer)win(seat,w,null)}
+function hostAct(seat,m){
+  switch(m.a){case 'pass':submitPass(seat,Array.isArray(m.ids)?m.ids.map(Number):[]);break;case 'vote':voteCharleston(seat,!!m.go);break;
+    case 'call':answerCall(seat,m.c);break;case 'discard':actDiscard(seat,+m.id);break;case 'swap':actSwap(seat,+m.id);break;case 'mj':actMJ(seat);break}
+}
 
 // ================= Hand coach =================
 // Ranks every hand on the card by how realistic it is to finish, not just raw distance:
@@ -1964,11 +2118,12 @@ function whyText(r){
 
 // ================= Render =================
 function expHTML(p,size){return p.exp.length?`<div class="exps">${p.exp.map(e=>`<div class="exp">${e.tiles.map(t=>tileHTML(t,size,true)).join('')}</div>`).join('')}</div>`:''}
+const seatTag=i=>NET.mode==='client'?(NET.tags&&NET.tags[i]||''):(HUMAN[i]?(i===0&&MP()?'Host':'Player'):(MP()?'Bot · ':'')+LEVELS[botLevel(i)]);
 function renderSeat(i){
   const p=players[i],el=$('#seat'+i);const active=turn===i&&phase==='play';
   el.className=`seat seat-${SEATPOS[i]}${active?' turn':''}${active&&step==='discard'&&!callState?' thinking':''}`;
   const body=phase==='over'?`<div class="reveal">${p.hand.map(t=>tileHTML(t,'xs')).join('')}</div>`:`<div class="backs">${p.hand.map(()=>'<i class="back"></i>').join('')}</div>`;
-  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${dealer===i?'<span class="eastchip">E</span> ':''}${windOf(i)} · ${p.hand.length} tiles<span class="lvl"> · ${LEVELS[botLevel(i)]}</span>${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="orack-wrap"><div class="orack">${body}${p.exp.length?expHTML(p,'xs'):'<div class="exps ledge-empty"></div>'}</div></div>`;
+  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${dealer===i?'<span class="eastchip">E</span> ':''}${windOf(i)} · ${p.hand.length} tiles<span class="lvl"> · ${seatTag(i)}</span>${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="orack-wrap"><div class="orack">${body}${p.exp.length?expHTML(p,'xs'):'<div class="exps ledge-empty"></div>'}</div></div>`;
 }
 function renderScores(){
   if(scoreAnim)return;
@@ -1994,16 +2149,21 @@ function render(){
   else if(phase==='shuffle'){status='Washing the tiles';sub='All 152 tiles go face down and get mixed before the deal.'}
   else if(phase==='charleston'){
     if(st==='decide'){status='First Charleston done';sub='Keep going with a second Charleston (left, across, right), or stop here.'}
-    else if(st==='courtesy'){status='Courtesy pass';dir='across';sub=(chNote?`<b class="chnote">${chNote}</b><br>`:'')+'Optional: pick 0 to 3 tiles to trade with Bronx. You both trade the smaller number either of you wants.'}
+    else if(st==='courtesy'){status='Courtesy pass';dir='across';sub=(chStop>0?`<b class="chnote">${NAMES[chStop]} voted to stop, so there's no second Charleston. Any one player can stop it.</b><br>`:'')+`Optional: pick 0 to 3 tiles to trade with ${NAMES[2]}. You both trade the smaller number either of you wants.`}
     else{const second=passIdx>3;dir=st.n;status=`${second?'Second':'First'} Charleston · Pass ${st.n}`;
       sub=isBlind(st)?`Pick 3 tiles to pass ${st.n}. This is a blind pass: pick fewer and the rest are passed straight along from the tiles coming to you, unseen.`
         :`Pass ${(second?passIdx-4:passIdx)+1} of 3. Pick 3 tiles you don't need.`}}
   else if(phase==='play'){
-    if(callState){status=`${NAMES[callState.i]} threw ${tname(callState.t.k)}`;sub='You can claim it. Call it or let it go.'}
+    if(callState){status=`${NAMES[callState.i]} threw ${tname(callState.t.k)}`;sub=callState.o?'You can claim it. Call it or let it go.':''}
     else if(turn===0&&step==='discard'&&building){status='Build your exposure';sub=`Tap matching ${tname(building.t.k)} tiles or Jokers to add them. Pick a tile to throw, and the exposure locks in when you discard.`}
     else if(turn===0&&step==='discard'){status='Your turn';sub=settings.dblDiscard?'Tap a tile, then hit Discard. Or tap it twice to throw it.':'Tap a tile to select it, then hit Discard. Tap it again to deselect.'}
     else{status=`${NAMES[turn]} is playing`;sub=dead[0]?'Your hand is dead, so you sit out the rest of this hand.':`${windOf(turn)} seat`}
   }else status='Hand over';
+  const waitList=NET.mode==='client'?NET.waiting:chWaiting();
+  const iPassed=phase==='charleston'&&!waitList.includes(0)&&waitList.length>0;
+  if(iPassed)sub=`Waiting for ${waitList.map(x=>NAMES[x]).join(' and ')}…`;
+  if(phase==='play'&&callState&&!callState.o){sub=`Waiting for ${(callState.waiting||Object.keys(callState.offers||{}).filter(x=>!(x in (callState.choices||{}))).map(Number)).filter(x=>x!==0).map(x=>NAMES[x]).join(' and ')||'the other players'} to call or pass`}
+  if(phase==='play'&&!callState&&turn!==0&&MP()&&(NET.mode==='client'?(NET.humanV&&NET.humanV[turn]):HUMAN[turn]))sub=`Waiting for ${NAMES[turn]} to play`;
   const changed=status!==lastStatus;lastStatus=status;
   const last=discards.length-1;
   const dirHTML=dir?`<div class="dir" style="--r:${ARROW_ROT[dir]}deg" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h14M12 6l6 6-6 6"/></svg></div>`:'';
@@ -2022,23 +2182,24 @@ function render(){
     nd.onscroll=()=>{discUp=nd.scrollTop+nd.clientHeight<nd.scrollHeight-12}}}
 
   const p=players[0];let acts='';
-  if(phase==='idle')acts='<button class="btn btn-gold" id="bStart2">Deal me in</button>';
+  if(phase==='idle')acts=NET.mode==='client'?'<div class="waitnote"><span class="spin"></span>Waiting for the host to start</div>':(NET.mode==='host'&&room&&!room.started?'<button class="btn btn-gold" id="bStart2">Room and players</button>':'<button class="btn btn-gold" id="bStart2">Deal me in</button>');
   else if(phase==='charleston'){
     if(dealer===0&&passIdx===0&&isWin(p.hand,p.exp))acts='<button class="btn btn-red" id="bMJ">Mah Jongg! (Heavenly Hand)</button>';
+    else if(iPassed)acts=`<div class="waitnote"><span class="spin"></span>${sub}</div>`;
     else if(st==='decide')acts=`<button class="btn btn-gold" id="bGo">Second Charleston</button><button class="btn btn-ghost" id="bStop">Stop Charleston</button>`;
     else if(st==='courtesy')acts=`<button class="btn btn-gold" id="bPass">${sel.size?`Trade ${sel.size} across`:'Skip courtesy pass'}</button>`;
     else if(isBlind(st)){const k=sel.size;acts=`<button class="btn btn-gold" id="bPass">${k===3?`Pass 3 ${st.n}`:k===0?`Blind pass all 3 ${st.n}`:`Pass ${k} + ${3-k} blind ${st.n}`}</button>`}
     else acts=`<button class="btn btn-gold" ${sel.size===3?'':'disabled'} id="bPass">Pass ${sel.size}/3 ${st.n}</button>`;
-  }else if(phase==='play'&&callState){
-    const o=callState.o;
-    acts=`<div class="callbar">${tileHTML(callState.t,'md')}<span>Call it?</span>
+  }else if(phase==='play'&&callState&&callState.o){
+    const o=callState.o;const cd=callState.deadline?Math.max(0,callState.deadline-Date.now()):0;
+    acts=`<div class="callbar">${cd?`<i class="cdbar" style="animation-duration:${CALL_MS}ms;animation-delay:-${CALL_MS-cd}ms"></i>`:''}${tileHTML(callState.t,'md')}<span>Call it?</span>
       ${o.mj?'<button class="btn btn-red" data-call="mj">Mah Jongg!</button>':''}
-      ${settings.expMode==='build'?(o.exp.length?'<button class="btn btn-ghost" data-call="build">CALL</button>':''):o.exp.map(n=>`<button class="btn btn-ghost" data-call="${n}">${WORD[n].toUpperCase()} (${n})</button>`).join('')}
+      ${settings.expMode==='build'&&!MP()?(o.exp.length?'<button class="btn btn-ghost" data-call="build">CALL</button>':''):o.exp.map(n=>`<button class="btn btn-ghost" data-call="${n}">${WORD[n].toUpperCase()} (${n})</button>`).join('')}
       <button class="btn btn-ghost" data-call="pass">Let it go</button></div>`;
   }else if(phase==='play'&&turn===0&&step==='discard'){
     const t=p.hand.find(x=>x.id===selected);const canSwap=t&&t.k!=='J'&&swapTargets(t).length;const w=isWin(p.hand,buildExps());const bv=!building||buildValid();
     acts=`${w?'<button class="btn btn-red" id="bMJ">Mah Jongg!</button>':''}<button class="btn btn-gold" id="bDis" ${t&&bv?'':'disabled'}>${building?'Discard and lock in':'Discard'}</button>${canSwap?'<button class="btn btn-ghost" id="bSwap">Swap for Joker</button>':''}${building&&!building.committed?'<button class="btn btn-ghost" id="bCancel">Cancel call</button>':''}`;
-  }else if(phase==='over')acts='<button class="btn btn-gold" id="bNext">New game</button>';
+  }else if(phase==='over')acts=NET.mode==='client'?`<div class="waitnote">Waiting for ${NAMES[NET.hostView]||'the host'} to deal the next hand</div>`:'<button class="btn btn-gold" id="bNext">New game</button>';
   const yourTurn=turn===0&&phase==='play'&&step==='discard'&&!callState;
   const me=$('#me');
   me.className='me'+(yourTurn?' turn':'');
@@ -2053,9 +2214,10 @@ function render(){
   const bind=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
   bind('bPass',doPass);bind('bGo',()=>chDecide(true));bind('bStop',()=>chDecide(false));bind('bSortS',()=>sortMine('suit'));bind('bSortN',()=>sortMine('num'));
   bind('bDis',humanDiscard);bindBubbles();bind('bHands',()=>document.body.classList.add('show-hands'));bind('bCancel',cancelBuild);document.querySelectorAll('.pending .tile[data-id]').forEach(e=>e.onclick=()=>unbuildTap(+e.dataset.id));bind('bSwap',humanSwap);bind('bMJ',humanMJ);bind('bNext',newGame);bind('bStart2',startFromSplash);
-  document.querySelectorAll('[data-call]').forEach(b=>b.onclick=()=>{const v=b.dataset.call,cs=callState;if(!cs)return;
-    finishCalls(cs.i,cs.t,cs.botMJ,cs.botExp,v==='mj'?{mj:true}:v==='pass'?null:v==='build'?{build:true}:{n:+v})});
+  document.querySelectorAll('[data-call]').forEach(b=>b.onclick=()=>{const v=b.dataset.call;if(!callState)return;const c=(v==='mj'||v==='pass'||v==='build')?v:+v;
+    if(NET.mode==='client'){netSend({t:'act',a:'call',c});callState.o=null;render()}else answerCall(0,c)});
   renderStars();renderHints();renderLog();flushFly();saveProgress();
+  if(NET.mode==='host')netQueueState();
 }
 function buildHTML(){
   if(!building)return'';const n=building.tiles.length,ok=buildValid();
@@ -2222,7 +2384,7 @@ function renderLog(){if(shownLogVer===logVer||!$('#log'))return;shownLogVer=logV
 // ================= Saved progress =================
 // Only saved at moments that wait on you (Charleston, or your turn), so a resumed game never skips a bot's move.
 function saveProgress(){
-  if(!settings.save)return;
+  if(!settings.save||MP())return;
   try{
     localStorage.setItem('amj_progress',JSON.stringify({scores,dealer}));
     if(phase==='over'){localStorage.removeItem('amj_game');return}
@@ -2269,7 +2431,7 @@ const HR=[
 function swRow(id,label,desc,on){return `<label class="setrow" for="${id}"><span class="st"><b>${label}</b><span class="d">${desc}</span></span><span class="switch"><input type="checkbox" id="${id}" ${on?'checked':''}><span class="track"><span class="knob"></span></span></span></label>`}
 function showSettings(){
   pauseGame();
-  openModal(`<h2>Settings</h2><p class="setnote">Settings are saved on this device. The game is paused while this is open.</p>
+  openModal(`<h2>Settings</h2><p class="setnote">Settings are saved on this device. ${NET.mode==='client'?'<b>You\'re in a friend\'s room:</b> house rules, bots and speed follow the host\'s settings. Your look, layout and sound settings still apply.':MP()?'<b>You\'re hosting:</b> your house rules, bots and speed apply to everyone in the room. The game keeps going while this is open.':'The game is paused while this is open.'}</p>
    <div class="set-sec">Style</div>
    <div class="setrow"><span class="st"><b>Background</b><span class="d">Default is a classic green card room. NYC is navy Art Deco with the skyline. Paris is navy velvet with gold and a balcony-railing rack.</span></span>
      <span class="seg" role="group" aria-label="Background">${[['default','Default'],['nyc','NYC'],['paris','Paris']].map(([v,l])=>`<button class="${settings.bg===v?'on':''}" data-bg="${v}" aria-pressed="${settings.bg===v}">${l}</button>`).join('')}</span></div>
@@ -2350,7 +2512,7 @@ function showResult(pi,cp,from,v,jl,pay,rule){
    ${from===null?'Self-drawn, so everyone pays double.':`Won on ${from===0?'your':NAMES[from]+"'s"} discard, so ${from===0?'you pay':NAMES[from]+' pays'} double.`}${jl?' Jokerless, so the value doubles.':''} Hand value: <b>${v}</b>.${rule==='three'?`<br><b>House rule:</b> ${pi===0?'you':NAMES[pi]} had 3 exposures, so ${from===0?'you pay':NAMES[from]+' pays'} for the whole table.`:''}${houseOn('deadNoPay')&&dead.some((d,q)=>d&&q!==pi)?'<br><b>House rule:</b> dead hands don\'t pay.':''}</p>
    <div class="win-tiles">${[...p.exp.flatMap(e=>e.tiles),...p.hand].map(t=>tileHTML(t,'md')).join('')}</div>
    <div class="pay">${NAMES.map((n,i)=>`<span>${n} <b class="${pay[i]>0?'plus':pay[i]<0?'minus':''}">${pay[i]>0?'+':''}${pay[i]}</b></span>`).join('')}</div>
-   <div class="mrow"><button class="btn btn-gold" onclick="newGame()">New game</button><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
+   <div class="mrow">${NET.mode==='client'?`<span class="waitnote">Waiting for ${NAMES[NET.hostView]||'the host'} to deal</span>`:'<button class="btn btn-gold" onclick="newGame()">New game</button>'}<button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
 }
 // Shows a hand the way the printed card writes it: X becomes a real number, P a second number, any-dragon A becomes D.
 function displayPat(h){
@@ -2425,6 +2587,8 @@ function showHelp(){pauseGame();openModal(`<div class="help"><h2>How to play</h2
  <p>In Settings you can switch to Build your own: press CALL, add the matching tiles or Jokers yourself, and the group locks in when you discard (or when you swap for a Joker). You can cancel the call only until you put one of your own tiles in the group. Exposed groups stay face up and can't grow. Calling another of the same tile makes a new group, not a bigger one. You can switch to a different hand as long as all your exposures still fit it.</p>
  <h4>Jokers</h4>
  <p>Jokers fill in for tiles in groups of 3 or more identical tiles, including Flowers. They never go in singles, pairs, runs, NEWS or 2026. On your turn, after you draw or call, you can trade the real tile for any exposed Joker, yours or anyone's, as many times as you can. Select the tile and hit Swap for Joker. You can't swap with a discard. A win made by a Joker swap counts as self-drawn.</p>
+ <h4>Playing with friends</h4>
+ <p>Tap <b>Multiplayer</b>, type your name and make a room. Share the room code or the link, and friends join from their own phones or computers. 2 to 4 people can play, and bots fill any empty seats. The host's house rules, bot difficulty and speed apply to everyone. Each player sees only their own tiles. You get 12 seconds to call a discard. If someone loses their connection, a bot plays their seat until they rejoin with the same code. Keep the game open on the host's screen, since the game runs there.</p>
  <h4>Dead hands</h4>
  <p>If a player's exposures can no longer make any hand on the card with the tiles still out (judged only from discards and exposures), that hand is dead. A dead hand sits out the rest of the hand but still pays the winner. If three hands are dead, the hand ends with no winner.</p>
  <h4>Scoring</h4>
@@ -2434,17 +2598,309 @@ function showHelp(){pauseGame();openModal(`<div class="help"><h2>How to play</h2
  <div class="win-tiles">${['D5','B5','C5','N','R','G','0'].map(k=>tileHTML(k,'md')).join('')}${[0,1,2,3,4,5,6,7].map(v=>tileHTML({k:'F',v},'md')).join('')}${tileHTML('J','md')}</div>
  <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Got it</button></div></div>`)}
 
+
+// ================= Multiplayer =================
+// One player hosts: their screen runs the game and sends each person only what they're allowed to see.
+// Players connect straight to the host through PeerJS (vendor/peerjs.min.js). ?net=local swaps in a same-browser
+// stand-in (BroadcastChannel) used for testing.
+const ROOM_PREFIX='nycmahjongg-room-';
+const CODE_CHARS='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const HUMAN_COL=['#ecc66d','#ef7d9a','#5cc8b4','#8b9cf6'];
+const useLocalNet=/[?&]net=local\b/.test(location.search);
+const joinFromURL=((location.search.match(/[?&]join=([A-Za-z0-9]{4,6})/)||[])[1]||'').toUpperCase();
+let myName='';try{myName=localStorage.getItem('amj_name')||''}catch(e){}
+// one ID per browser tab, kept across reloads, so a player who reloads gets their seat back
+let myCid='';try{myCid=sessionStorage.getItem('amj_cid')||''}catch(e){}
+if(!myCid){myCid=Math.random().toString(36).slice(2,12);try{sessionStorage.setItem('amj_cid',myCid)}catch(e){}}
+let room=null;      // host: {code, started, seats:[{name,cid}|null x4]}; joined player: {code, seats}
+const cleanName=n=>String(n||'').replace(/[<>&"'`]/g,'').replace(/\s+/g,' ').trim().slice(0,16)||'Player';
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const avatarFor=x=>x.human?{c:HUMAN_COL[x.abs%4],fg:'#1d1a14',t:esc((x.name||'?').trim().charAt(0).toUpperCase()||'?')}:BULLET[x.abs];
+
+// ---- same-browser stand-in for PeerJS (testing only) ----
+class LocalPeer{
+  constructor(id){this.id=id||'p'+Math.random().toString(36).slice(2,10);this.h={};this.conns={};this.bc=new BroadcastChannel('amj-local-net');
+    this.bc.onmessage=e=>this._msg(e.data);setTimeout(()=>this._emit('open',this.id),20)}
+  on(ev,f){this.h[ev]=f;return this}
+  _emit(ev,...a){this.h[ev]&&this.h[ev](...a)}
+  connect(to){const c=new LocalConn(this,to,Math.random().toString(36).slice(2));this.conns[c.cid]=c;this.bc.postMessage({k:'open',from:this.id,to,cid:c.cid});
+    setTimeout(()=>{if(!c.opened)this._emit('error',{type:'peer-unavailable'})},2500);return c}
+  _msg(m){if(m.to!==this.id)return;const c=this.conns[m.cid];
+    if(m.k==='open'){const n=new LocalConn(this,m.from,m.cid);this.conns[m.cid]=n;this._emit('connection',n);this.bc.postMessage({k:'ack',from:this.id,to:m.from,cid:m.cid});setTimeout(()=>{n.opened=true;n._emit('open')},0)}
+    else if(m.k==='ack'&&c){c.opened=true;c._emit('open')}
+    else if(m.k==='data'&&c)c._emit('data',m.d);
+    else if(m.k==='close'&&c){delete this.conns[m.cid];c.open=false;c._emit('close')}}
+  destroy(){Object.values(this.conns).forEach(c=>c.close());try{this.bc.close()}catch(e){}}
+}
+class LocalConn{
+  constructor(p,peer,cid){this.p=p;this.peer=peer;this.cid=cid;this.h={};this.open=true;this.opened=false}
+  on(ev,f){this.h[ev]=f;return this}
+  _emit(ev,...a){this.h[ev]&&this.h[ev](...a)}
+  send(d){if(this.open)this.p.bc.postMessage({k:'data',from:this.p.id,to:this.peer,cid:this.cid,d:JSON.parse(JSON.stringify(d))})}
+  close(){if(!this.open)return;this.open=false;try{this.p.bc.postMessage({k:'close',from:this.p.id,to:this.peer,cid:this.cid})}catch(e){}}
+}
+function loadPeerLib(){
+  if(useLocalNet||window.Peer)return Promise.resolve();
+  return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='vendor/peerjs.min.js';sc.onload=res;sc.onerror=()=>rej(new Error('lib'));document.head.appendChild(sc)});
+}
+const makePeer=id=>useLocalNet?new LocalPeer(id):(id?new Peer(id,{debug:0}):new Peer({debug:0}));
+const genCode=()=>Array.from({length:5},()=>CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]).join('');
+const inviteLink=code=>location.origin+location.pathname+'?join='+code+(useLocalNet?'&net=local':'');
+
+// ---- sending ----
+function connFor(seat){return Object.values(NET.conns||{}).find(c=>c.seat===seat&&c.live)}
+function netTo(c,m){try{if(c&&c.conn&&c.conn.open!==false)c.conn.send(m)}catch(e){}}
+function netSend(m){if(NET.mode==='client'&&NET.hostConn)try{NET.hostConn.send(m)}catch(e){}}
+function netBroadcast(m){if(NET.mode!=='host')return;for(const c of Object.values(NET.conns))if(c.seat!=null&&c.live)netTo(c,m)}
+let stateQueued=false;
+function netQueueState(){
+  if(stateQueued||!room||!room.started)return;stateQueued=true;
+  setTimeout(()=>{stateQueued=false;for(const c of Object.values(NET.conns))if(c.seat!=null&&c.live)netTo(c,viewFor(c.seat))},0);
+}
+// What seat s may see, turned so that s sits at the bottom of their screen.
+function viewFor(s){
+  const A=v=>(v+s)%4,R=i=>(i-s+4)%4,over=phase==='over',cs=callState;
+  return {t:'state',players:[0,1,2,3].map(v=>{const a=A(v),q=players[a];return{hand:(a===s||over)?q.hand:q.hand.map(()=>0),exp:q.exp}}),
+    wallN:wall.length,discards,phase,turn:R(turn),step,passIdx,dealer:R(dealer),
+    dead:[0,1,2,3].map(v=>dead[A(v)]),scores:[0,1,2,3].map(v=>scores[A(v)]),
+    call:cs?{i:R(cs.i),t:cs.t,o:(cs.offers[s]&&!(s in cs.choices))?cs.offers[s]:null,ms:cs.deadline?Math.max(0,cs.deadline-Date.now()):0,
+      waiting:Object.keys(cs.offers).map(Number).filter(x=>!(x in cs.choices)).map(R)}:null,
+    chStop:chStop<0?-1:R(chStop),waiting:chWaiting().map(R),host:R(0),
+    seats:[0,1,2,3].map(v=>{const a=A(v);return{name:SEATNAME[a],abs:a,human:HUMAN[a],tag:seatTag(a)}}),
+    rules:{house:settings.house,hr:settings.hr}};
+}
+function netResult(pi,cp,from,v,jl,pay,rule){
+  if(NET.mode!=='host')return;
+  for(const c of Object.values(NET.conns)){if(c.seat==null||!c.live)continue;const s=c.seat,R=i=>(i-s+4)%4;
+    netTo(c,{t:'result',pi:R(pi),hid:cp.hand.id,from:from===null?null:R(from),v,jl,pay:[0,1,2,3].map(x=>pay[(x+s)%4]),rule})}
+}
+function currentCardText(){return cardMode==='mine'&&myCardText?myCardText:PRACTICE}
+function useCardText(text){const r=parseCard(text||'');if(!r.hands.length)return;HANDS=r.hands;HANDS.forEach((h,i)=>h.id=i);ALL=HANDS.flatMap(expand);CPI.clear();jokerPlans.clear()}
+function refreshNames(){NAMES=['You',...SEATNAME.slice(1)];AV=[0,1,2,3].map(a=>avatarFor({abs:a,human:HUMAN[a],name:SEATNAME[a]}))}
+
+// ---- hosting ----
+async function createRoom(px){
+  mpMsg(px,'Creating your room…');
+  try{await loadPeerLib()}catch(e){mpMsg(px,"Couldn't load multiplayer. Check your connection and try again.",true);return}
+  const code=genCode();let peer;
+  try{peer=makePeer(ROOM_PREFIX+code)}catch(e){mpMsg(px,"Couldn't start a room on this browser.",true);return}
+  NET.peer=peer;
+  peer.on('open',()=>{NET.mode='host';NET.conns={};room={code,started:false,seats:[{name:myName,cid:myCid},null,null,null]};
+    SEATNAME=[myName,'Queens','Bronx','Brooklyn'];document.body.classList.add('in-room');startHeartbeat();$('#splash').classList.add('hide');showLobby()});
+  peer.on('connection',hostOnConn);
+  peer.on('error',e=>{if(e&&e.type==='unavailable-id'){try{peer.destroy()}catch(_){}createRoom(px);return}
+    if(!room)mpMsg(px,"Couldn't reach the multiplayer service. Check your connection and try again.",true)});
+}
+function hostOnConn(conn){
+  const c={conn,seat:null,live:true,last:Date.now(),cid:null};const key=Math.random().toString(36).slice(2);NET.conns[key]=c;
+  conn.on('data',m=>{c.last=Date.now();if(!m||typeof m!=='object')return;
+    if(m.t==='hello')hostHello(c,m);
+    else if(m.t==='leave'){try{c.conn.close()}catch(e){}hostDrop(c)}
+    else if(m.t==='act'&&c.seat!=null&&room&&room.started&&HUMAN[c.seat])hostAct(c.seat,m)});
+  conn.on('close',()=>hostDrop(c));conn.on('error',()=>hostDrop(c));
+}
+function hostHello(c,m){
+  if(!room)return;const name=cleanName(m.name);c.cid=String(m.cid||'').slice(0,40);
+  for(const [k,x] of Object.entries(NET.conns))if(x!==c&&x.cid&&x.cid===c.cid){x.live=false;try{x.conn.close()}catch(e){}delete NET.conns[k]}
+  let seat=room.seats.findIndex((x,i)=>i>0&&x&&x.cid===c.cid);
+  if(seat<0){
+    if(room.started){netTo(c,{t:'full',why:'started'});return}
+    seat=[2,1,3].find(x=>!room.seats[x]);if(seat==null){netTo(c,{t:'full',why:'full'});return}}
+  room.seats[seat]={name,cid:c.cid};c.seat=seat;c.live=true;
+  netTo(c,{t:'welcome',seat,code:room.code,card:currentCardText()});
+  if(room.started){const back=!HUMAN[seat];HUMAN[seat]=true;SEATNAME[seat]=name;refreshNames();
+    if(back)toastAll(v=>v===seat?'Welcome back':`${nameV(seat,v)} is back`);render()}
+  lobbyChanged();
+}
+function hostDrop(c){
+  if(!c.live)return;c.live=false;const s=c.seat;
+  for(const [k,x] of Object.entries(NET.conns))if(x===c)delete NET.conns[k];
+  if(s==null||!room)return;
+  if(!room.started){room.seats[s]=null;lobbyChanged();return}
+  if(!HUMAN[s])return;
+  HUMAN[s]=false;refreshNames();   // a bot plays this seat until they come back
+  toastAll(v=>`${SEATNAME[s]} left · a bot is playing for now`);
+  if(phase==='charleston')chMaybeFinish();
+  else if(phase==='play'){
+    if(callState&&callState.offers[s]&&!(s in callState.choices))answerCall(s,'pass');
+    else if(turn===s&&step==='discard'&&!callState)later(()=>botAct(s),SPEED)}
+  render();lobbyChanged();
+}
+function lobbyChanged(){
+  if(NET.mode!=='host'||!room)return;
+  const seats=room.seats.map(x=>x?{name:x.name}:null);
+  netBroadcast({t:'lobby',seats,started:room.started});
+  if($('#lobby'))showLobby();
+}
+function startRoomGame(){
+  if(NET.mode!=='host'||!room||room.started)return;
+  if(room.seats.filter(Boolean).length<2)return;
+  room.started=true;
+  HUMAN=room.seats.map(x=>!!x);
+  SEATNAME=room.seats.map((x,i)=>x?x.name:['','Queens','Bronx','Brooklyn'][i]);
+  refreshNames();
+  scores=[0,0,0,0];shown=[0,0,0,0];pendingStart=true;dealer=-1;
+  netBroadcast({t:'lobby',seats:room.seats.map(x=>x?{name:x.name}:null),started:true});
+  $('#splash').classList.add('hide');newGame();
+}
+
+// ---- joining ----
+async function joinRoom(px,code){
+  code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  if(code.length<4){mpMsg(px,'Type the room code your friend gave you.',true);return}
+  mpMsg(px,'Joining…');
+  try{await loadPeerLib()}catch(e){mpMsg(px,"Couldn't load multiplayer. Check your connection and try again.",true);return}
+  try{if(NET.peer)NET.peer.destroy()}catch(e){}
+  const peer=makePeer();NET.peer=peer;NET.joined=false;
+  peer.on('open',()=>{
+    const conn=peer.connect(ROOM_PREFIX+code,{reliable:true,serialization:'json'});NET.hostConn=conn;
+    conn.on('open',()=>conn.send({t:'hello',name:myName,cid:myCid}));
+    conn.on('data',m=>{NET.lastHost=Date.now();clientRecv(px,m)});
+    conn.on('close',()=>clientLost());
+    setTimeout(()=>{if(!NET.joined)mpMsg(px,"Couldn't find that room. Check the code, and make sure the host still has the game open.",true)},12000)});
+  peer.on('error',e=>{if(NET.joined){clientLost();return}
+    mpMsg(px,e&&e.type==='peer-unavailable'?"Couldn't find that room. Check the code, and make sure the host still has the game open.":"Couldn't reach the multiplayer service. Check your connection and try again.",true)});
+  NET.pendingCode=code;
+}
+function clientRecv(px,m){
+  if(!m||typeof m!=='object')return;
+  switch(m.t){
+    case 'welcome':NET.mode='client';NET.joined=true;NET.seat=m.seat;NET.lastHost=Date.now();room={code:m.code,seats:null};NET.lost=false;
+      useCardText(m.card);document.body.classList.add('in-room','mp-client');startHeartbeat();$('#splash').classList.add('hide');
+      if(phase==='idle')showLobby();else{closeModal();toast('Reconnected')}break;
+    case 'full':mpMsg(px,m.why==='started'?'That game has already started.':'That room is full.',true);try{NET.peer.destroy()}catch(e){}break;
+    case 'lobby':if(room){room.seats=m.seats;room.started=m.started;if($('#lobby'))showLobby()}break;
+    case 'state':applyState(m);break;
+    case 'toast':toast(esc(m.m),m.kind||'');break;
+    case 'result':clientResult(m);break;
+    case 'modal':if(m.kind==='wall')openModal(`<h2>Wall game</h2><p>The last tile is gone and nobody made Mah Jongg. ${m.wp?'<b>House rule:</b> every live hand gets 10 points.':'No points change hands.'}</p><div class="mrow"><span class="waitnote">Waiting for ${esc(NAMES[NET.hostView]||'the host')} to deal</span><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
+      else openModal(`<h2>No winner</h2><p>Three hands are dead, so the hand ends. No points change hands.</p><div class="mrow"><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
+      Sound.sad();break;
+    case 'bye':NET.leaving=true;openModal(`<h2>The room closed</h2><p>${esc(NAMES[NET.hostView]||'The host')} left, so the game is over.</p><div class="mrow"><button class="btn btn-gold" onclick="leaveRoom()">Back to solo</button></div>`);break;
+  }
+}
+function applyState(m){
+  const prevIds=new Set(players[0].hand.map(t=>t.id)),prevPhase=phase,prevDisc=discards.length,prevTurn=turn,prevPass=passIdx,prevOffer=!!(callState&&callState.o);
+  const keep=new Map(players[0].hand.map((t,i)=>[t.id,i]));
+  players=m.players;
+  const mine=players[0].hand,hostOrder=new Map(mine.map((t,i)=>[t.id,i]));
+  const rank=t=>keep.has(t.id)?keep.get(t.id):1000+hostOrder.get(t.id);
+  mine.sort((a,b)=>rank(a)-rank(b));                // your own arrangement of your rack stays put
+  wall=new Array(m.wallN);discards=m.discards;phase=m.phase;turn=m.turn;step=m.step;passIdx=m.passIdx;dealer=m.dealer;dead=m.dead;scores=m.scores;
+  chStop=m.chStop;NET.waiting=m.waiting;NET.rules=m.rules;NET.hostView=m.host;
+  callState=m.call?{i:m.call.i,t:m.call.t,o:m.call.o,deadline:m.call.ms?Date.now()+m.call.ms:0,waiting:m.call.waiting}:null;
+  NAMES=m.seats.map((x,v)=>v===0?'You':cleanName(x.name));NET.humanV=m.seats.map(x=>x.human);NET.tags=m.seats.map(x=>esc(x.tag||''));
+  AV=m.seats.map(x=>avatarFor({...x,name:cleanName(x.name)}));
+  const ids=mine.map(t=>t.id);
+  if(phase==='shuffle'){newIds=new Set();sel.clear();selected=null;if(prevPhase!=='shuffle'){closeModal();$('#splash').classList.add('hide');Sound.wash()}}
+  else if(prevPhase==='shuffle'){dealAnim=true;newIds=new Set();for(let i=0;i<14;i++)setTimeout(()=>Sound.tap(),120+i*45)}
+  else newIds=new Set(ids.filter(id=>!prevIds.has(id)));
+  if(passIdx!==prevPass||phase!=='charleston')sel.clear();
+  for(const id of [...sel])if(!ids.includes(id))sel.delete(id);
+  if(selected!=null&&!ids.includes(selected))selected=null;
+  if(phase!=='idle'&&$('#lobby'))closeModal();
+  if(discards.length>prevDisc)Sound.clack();
+  if(phase==='play'&&turn===0&&step==='discard'&&prevTurn!==0)Sound.tap();
+  if(callState&&callState.o&&!prevOffer)Sound.chime();
+  render();
+}
+function clientResult(m){
+  const pi=m.pi;
+  if(pi===0){Sound.fanfare();confetti();toast('Mah Jongg!','big')}else{Sound.sad();toast(`${esc(NAMES[pi])}: Mah Jongg`)}
+  setTimeout(()=>{if(NET.mode==='client'&&phase==='over')showResult(pi,{hand:HANDS[m.hid]||{cat:'',pat:''}},m.from,m.v,m.jl,m.pay,m.rule)},1300);
+}
+function clientLost(){
+  if(NET.mode!=='client'||NET.leaving||NET.lost)return;NET.lost=true;
+  openModal(`<h2>Connection lost</h2><p>This screen lost its connection to the room. If the host still has the game open, you can rejoin your seat.</p>
+    <div class="mrow"><button class="btn btn-gold" id="mpRejoin">Rejoin</button><button class="btn btn-ghost" onclick="leaveRoom()">Back to solo</button></div><p class="mpmsg" id="rjMsg" role="status"></p>`);
+  $('#mpRejoin').onclick=()=>{NET.lost=false;joinRoom('rj',room&&room.code||NET.pendingCode)};
+}
+let hbTimer=null;
+function startHeartbeat(){
+  if(hbTimer)return;
+  hbTimer=setInterval(()=>{
+    if(NET.mode==='client'){netSend({t:'ping'});if(NET.lastHost&&Date.now()-NET.lastHost>90000)clientLost()}
+    if(NET.mode==='host'){netBroadcast({t:'hb'});for(const c of Object.values(NET.conns))if(c.live&&c.seat!=null&&Date.now()-c.last>30000){try{c.conn.close()}catch(e){}hostDrop(c)}}
+  },4000);
+}
+function leaveRoom(){
+  NET.leaving=true;
+  if(NET.mode==='host')netBroadcast({t:'bye'});
+  if(NET.mode==='client')netSend({t:'leave'});
+  setTimeout(()=>{try{NET.peer&&NET.peer.destroy()}catch(e){}location.href=location.pathname+(useLocalNet?'?net=local':'')},150);
+}
+
+// ---- screens ----
+function mpFormHTML(px){
+  return `<div class="mpform">
+    <label class="mpfield" for="${px}Name"><span>Your name</span><input id="${px}Name" maxlength="16" autocomplete="nickname" placeholder="What should friends call you?" value="${esc(myName)}"></label>
+    <button class="btn btn-gold" id="${px}Create">Create a room</button>
+    <div class="mpor"><span>or join a friend's room</span></div>
+    <div class="mpjoin"><input id="${px}Code" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="Room code" aria-label="Room code" value="${esc(joinFromURL)}"><button class="btn btn-ghost" id="${px}Join">Join</button></div>
+    <p class="mpmsg" id="${px}Msg" role="status"></p></div>`;
+}
+function mpMsg(px,t,bad){const e=document.getElementById(px+'Msg');if(e){e.textContent=t;e.classList.toggle('bad',!!bad)}}
+function bindMpForm(px){
+  const nm=document.getElementById(px+'Name'),code=document.getElementById(px+'Code');if(!nm)return;
+  const takeName=()=>{const n=cleanName(nm.value);if(!nm.value.trim()){mpMsg(px,'Type your name first so friends know who you are.',true);nm.focus();return false}
+    myName=n;try{localStorage.setItem('amj_name',n)}catch(e){}return true};
+  document.getElementById(px+'Create').onclick=()=>{Sound.init();if(takeName())createRoom(px)};
+  document.getElementById(px+'Join').onclick=()=>{Sound.init();if(takeName())joinRoom(px,code.value)};
+  code.oninput=()=>{code.value=code.value.toUpperCase().replace(/[^A-Z0-9]/g,'')};
+  code.onkeydown=e=>{if(e.key==='Enter')document.getElementById(px+'Join').click()};
+}
+function openMultiplayer(){
+  if(MP()){showLobby();return}
+  const mid=phase==='play'||phase==='charleston';
+  openModal(`<h2>Play with friends</h2><p>Make a room and share the code, or join a friend's room. 2 to 4 people can play, and bots fill any empty seats.${mid?' <b>Your solo game ends when you make or join a room.</b>':''}</p>${mpFormHTML('mm')}
+    <div class="mrow"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>`);
+  bindMpForm('mm');
+}
+function showLobby(){
+  if(!room)return;
+  const host=NET.mode==='host';
+  const seats=host?room.seats:(room.seats||[]);
+  const nHuman=(seats||[]).filter(Boolean).length;
+  const winds=['East · seat 1','South · seat 2','West · seat 3','North · seat 4'];
+  const order=host?[0,1,2,3]:[0,1,2,3];
+  const rows=order.map(i=>{const x=seats&&seats[i];const me=host?i===0:(i===NET.seat);
+    return `<li class="${x?'filled':''}"><span class="lav" style="background:${x?HUMAN_COL[i]:'transparent'}">${x?esc(x.name.charAt(0).toUpperCase()):''}</span>
+      <span class="lnm">${x?esc(x.name)+(me?' <em>(you)</em>':'')+(i===0?' <em>· host</em>':''):'Open seat'}</span><span class="lsub">${x?'':'A bot plays here if nobody joins'}</span></li>`}).join('');
+  const started=!!room.started;
+  openModal(`<div id="lobby"><h2>${host?'Your room':'You joined the room'}</h2>
+    <div class="roomcode"><span class="rc-label">Room code</span><b>${esc(room.code)}</b></div>
+    ${host?`<p class="setnote">Friends open the game and tap <b>Multiplayer</b>, then type this code. Or send them the link.</p>
+      <div class="mpjoin"><input id="lkInput" readonly value="${esc(inviteLink(room.code))}" aria-label="Invite link"><button class="btn btn-ghost" id="lkCopy">Copy link</button></div>`:''}
+    <ul class="lobbyseats">${rows}</ul>
+    ${host&&!started?`<p class="setnote">${nHuman<2?'Waiting for at least one friend to join.':`${nHuman} people are in. ${4-nHuman?`${4-nHuman} bot${4-nHuman>1?'s':''} will fill the empty seat${4-nHuman>1?'s':''}.`:'The table is full.'}`} House rules, bot difficulty and speed come from your Settings.</p>`:''}
+    ${!host&&!started?`<p class="setnote"><span class="spin"></span> Waiting for ${esc((seats&&seats[0]&&seats[0].name)||'the host')} to start the game.</p>`:''}
+    ${started?'<p class="setnote">The game is on. Close this to get back to the table.</p>':''}
+    <div class="mrow">${host&&!started?`<button class="btn btn-gold" id="lbStart" ${nHuman<2?'disabled':''}>Start game</button>`:''}
+      ${started?'<button class="btn btn-gold" onclick="closeModal()">Back to the table</button>':''}
+      <button class="btn btn-ghost" id="lbLeave">${host?'Close room':'Leave room'}</button></div></div>`);
+  const st=$('#lbStart');if(st)st.onclick=startRoomGame;
+  $('#lbLeave').onclick=()=>askConfirm({title:host?'Close the room?':'Leave the room?',body:host?'Everyone in the room is sent back to their own solo game.':'You go back to your solo game. A bot plays your seat.',yes:host?'Close room':'Leave room',onYes:leaveRoom});
+  const cp=$('#lkCopy');if(cp)cp.onclick=()=>{const i=$('#lkInput');const done=()=>{cp.textContent='Copied'};
+    try{navigator.clipboard.writeText(i.value).then(done,()=>{i.select()})}catch(e){i.select()}};
+}
+
 // ================= Boot =================
 const ICON_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
 const ICON_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>';
 function renderSoundBtn(){const b=$('#btnSound');b.innerHTML=Sound.on?ICON_ON:ICON_OFF;const l=Sound.on?'Mute sound':'Turn sound on';b.title=l;b.setAttribute('aria-label',l)}
-function startFromSplash(){Sound.init();$('#splash').classList.add('hide');newGame()}
+function startFromSplash(){if(NET.mode==='client')return;if(NET.mode==='host'&&room&&!room.started){showLobby();return}Sound.init();$('#splash').classList.add('hide');newGame()}
 $('#btnSound').onclick=()=>{Sound.on=!Sound.on;try{localStorage.setItem('amj_sound',Sound.on?'on':'off')}catch(e){}renderSoundBtn();if(Sound.on){Sound.init();Sound.chime()}};
 $('#btnCard').onclick=()=>showCard('view');
 $('#btnHelp').onclick=showHelp;
 $('#btnNew').onclick=askNew;
 $('#btnStart').onclick=startFromSplash;
 $('#btnSettings').onclick=showSettings;
+$('#btnMP').onclick=openMultiplayer;
+$('#splashMPForm').innerHTML=mpFormHTML('sp');bindMpForm('sp');
+const pickTab=mp=>{$('#tabSolo').classList.toggle('on',!mp);$('#tabMP').classList.toggle('on',mp);$('#tabSolo').setAttribute('aria-selected',!mp);$('#tabMP').setAttribute('aria-selected',mp);$('#splashSolo').hidden=mp;$('#splashMP').hidden=!mp};
+$('#tabSolo').onclick=()=>pickTab(false);$('#tabMP').onclick=()=>pickTab(true);
+if(joinFromURL)pickTab(true);
+addEventListener('pagehide',()=>{if(NET.mode==='host')netBroadcast({t:'bye'});if(NET.mode==='client')netSend({t:'leave'})});
 const closeHands=()=>document.body.classList.remove('show-hands');
 $('#bHandsClose').onclick=closeHands;
 addEventListener('pointerdown',e=>{if(!document.body.classList.contains('show-hands'))return;const t=e.target;if(t.closest('.side')||t.closest('#btnHands')||t.closest('#bHands')||t.closest('#modal'))return;closeHands()},true);
