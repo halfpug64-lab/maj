@@ -2903,7 +2903,10 @@ function showRoomSettings(){
 }
 
 // ================= Modals =================
-function openModal(html){$('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"><div class="box">${html}</div></div>`}
+// If a window is already open (like switching Settings tabs), swap only what's inside it so it doesn't fade out and back in.
+function openModal(html){const box=$('#modal .modal>.box');
+  if(box){box.innerHTML=html;box.scrollTop=0;return}
+  $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true" onclick="if(event.target===this)closeModal()"><div class="box">${html}</div></div>`}
 function closeModal(){$('#modal').innerHTML='';unpauseGame()}
 function showResult(pi,cp,from,v,jl,pay,rule){
   const p=players[pi];
