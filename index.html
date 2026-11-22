@@ -1136,6 +1136,13 @@ body.table-view.theme-ocean .orack .exps{background:linear-gradient(180deg,#a892
 
 @media (max-width:900px){body .me-head .sortbtns .sl{display:none}body .me-head .sortbtns .btn{text-transform:capitalize}body.table-view .me-head .bubbles{min-width:0}}
 @media (max-width:900px){body.table-view .pool>.banner{max-width:none;align-self:stretch}}
+.settabs{margin:2px 0 10px}
+.rulelist{list-style:none;margin:10px 0 4px;padding:0;display:grid;gap:6px}
+.rulelist li{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.55);border:1px solid #e2d5b5;font-size:14px}
+.rulelist li span{color:var(--paper-muted);text-align:right}
+.rulechips{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px;padding:0}
+.rulechips li{font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.6);border:1px solid #d8c79c;color:#5a4a26}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -1684,14 +1691,14 @@ const bulletHTML=i=>{const b=(AV&&AV[i])||BULLET[i];return `<span class="bullet"
 const WORD={3:'Pung',4:'Kong',5:'Quint',6:'Sextet'};
 let SPEED=760;
 const SPEEDS={slow:1400,normal:760,fast:380,instant:110};
-const applySpeed=()=>{SPEED=SPEEDS[settings.botSpeed]||760};
+const applySpeed=()=>{SPEED=SPEEDS[NET.mode==='host'?settings.room.botSpeed:settings.botSpeed]||760};
 let wall=[],players=[0,1,2,3].map(()=>({hand:[],exp:[]})),discards=[],phase='idle',turn=0,step='discard',passIdx=0;
 // Multiplayer: NET.mode is 'solo', 'host' (this screen runs the game) or 'client' (this screen shows the host's game).
 let NET={mode:'solo',rules:null,waiting:[],tags:null,conns:{},seat:0};
 let HUMAN=[true,false,false,false];      // seats played by people; the rest are bots
 const MP=()=>NET.mode!=='solo';
 // Room rules set by the host: suggested hands for everyone, and whether every discard waits for everyone to tap Proceed.
-const roomRule=k=>NET.mode==='client'?!!(NET.rules&&NET.rules[k]):NET.mode==='host'?!!settings[k==='hints'?'mpHints':'mpProceed']:(k==='hints');
+const roomRule=k=>NET.mode==='client'?!!(NET.rules&&NET.rules[k]):NET.mode==='host'?!!RM()[k]:(k==='hints');
 const hintsAllowed=()=>NET.mode==='solo'||roomRule('hints');
 const useProceed=()=>MP()&&roomRule('proceed');
 let chSub={},chVotes={},chStop=-1,callTok=0;   // Charleston submissions and votes per seat; who stopped the second Charleston
@@ -1715,9 +1722,14 @@ function applyTheme(){
 }
 function applyLayout(){document.body.classList.toggle('scroll-layout',settings.layout==='scroll');document.body.classList.toggle('table-view',settings.layout==='table')}
 function saveSettings(){try{localStorage.setItem('amj_settings',JSON.stringify(settings))}catch(e){}}
-const houseOn=k=>{const r=NET.rules||settings;return !!(r.house&&r.hr&&r.hr[k])};
+// Rules for rooms you host are kept apart from your solo settings (Settings > Multiplayer tab).
+if(!settings.room||typeof settings.room!=='object')settings.room={hints:settings.mpHints!==false,proceed:!!settings.mpProceed,house:!!settings.house,hr:{...settings.hr},diff:settings.diff,botSpeed:settings.botSpeed};
+settings.room={hints:true,proceed:false,house:false,diff:1,botSpeed:'normal',...settings.room,hr:{...SET_DEFAULT.hr,...(settings.room.hr||{})}};
+const RM=()=>settings.room;
+const rulesNow=()=>NET.mode==='client'?(NET.rules||{}):NET.mode==='host'?RM():settings;
+const houseOn=k=>{const r=rulesNow();return !!(r.house&&r.hr&&r.hr[k])};
 const LEVELS=['Easy','Default','Hard'];
-const botLevel=i=>{const v=settings.botDiff&&settings.botDiff[i];return v===0||v===1||v===2?v:settings.diff};
+const botLevel=i=>{if(NET.mode==='host')return RM().diff;const v=settings.botDiff&&settings.botDiff[i];return v===0||v===1||v===2?v:settings.diff};
 const isBlind=st=>!!(st&&st.blind&&!houseOn('noBlind'));
 let scores=[0,0,0,0];
 let dealer=-1,pendingStart=true;
@@ -2552,20 +2564,16 @@ const HR=[
   ['noCourtesy','No courtesy pass','Play starts right after the Charleston.'],
   ['alwaysSecond','Always do the second Charleston','Nobody can stop after the first Charleston.']];
 function swRow(id,label,desc,on){return `<label class="setrow" for="${id}"><span class="st"><b>${label}</b><span class="d">${desc}</span></span><span class="switch"><input type="checkbox" id="${id}" ${on?'checked':''}><span class="track"><span class="knob"></span></span></span></label>`}
-function showSettings(){
+function showSettings(tab){
+  if(tab==='room'){showRoomSettings();return}
   pauseGame();
-  openModal(`<h2>Settings</h2><p class="setnote">Settings are saved on this device. ${NET.mode==='client'?'<b>You\'re in a friend\'s room:</b> house rules, bots and speed follow the host\'s settings. Your look, layout and sound settings still apply.':MP()?'<b>You\'re hosting:</b> your house rules, bots and speed apply to everyone in the room. The game keeps going while this is open.':'The game is paused while this is open.'}</p>
+  openModal(`<h2>Settings</h2>${setTabs('game')}<p class="setnote">Settings are saved on this device. ${NET.mode==='client'?'<b>You\'re in a friend\'s room:</b> house rules, bots and speed follow the host\'s room settings. Your look, layout and sound settings still apply.':MP()?'<b>You\'re hosting:</b> the room uses the rules in the Multiplayer tab. These are your own solo settings.':'The game is paused while this is open. Rules for rooms you host are in the Multiplayer tab.'}</p>
    <div class="set-sec">Style</div>
    <div class="setrow"><span class="st"><b>Background</b><span class="d">Default is a classic green card room. NYC is navy Art Deco with the skyline. Paris is navy velvet with gold and a balcony-railing rack. Ocean is a deep-sea table with a driftwood rack. Celestial is a starry night sky with a gold-trimmed rack.</span></span>
      <span class="seg" role="group" aria-label="Background">${[['default','Default'],['nyc','NYC'],['paris','Paris'],['ocean','Ocean'],['celestial','Celestial']].map(([v,l])=>`<button class="${settings.bg===v?'on':''}" data-bg="${v}" aria-pressed="${settings.bg===v}">${l}</button>`).join('')}</span></div>
    <div class="setrow col"><span class="st"><b>Tiles</b><span class="d">Regular is the traditional look. Paris uses macarons, asparagus and shopfronts. Ocean uses bubbles, kelp and waves. Celestial uses planets, shooting stars and orbits. NYC uses bagels, Big Apples and skyscrapers. Easy to read shows a big number or letter on every tile.</span></span>
      <span class="seg" role="group" aria-label="Tiles">${[['regular','Regular'],['paris','Paris'],['ocean','Ocean'],['celestial','Celestial'],['nyc','NYC'],['easy','Easy to read']].map(([v,l])=>`<button class="${settings.tiles===v?'on':''}" data-tiles="${v}" aria-pressed="${settings.tiles===v}">${l}</button>`).join('')}</span>
      <div class="tile-preview" id="tilePreview">${tilePreview()}</div></div>
-   <div class="set-sec">Multiplayer room</div>
-   <p class="setnote">These apply to everyone in a room you host.${NET.mode==='client'?' <b>You\'re in a friend\'s room, so their choices are used.</b>':''}</p>
-   ${swRow('s_mpHints','Suggested hands','Let everyone see Best hands and the Top suggestion bubble. Starred hands always work.',settings.mpHints!==false)}
-   <div class="setrow"><span class="st"><b>After each discard</b><span class="d">Move on automatically: the game keeps going unless someone can call (they get 12 seconds). Everyone taps Proceed: every other player calls or taps Proceed before the game moves on, with no timer.</span></span>
-     <span class="seg" role="group" aria-label="After each discard">${[[false,'Move on automatically'],[true,'Everyone taps Proceed']].map(([v,l])=>`<button class="${!!settings.mpProceed===v?'on':''}" data-proceed="${v}" aria-pressed="${!!settings.mpProceed===v}">${l}</button>`).join('')}</span></div>
    <div class="set-sec">Gameplay</div>
    <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Table view: just the game board with big tiles, and your hands open from the Hands button. Fit to screen: board plus the hands panels, no page scrolling. Scroll: everything at full size and you scroll the page.</span></span>
      <span class="seg" role="group" aria-label="Screen layout">${[['table','Table view'],['fit','Fit to screen'],['scroll','Scroll']].map(([v,l])=>`<button class="${settings.layout===v?'on':''}" data-layout="${v}" aria-pressed="${settings.layout===v}">${l}</button>`).join('')}</span></div>
@@ -2594,13 +2602,10 @@ function showSettings(){
      <p class="setnote">${settings.house?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'}</p>
      ${HR.map(([k,l,d])=>swRow('hr_'+k,l,d,settings.hr[k])).join('')}</div>
    <div class="danger-zone"><div><b>Reset progress</b><span class="d">Clears scores, the East rotation and any saved game.</span></div><button class="btn btn-danger" id="s_reset">Reset progress</button></div>
-   <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Done</button></div>`);
+   <div class="mrow"><button class="btn btn-gold" onclick="settingsDone()">Done</button></div>`);
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{fn(e.checked);saveSettings();render()}};
   on('s_dbl',v=>settings.dblDiscard=v);
   on('s_topbub',v=>settings.topBubble=v);
-  on('s_mpHints',v=>settings.mpHints=v);
-  document.querySelectorAll('[data-proceed]').forEach(b=>b.onclick=()=>{settings.mpProceed=b.dataset.proceed==='true';saveSettings();
-    document.querySelectorAll('[data-proceed]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)});render()});
   on('s_sound',v=>{Sound.on=v;try{localStorage.setItem('amj_sound',v?'on':'off')}catch(e){}renderSoundBtn();if(v){Sound.init();Sound.chime()}});
   on('s_hints',v=>setHints(v));
   $('#s_save').onchange=e=>{
@@ -2631,6 +2636,52 @@ function showSettings(){
   [1,2,3].forEach(i=>{$('#s_bot'+i).oninput=e=>{settings.botDiff={...settings.botDiff,[i]:+e.target.value};paintSlider(e.target);diffNote();saveSettings();render()}});
   $('#s_botmore').onclick=()=>{const l=$('#botList'),b=$('#s_botmore');l.hidden=!l.hidden;b.setAttribute('aria-expanded',!l.hidden);b.classList.toggle('open',!l.hidden);b.firstChild.textContent=l.hidden?'More ':'Less '};
   $('#s_more').onclick=()=>{const l=$('#hrList'),b=$('#s_more');l.hidden=!l.hidden;b.setAttribute('aria-expanded',!l.hidden);b.classList.toggle('open',!l.hidden);b.firstChild.textContent=l.hidden?'More ':'Less '};
+}
+
+let settingsFromLobby=false;
+function settingsDone(){if(settingsFromLobby&&room){settingsFromLobby=false;showLobby()}else{settingsFromLobby=false;closeModal()}}
+function setTabs(cur){return `<div class="tabs settabs" role="tablist" aria-label="Settings sections"><button role="tab" aria-selected="${cur==='game'}" class="${cur==='game'?'on':''}" onclick="showSettings('game')">Game</button><button role="tab" aria-selected="${cur==='room'}" class="${cur==='room'?'on':''}" onclick="showSettings('room')">Multiplayer</button></div>`}
+const SPEED_NAMES={slow:'Slow',normal:'Normal',fast:'Fast',instant:'Instant'};
+function showRoomSettings(){
+  pauseGame();
+  const guest=NET.mode==='client',r=guest?(NET.rules||{}):RM(),hosting=NET.mode==='host';
+  const note=guest?`<b>${esc(NAMES[NET.hostView]||'The host')} sets these for the room.</b> You can see them here but only the host can change them.`
+    :hosting?'<b>These apply to everyone in your room right now.</b> Changes take effect right away.'
+    :'These apply to everyone in a room you host. They\'re saved here for the next room you make, and your solo game isn\'t affected.';
+  if(guest){
+    const on=r.house?HR.filter(([k])=>r.hr&&r.hr[k]).map(([,l])=>l):[];
+    openModal(`<h2>Settings</h2>${setTabs('room')}<p class="setnote">${note}</p>
+      <ul class="rulelist">
+        <li><b>Suggested hands</b><span>${r.hints?'On':'Off'}</span></li>
+        <li><b>After each discard</b><span>${r.proceed?'Everyone taps Proceed':'Move on automatically'}</span></li>
+        <li><b>Bot difficulty</b><span>${LEVELS[r.diff??1]}</span></li>
+        <li><b>Bot speed</b><span>${SPEED_NAMES[r.botSpeed]||'Normal'}</span></li>
+        <li><b>House rules</b><span>${on.length?on.map(esc).join(', '):'None, standard rules only'}</span></li></ul>
+      <div class="mrow"><button class="btn btn-gold" onclick="settingsDone()">Done</button></div>`);
+    return;
+  }
+  openModal(`<h2>Settings</h2>${setTabs('room')}<p class="setnote">${note}</p>
+   <div class="set-sec">Table</div>
+   ${swRow('r_hints','Suggested hands','Let everyone see Best hands and the Top suggestion bubble. Starred hands always work.',r.hints)}
+   <div class="setrow"><span class="st"><b>After each discard</b><span class="d">Move on automatically: the game keeps going unless someone can call (they get 12 seconds). Everyone taps Proceed: every other player calls or taps Proceed before the game moves on, with no timer.</span></span>
+     <span class="seg" role="group" aria-label="After each discard">${[[false,'Move on automatically'],[true,'Everyone taps Proceed']].map(([v,l])=>`<button class="${!!r.proceed===v?'on':''}" data-rproceed="${v}" aria-pressed="${!!r.proceed===v}">${l}</button>`).join('')}</span></div>
+   <div class="set-sec">Bots for empty seats</div>
+   <div class="setrow col"><span class="st"><b>Bot difficulty</b><span class="d">Applies to every bot in the room.</span></span>${diffSlider('r_diff',r.diff)}</div>
+   <div class="setrow"><span class="st"><b>Bot speed</b><span class="d">How quickly bots take their turns.</span></span>
+     <span class="seg" role="group" aria-label="Bot speed">${['slow','normal','fast','instant'].map(v=>`<button class="${r.botSpeed===v?'on':''}" data-rspeed="${v}" aria-pressed="${r.botSpeed===v}">${SPEED_NAMES[v]}</button>`).join('')}</span></div>
+   <div class="set-sec">House rules</div>
+   ${swRow('r_house','Use house rules','When off, the room plays standard rules only.',r.house)}
+   <div id="rhList" class="hrlist${r.house?'':' off'}">${HR.map(([k,l,d])=>swRow('rh_'+k,l,d,r.hr[k])).join('')}</div>
+   <div class="mrow"><button class="btn btn-gold" onclick="settingsDone()">Done</button></div>`);
+  const changed=()=>{saveSettings();applySpeed();render();if(hosting)lobbyChanged()};
+  const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{fn(e.checked);changed()}};
+  on('r_hints',v=>r.hints=v);
+  on('r_house',v=>{r.house=v;$('#rhList').classList.toggle('off',!v)});
+  HR.forEach(([k])=>on('rh_'+k,v=>r.hr[k]=v));
+  const pick=(attr,fn)=>document.querySelectorAll(`[data-${attr}]`).forEach(b=>b.onclick=()=>{fn(b.dataset[attr]);
+    document.querySelectorAll(`[data-${attr}]`).forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)});changed()});
+  pick('rproceed',v=>r.proceed=v==='true');pick('rspeed',v=>r.botSpeed=v);
+  const sl=$('#r_diff');paintSlider(sl);sl.oninput=e=>{r.diff=+e.target.value;paintSlider(e.target);changed()};
 }
 
 // ================= Modals =================
@@ -2800,7 +2851,7 @@ function viewFor(s){
       waiting:Object.keys(cs.offers).map(Number).filter(x=>!(x in cs.choices)).map(R)}:null,
     chStop:chStop<0?-1:R(chStop),waiting:chWaiting().map(R),host:R(0),
     seats:[0,1,2,3].map(v=>{const a=A(v);return{name:SEATNAME[a],abs:a,human:HUMAN[a],tag:seatTag(a)}}),
-    rules:{house:settings.house,hr:settings.hr,hints:settings.mpHints!==false,proceed:!!settings.mpProceed}};
+    rules:{house:RM().house,hr:RM().hr,hints:RM().hints,proceed:RM().proceed,diff:RM().diff,botSpeed:RM().botSpeed}};
 }
 function netResult(pi,cp,from,v,jl,pay,rule){
   if(NET.mode!=='host')return;
@@ -2820,7 +2871,7 @@ async function createRoom(px){
   NET.peer=peer;
   const slow=setTimeout(()=>{if(!room)mpMsg(px,"The multiplayer service didn't answer (step 1 of 2: reaching the server). Check your internet, then try again in a minute.",true)},15000);
   peer.on('open',()=>{clearTimeout(slow);NET.mode='host';NET.conns={};room={code,started:false,seats:[{name:myName,cid:myCid},null,null,null]};
-    SEATNAME=[myName,'Queens','Bronx','Brooklyn'];document.body.classList.add('in-room');startHeartbeat();$('#splash').classList.add('hide');showLobby()});
+    SEATNAME=[myName,'Queens','Bronx','Brooklyn'];applySpeed();document.body.classList.add('in-room');startHeartbeat();$('#splash').classList.add('hide');showLobby()});
   peer.on('connection',hostOnConn);
   peer.on('error',e=>{if(e&&e.type==='unavailable-id'){try{peer.destroy()}catch(_){}createRoom(px);return}
     if(!room)mpMsg(px,`Couldn't reach the multiplayer service (${esc(e&&e.type||'unknown error')}). Check your connection and try again.`,true)});
@@ -2863,7 +2914,7 @@ function hostDrop(c){
 function lobbyChanged(){
   if(NET.mode!=='host'||!room)return;
   const seats=room.seats.map(x=>x?{name:x.name}:null);
-  netBroadcast({t:'lobby',seats,started:room.started});
+  const rr=RM();netBroadcast({t:'lobby',seats,started:room.started,rules:{house:rr.house,hr:rr.hr,hints:rr.hints,proceed:rr.proceed,diff:rr.diff,botSpeed:rr.botSpeed}});
   if($('#lobby'))showLobby();
 }
 function startRoomGame(){
@@ -2907,7 +2958,7 @@ function clientRecv(px,m){
       useCardText(m.card);document.body.classList.add('in-room','mp-client');startHeartbeat();$('#splash').classList.add('hide');
       if(phase==='idle')showLobby();else{closeModal();toast('Reconnected')}break;
     case 'full':mpMsg(px,m.why==='started'?'That game has already started.':'That room is full.',true);try{NET.peer.destroy()}catch(e){}break;
-    case 'lobby':if(room){room.seats=m.seats;room.started=m.started;if($('#lobby'))showLobby()}break;
+    case 'lobby':if(room){room.seats=m.seats;room.started=m.started;if(m.rules)NET.rules=m.rules;if($('#lobby'))showLobby()}break;
     case 'state':applyState(m);break;
     case 'toast':toast(esc(m.m),m.kind||'');break;
     case 'result':clientResult(m);break;
@@ -2994,6 +3045,12 @@ function openMultiplayer(){
     <div class="mrow"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button></div>`);
   bindMpForm('mm');
 }
+function roomSummaryHTML(r){
+  if(!r)return '';
+  const hr=r.house?HR.filter(([k])=>r.hr&&r.hr[k]).map(([,l])=>l):[];
+  return `<ul class="rulechips" aria-label="Room rules"><li>Suggested hands ${r.hints?'on':'off'}</li><li>${r.proceed?'Everyone taps Proceed':'Moves on automatically'}</li>
+    <li>${LEVELS[r.diff??1]} bots · ${(SPEED_NAMES[r.botSpeed]||'Normal').toLowerCase()} speed</li><li>${hr.length?`House rules: ${hr.length}`:'Standard rules'}</li></ul>`;
+}
 function showLobby(){
   if(!room)return;
   const host=NET.mode==='host';
@@ -3010,13 +3067,16 @@ function showLobby(){
     ${host?`<p class="setnote">Friends open the game and tap <b>Multiplayer</b>, then type this code. Or send them the link.</p>
       <div class="mpjoin"><input id="lkInput" readonly value="${esc(inviteLink(room.code))}" aria-label="Invite link"><button class="btn btn-ghost" id="lkCopy">Copy link</button></div>`:''}
     <ul class="lobbyseats">${rows}</ul>
-    ${host&&!started?`<p class="setnote">${nHuman<2?'Waiting for at least one friend to join.':`${nHuman} people are in. ${4-nHuman?`${4-nHuman} bot${4-nHuman>1?'s':''} will fill the empty seat${4-nHuman>1?'s':''}.`:'The table is full.'}`} House rules, bot difficulty and speed come from your Settings. Suggested hands are ${settings.mpHints!==false?'on':'off'}, and after each discard ${settings.mpProceed?'everyone taps Proceed':'the game moves on automatically'}.</p>`:''}
+    ${host&&!started?`<p class="setnote">${nHuman<2?'Waiting for at least one friend to join.':`${nHuman} people are in. ${4-nHuman?`${4-nHuman} bot${4-nHuman>1?'s':''} will fill the empty seat${4-nHuman>1?'s':''}.`:'The table is full.'}`}</p>`:''}
+    ${roomSummaryHTML(host?RM():(NET.rules||null))}
     ${!host&&!started?`<p class="setnote"><span class="spin"></span> Waiting for ${esc((seats&&seats[0]&&seats[0].name)||'the host')} to start the game.</p>`:''}
     ${started?'<p class="setnote">The game is on. Close this to get back to the table.</p>':''}
     <div class="mrow">${host&&!started?`<button class="btn btn-gold" id="lbStart" ${nHuman<2?'disabled':''}>Start game</button>`:''}
+      <button class="btn btn-ghost" id="lbRules">${host?'Room settings':'Room rules'}</button>
       ${started?'<button class="btn btn-gold" onclick="closeModal()">Back to the table</button>':''}
       <button class="btn btn-ghost" id="lbLeave">${host?'Close room':'Leave room'}</button></div></div>`);
   const st=$('#lbStart');if(st)st.onclick=startRoomGame;
+  $('#lbRules').onclick=()=>{settingsFromLobby=true;showRoomSettings()};
   $('#lbLeave').onclick=()=>askConfirm({title:host?'Close the room?':'Leave the room?',body:host?'Everyone in the room is sent back to their own solo game.':'You go back to your solo game. A bot plays your seat.',yes:host?'Close room':'Leave room',onYes:leaveRoom});
   const cp=$('#lkCopy');if(cp)cp.onclick=()=>{const i=$('#lkInput');const done=()=>{cp.textContent='Copied'};
     try{navigator.clipboard.writeText(i.value).then(done,()=>{i.select()})}catch(e){i.select()}};
