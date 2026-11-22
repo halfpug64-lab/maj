@@ -455,6 +455,8 @@ body.tiles-easy .tile{background:linear-gradient(160deg,#ffffff,#f4efe2)}
 
 /* ================= Paris (tiles and background) ================= */
 .pface{position:absolute;inset:0;border-radius:inherit;background-size:cover;background-position:center;background-repeat:no-repeat}
+/* Regular and NYC art shrinks toward the bottom-right so the corner badge never covers it */
+.tile svg.bsvg{transform:scale(.84);transform-origin:62% 92%}
 .pbadge{position:absolute;z-index:2;left:calc(var(--w) * .05);top:calc(var(--w) * .05);min-width:calc(var(--w) * .36);height:calc(var(--w) * .36);padding:0 calc(var(--w) * .04);
   border-radius:calc(var(--w) * .1);background:var(--c);color:#fff;font:900 calc(var(--w) * .27)/calc(var(--w) * .36) Inter,Arial,sans-serif;text-align:center;
   box-shadow:0 0 0 calc(var(--w) * .02) rgba(255,255,255,.9),0 1px 2px rgba(0,0,0,.3);pointer-events:none}
@@ -1439,7 +1441,7 @@ function faceNYC(k,v=0){
   else if(k==='0'){s=soap;idx='0';ic='#1f5fbf'}
   else if(k==='F'){s=FLOWERS[v%8];idx='F';ic='#c2185b'}
   else s=joker;
-  const out=`<svg viewBox="0 0 40 56">${s}${idx!==''?`<text x="4.2" y="10.4" font-family="Inter,Arial" font-weight="800" font-size="7.6" fill="${ic}">${idx}</text>`:''}</svg>`;
+  const out=`<svg viewBox="0 0 40 56">${s}</svg>`;
   return FACE_CACHE[key]=out;
 }
 // ================= Tile themes: Regular (traditional), NYC, Easy to read =================
@@ -1447,7 +1449,7 @@ const FACE2={};
 function faceSVG(k,v=0){
   const th=(typeof settings!=='undefined'&&settings.tiles)||'regular';const key=th+'|'+(badgesOn()?1:0)+'|'+k+'|'+v;
   if(FACE2[key])return FACE2[key];
-  return FACE2[key]=['ocean','celestial','forest','desert','arctic','garden','volcano','candy'].includes(th)?faceArt(th,k,v):th==='paris'?faceParis(k,v):th==='nyc'?faceNYC(k,v):th==='easy'?faceEasy(k,v):faceRegular(k,v);
+  return FACE2[key]=['ocean','celestial','forest','desert','arctic','garden','volcano','candy'].includes(th)?faceArt(th,k,v):th==='paris'?faceParis(k,v):th==='easy'?faceEasy(k,v):badgesOn()?(th==='nyc'?faceNYC(k,v):faceRegular(k,v)).replace('<svg ','<svg class="bsvg" ')+tileBadge(k):th==='nyc'?faceNYC(k,v):faceRegular(k,v);
 }
 // Paris tiles: Dylan's artwork plus a bold corner badge so tiles read at a glance (number + suit color).
 const PBADGE={B:'#2e7d4f',C:'#c0392b',D:'#2557b8'};
@@ -1488,7 +1490,6 @@ const rsoap=`<rect x="8" y="12" width="24" height="38" rx="2" fill="none" stroke
 const rjoker=`<path d="M9 22 L13 13 L17 19 L20 10 L23 19 L27 13 L31 22Z" fill="#f2b705" stroke="#8a5a00" stroke-width=".8"/><circle cx="13" cy="12.5" r="1.4" fill="${RR}"/><circle cx="20" cy="9.5" r="1.4" fill="${RB}"/><circle cx="27" cy="12.5" r="1.4" fill="${RG}"/>
  <text x="20" y="34" text-anchor="middle" font-family="Playfair Display,Georgia,serif" font-weight="700" font-size="9" fill="${RK}">JOKER</text>
  <path d="M8 40 h24" stroke="#c99a3b" stroke-width="1"/><text x="20" y="49" text-anchor="middle" font-family="Inter,Arial" font-weight="800" font-size="4.6" fill="#8a5a00" letter-spacing="1">★ WILD ★</text>`;
-function idxTxt(t,c){return `<text x="4.2" y="10.4" font-family="Inter,Arial" font-weight="800" font-size="7.6" fill="${c}">${t}</text>`}
 function faceRegular(k,v=0){
   let s='',idx='',ic=RK;
   if(SUITS.includes(k[0])&&k.length===2){const su=k[0],n=+k[1];idx=n;ic=SUITCOL[su];
@@ -1501,7 +1502,7 @@ function faceRegular(k,v=0){
   else if(k==='0'){s=rsoap;idx='0';ic=RB}
   else if(k==='F'){s=rflower(v);idx='F';ic='#c2185b'}
   else s=rjoker;
-  return `<svg viewBox="0 0 40 56">${s}${idx!==''?idxTxt(idx,ic):''}</svg>`;
+  return `<svg viewBox="0 0 40 56">${s}</svg>`;
 }
 const EASY={B:['BAM','#137a3c'],C:['CRAK','#c8102e'],D:['DOT','#1756c4']};
 function faceEasy(k,v=0){
@@ -2725,7 +2726,7 @@ function showSettings(tab){
    <div id="thList" class="hrlist" hidden>
      <div class="setrow col"><span class="st"><b>Tiles</b><span class="d">The tile faces and backs. Easy to read shows a big number or letter on every tile.</span></span>
        ${themeCards('tiles',TILESETS,settings.tiles)}</div>
-     ${swRow('s_badges','Easier to read','Adds a bold number or letter in the top corner of picture tiles (Paris, Ocean, Celestial, Forest, Desert Night, Arctic, Garden, Volcano, Candy Land), colored by suit. Turn off for the plain artwork.',settings.badges!==false)}
+     ${swRow('s_badges','Easier to read','Adds a bold number or letter in the top corner of every tile set except Easy to read (which already shows a big one), colored by suit. Turn off for the plain artwork.',settings.badges!==false)}
      <div class="setrow col"><span class="st"><b>Racks</b><span class="d">Your rack and the other players' racks.</span></span>
        ${themeCards('rack',THEMES,settings.rack)}</div>
      <div class="setrow col"><span class="st"><b>Background</b><span class="d">The table, colors and scenery.</span></span>
