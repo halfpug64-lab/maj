@@ -1252,6 +1252,18 @@ body.theme-candy .splash-sub,body.theme-candy .splash-tag{color:#7a3556}
 .seg.wrap{flex-wrap:wrap;border-radius:12px}
 .seg.wrap button{flex:0 0 auto}
 #thList .setrow.col .seg{align-self:flex-start}
+.tcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;width:100%;margin-top:4px}
+.modal .tcard{display:flex;align-items:center;gap:9px;padding:7px 10px 7px 7px;border-radius:12px;border:1.5px solid #e0d2ae;background:rgba(255,255,255,.6);
+  color:#3b2f17;font:600 13px var(--body);cursor:pointer;text-align:left;transition:border-color .15s,background .15s,box-shadow .15s}
+.modal .tcard:hover{border-color:#c9a957;background:#fff}
+.modal .tcard.on{border-color:#a87b22;background:#fff;box-shadow:0 0 0 2px rgba(201,154,59,.35);color:#1d1a14}
+.modal .tcard.on .tl::after{content:" ✓";color:#a87b22;font-weight:800}
+.tcard .tl{line-height:1.2;min-width:0}
+.tsw{flex:none;width:28px;height:28px;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);position:relative;overflow:hidden}
+.tsw i{position:absolute;left:5px;right:5px;bottom:5px;height:3px;border-radius:2px}
+.tsw-img{width:22px;height:30px;border-radius:5px;background:#fff center/cover no-repeat;margin:0 3px}
+.tsw-txt{width:22px;height:30px;margin:0 3px;border-radius:5px;background:#fffbf2;display:flex;align-items:center;justify-content:center;font:800 13px var(--body);color:#c8102e}
+.tsw-txt.easy{color:#1756c4;font-size:16px}.tsw-txt.nyc{color:#1f8a4c;font-size:10px}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -2655,6 +2667,24 @@ function resumeGame(){
 // ================= Settings =================
 const THEMES=[['default','Default'],['nyc','NYC'],['paris','Paris'],['ocean','Ocean'],['celestial','Celestial'],['forest','Forest'],['desert','Desert Night'],['arctic','Arctic'],['garden','Garden'],['volcano','Volcano'],['candy','Candy Land']];
 // the theme whose tiles, racks and background are all in use, or '' when they're mixed
+const TILESETS=[['regular','Regular'],['paris','Paris'],['ocean','Ocean'],['celestial','Celestial'],['forest','Forest'],['desert','Desert Night'],['arctic','Arctic'],['garden','Garden'],['volcano','Volcano'],['candy','Candy Land'],['nyc','NYC'],['easy','Easy to read']];
+// colors for each theme's swatch: background, accent, rack
+const SWATCH={default:['#15211d','#ecc66d','#6f4724'],nyc:['#16304a','#ecc66d','#6f4724'],paris:['#24305a','#e2b04a','#27355f'],ocean:['#135a6b','#f2b48a','#8f7a63'],
+  celestial:['#212061','#e7c25a','#2c2a6e'],forest:['#1f4f2c','#d9c27a','#5a3d22'],desert:['#40285a','#f0b46a','#d39a5e'],arctic:['#336f95','#ecf9ff','#bfe0ef'],
+  garden:['#5c9a4e','#f3b63f','#fbf7ec'],volcano:['#34140e','#ff8a3a','#2b211f'],candy:['#ffadd0','#ef3f6e','#ffffff']};
+const PIC_TILES=new Set(['paris','ocean','celestial','forest','desert','arctic','garden','volcano','candy']);
+function swatchHTML(kind,v){
+  if(kind==='tiles'){
+    if(PIC_TILES.has(v))return `<span class="tsw tsw-img" style="background-image:url(tiles/${v}/D5.webp)"></span>`;
+    return `<span class="tsw tsw-txt ${v}">${v==='easy'?'5':v==='nyc'?'NY':'中'}</span>`}
+  const [bg,ac,rk]=SWATCH[v]||SWATCH.default;
+  if(kind==='rack')return `<span class="tsw" style="background:linear-gradient(180deg,${bg} 0 45%,${rk} 45% 100%)"><i style="background:${ac}"></i></span>`;
+  return `<span class="tsw" style="background:radial-gradient(circle at 70% 30%,${ac} 0 14%,transparent 15%),linear-gradient(160deg,${bg},${rk})"></span>`;
+}
+function themeCards(kind,list,cur){
+  return `<div class="tcards" role="group" aria-label="${{theme:'Theme',rack:'Racks',bg:'Background',tiles:'Tiles'}[kind]}">${list.map(([v,l])=>
+    `<button class="tcard${cur===v?' on':''}" data-${kind}="${v}" aria-pressed="${cur===v}">${swatchHTML(kind,v)}<span class="tl">${l}</span></button>`).join('')}</div>`;
+}
 function themeNow(){const t=settings.bg;return settings.rack===t&&settings.tiles===(t==='default'?'regular':t)?t:''}
 function tilePreview(){return ['D5','B1','B5','C5','E','R','G','0'].map(k=>tileHTML(k,'md')).join('')+tileHTML({k:'F',v:1},'md')+tileHTML({k:'J',v:0},'md')+tileHTML({k:'J',v:1},'md')}
 function askConfirm({title,body,yes,onYes}){
@@ -2688,18 +2718,18 @@ function showSettings(tab){
   openModal(`<h2>Settings</h2>${setTabs('game')}<p class="setnote">Settings are saved on this device. ${NET.mode==='client'?'<b>You\'re in a friend\'s room:</b> house rules, bots and speed follow the host\'s room settings. Your look, layout and sound settings still apply.':MP()?'<b>You\'re hosting:</b> the room uses the rules in the Multiplayer tab. These are your own solo settings.':'The game is paused while this is open. Rules for rooms you host are in the Multiplayer tab.'}</p>
    <div class="set-sec">Style</div>
    <div class="setrow col"><span class="st"><b>Theme</b><span class="d">Sets the tiles, racks and background together. Use More to mix and match.</span></span>
-     <span class="seg wrap" role="group" aria-label="Theme">${THEMES.map(([v,l])=>`<button class="${themeNow()===v?'on':''}" data-theme="${v}" aria-pressed="${themeNow()===v}">${l}</button>`).join('')}</span>
+     ${themeCards('theme',THEMES,themeNow())}
      <div class="tile-preview" id="tilePreview">${tilePreview()}</div>
      <p class="setnote" id="mixNote">${themeNow()?'':'Mixed: your tiles, racks and background come from different themes.'}</p></div>
    <button class="morebtn" id="s_thmore" aria-expanded="false" aria-controls="thList">More <span class="chev">▾</span></button>
    <div id="thList" class="hrlist" hidden>
      <div class="setrow col"><span class="st"><b>Tiles</b><span class="d">The tile faces and backs. Easy to read shows a big number or letter on every tile.</span></span>
-       <span class="seg" role="group" aria-label="Tiles">${[['regular','Regular'],['paris','Paris'],['ocean','Ocean'],['celestial','Celestial'],['forest','Forest'],['desert','Desert Night'],['arctic','Arctic'],['garden','Garden'],['volcano','Volcano'],['candy','Candy Land'],['nyc','NYC'],['easy','Easy to read']].map(([v,l])=>`<button class="${settings.tiles===v?'on':''}" data-tiles="${v}" aria-pressed="${settings.tiles===v}">${l}</button>`).join('')}</span></div>
+       ${themeCards('tiles',TILESETS,settings.tiles)}</div>
      ${swRow('s_badges','Easier to read','Adds a bold number or letter in the top corner of picture tiles (Paris, Ocean, Celestial, Forest, Desert Night, Arctic, Garden, Volcano, Candy Land), colored by suit. Turn off for the plain artwork.',settings.badges!==false)}
      <div class="setrow col"><span class="st"><b>Racks</b><span class="d">Your rack and the other players' racks.</span></span>
-       <span class="seg wrap" role="group" aria-label="Racks">${THEMES.map(([v,l])=>`<button class="${settings.rack===v?'on':''}" data-rack="${v}" aria-pressed="${settings.rack===v}">${l}</button>`).join('')}</span></div>
+       ${themeCards('rack',THEMES,settings.rack)}</div>
      <div class="setrow col"><span class="st"><b>Background</b><span class="d">The table, colors and scenery.</span></span>
-       <span class="seg" role="group" aria-label="Background">${[['default','Default'],['nyc','NYC'],['paris','Paris'],['ocean','Ocean'],['celestial','Celestial'],['forest','Forest'],['desert','Desert Night'],['arctic','Arctic'],['garden','Garden'],['volcano','Volcano'],['candy','Candy Land']].map(([v,l])=>`<button class="${settings.bg===v?'on':''}" data-bg="${v}" aria-pressed="${settings.bg===v}">${l}</button>`).join('')}</span></div>
+       ${themeCards('bg',THEMES,settings.bg)}</div>
    </div>
    <div class="set-sec">Gameplay</div>
    <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Table view: just the game board with big tiles, and your hands open from the Hands button. Fit to screen: board plus the hands panels, no page scrolling. Scroll: everything at full size and you scroll the page.</span></span>
