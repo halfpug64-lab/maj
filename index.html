@@ -1314,6 +1314,11 @@ body.mp-client #btnGod{display:none}
 #god .gdraw{margin-left:auto;padding:4px 10px;font-size:12px}#god .gdraw.on{border-color:#a87b22;box-shadow:0 0 0 2px #a87b22 inset}
 #god .gx{all:unset;cursor:pointer;margin-left:4px;font-weight:800;padding:0 3px}
 #god .gnum{white-space:nowrap}
+.namein{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%}
+.namein label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--paper-muted)}
+.namein input{width:100%;box-sizing:border-box;padding:9px 11px;border-radius:10px;border:1px solid #cdbb8c;background:#fffdf6;color:var(--paper-ink);font:600 15px Inter,Arial,sans-serif}
+.namein input::placeholder{color:#a8977a}
+@media(max-width:560px){.namein{grid-template-columns:1fr}}
 @media(max-width:560px){#god .gk .tile.sm{--w:24px}#god .gpick .grow{gap:4px}}
 
 @media(prefers-reduced-motion:reduce){
@@ -1866,7 +1871,22 @@ let AV=null;                                      // avatars per seat on this sc
 const WIND=['East','South','West','North'];
 const SEATPOS={1:'right',2:'top',3:'left'};
 const BULLET=[{c:'#ecc66d',t:'★',fg:'#2a1d00'},{c:'#9b3fb5',t:'7'},{c:'#00933c',t:'4'},{c:'#0039a6',t:'A'}];
-const bulletHTML=i=>{const b=(AV&&AV[i])||BULLET[i];return `<span class="bullet" style="background:${b.c};color:${b.fg||'#fff'}">${b.t}</span>`};
+// Computer players' names: each theme has its own, and you can type your own (seat 1 sits on your right, 2 across, 3 on your left).
+const THEME_NAMES={default:['Queens','Bronx','Brooklyn'],nyc:['Harlem','SoHo','Chelsea'],paris:['Amélie','Colette','Juliette'],ocean:['Coral','Marina','Pearl'],
+  celestial:['Luna','Nova','Stella'],forest:['Willow','Fern','Hazel'],desert:['Sahara','Mirage','Dune'],arctic:['Aurora','Flurry','Glacier'],
+  garden:['Daisy','Violet','Ivy'],volcano:['Ember','Blaze','Cinder'],candy:['Gumdrop','Taffy','Sprinkles'],easy:['Anna','Ben','Cara']};
+const themeBotNames=()=>settings.themeNames!==false?(THEME_NAMES[settings.bg]||THEME_NAMES.default):THEME_NAMES.default;
+const tidyName=n=>String(n||'').replace(/[<>&"'`]/g,'').replace(/\s+/g,' ').trim().slice(0,14);
+function botNames(){const base=themeBotNames(),c=Array.isArray(settings.botNames)?settings.botNames:[];return [0,1,2].map(i=>tidyName(c[i])||base[i])}
+// the borough bullets (7, 4, A) go with the borough names; any other name gets its first letter
+const botBullet=(abs,name)=>name&&name!==THEME_NAMES.default[abs-1]?{...BULLET[abs],t:esc(name.charAt(0).toUpperCase())}:BULLET[abs];
+function applyNames(){
+  if(NET.mode==='client')return;const b=botNames();
+  if(NET.mode==='solo'){SEATNAME=['You',...b];NAMES=['You',...b]}
+  else{SEATNAME=SEATNAME.map((n,i)=>i&&!HUMAN[i]?b[i-1]:n);refreshNames()}
+  document.querySelectorAll('[data-bname]').forEach(e=>e.placeholder=themeBotNames()[+e.dataset.bname]);
+}
+const bulletHTML=i=>{const b=(AV&&AV[i])||(i?botBullet(i,NAMES[i]):BULLET[i]);return `<span class="bullet" style="background:${b.c};color:${b.fg||'#fff'}">${b.t}</span>`};
 const WORD={3:'Pung',4:'Kong',5:'Quint',6:'Sextet'};
 let SPEED=760;
 const SPEEDS={slow:1400,normal:760,fast:380,instant:110};
@@ -1884,12 +1904,13 @@ let chSub={},chVotes={},chStop=-1,callTok=0;   // Charleston submissions and vot
 const CALL_MS=12000;                            // multiplayer: time each player gets to call a discard
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
 // Settings are always saved on this device. Progress (scores, East rotation, an unfinished game) only when "Save progress" is on.
-const SET_DEFAULT={v:2,undo:false,rack:'',badges:true,mpHints:true,mpProceed:false,botSpeed:'normal',walls:true,bg:'default',tiles:'regular',layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
+const SET_DEFAULT={v:2,themeNames:true,botNames:['','',''],undo:false,rack:'',badges:true,mpHints:true,mpProceed:false,botSpeed:'normal',walls:true,bg:'default',tiles:'regular',layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
   hr:{threeExp:true,wallPoints:false,deadNoPay:false,noBlind:false,noCourtesy:false,alwaysSecond:false}};
 let settings=JSON.parse(JSON.stringify(SET_DEFAULT));
 try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={...settings,...sv,hr:{...SET_DEFAULT.hr,...(sv.hr||{})}};
   if('tableView' in sv){if(sv.layout!=='scroll')settings.layout=sv.tableView===false?'fit':'table';delete settings.tableView}   // Table view is now one of the Screen layout choices
   if(sv.v!==2){settings.v=2;settings.save=true}}}catch(e){}   // save progress became on by default in v2
+delete settings.god;   // party mode (and every power in it) switches off on each page load
 function applyTheme(){
   const b=document.body;[...b.classList].filter(c=>/^(theme|tiles)-/.test(c)).forEach(c=>b.classList.remove(c));
   if(!settings.rack)settings.rack=settings.bg;
@@ -1899,6 +1920,7 @@ function applyTheme(){
   document.querySelectorAll('.brand small,.splash-tag').forEach(e=>e.textContent=ed);
   document.title={nyc:'American Mah Jongg · NYC',paris:'American Mah Jongg · Paris',ocean:'American Mah Jongg · Ocean',celestial:'American Mah Jongg · Celestial',forest:'American Mah Jongg · Forest',desert:'American Mah Jongg · Desert Night',arctic:'American Mah Jongg · Arctic',garden:'American Mah Jongg · Garden',volcano:'American Mah Jongg · Volcano',easy:'American Mah Jongg · Easy to read',candy:'American Mah Jongg · Candy Land'}[settings.bg]||'American Mah Jongg';
   const em=document.getElementById('emblem');if(em)em.innerHTML=tileHTML({k:'F',v:3})+tileHTML('J');
+  applyNames();
   const fan=document.getElementById('fan');if(fan)fan.innerHTML=[{k:'F',v:3},'R','J','G',{k:'F',v:0}].map((t,x)=>`<div class="fan-slot" style="--r:${(x-2)*13}deg;--d:${x*90}ms">${tileHTML(t)}</div>`).join('');
 }
 function applyLayout(){document.body.classList.toggle('scroll-layout',settings.layout==='scroll');document.body.classList.toggle('table-view',settings.layout==='table')}
@@ -2712,9 +2734,11 @@ function renderLog(){if(shownLogVer===logVer||!$('#log'))return;shownLogVer=logV
 // Works in solo and for the host of a room (the host's screen runs the game); joined players can't use it.
 const PARTY_HASH=1539971991;
 const pHash=v=>{let h=2166136261;for(const ch of String(v))h=Math.imul(h^ch.charCodeAt(0),16777619)>>>0;return h};
-function GOD(){if(!settings.god||typeof settings.god!=='object')settings.god={on:false,reveal:false,noCall:false,noWin:false,rigJ:0,rigReady:false};return settings.god}
-const godOn=()=>!!(settings.god&&settings.god.on)&&NET.mode!=='client';
-const godPow=k=>godOn()&&!!settings.god[k];
+// kept in memory only, never saved, so a reload always turns party mode off
+let GODSTATE=null;
+function GOD(){if(!GODSTATE)GODSTATE={on:false,reveal:false,noCall:false,noWin:false,rigJ:0,rigReady:false};return GODSTATE}
+const godOn=()=>!!(GODSTATE&&GODSTATE.on)&&NET.mode!=='client';
+const godPow=k=>godOn()&&!!GODSTATE[k];
 let godSel=null,godNext={},godDraw={},godDrawFor=null;   // godDraw: what a seat draws on its next turn (seat -> kind); godDrawFor: seat being picked for   // godSel: id of the tile picked in the panel; godNext: a bot's forced next throw (seat -> tile id)
 const KINDS=[...SUITS.flatMap(su=>[1,2,3,4,5,6,7,8,9].map(n=>su+n)),'N','E','W','S','R','G','0','F','J'];
 function godFind(id){
@@ -2953,6 +2977,9 @@ function showSettings(tab){
        ${themeCards('rack',THEMES,settings.rack)}</div>
      <div class="setrow col"><span class="st"><b>Background</b><span class="d">The table, colors and scenery.</span></span>
        ${themeCards('bg',THEMES,settings.bg)}</div>
+     ${swRow('s_thnames','Player names match the theme','The computer players get names that go with the background, like Luna, Nova and Stella for Celestial. Off: Queens, Bronx and Brooklyn.',settings.themeNames!==false)}
+     <div class="setrow col"><span class="st"><b>Type their names</b><span class="d">Leave a box empty to use the name shown in it.</span></span>
+       <div class="namein">${['On your right','Across from you','On your left'].map((l,i)=>`<label><span>${l}</span><input data-bname="${i}" maxlength="14" autocomplete="off" placeholder="${esc(themeBotNames()[i])}" value="${esc((settings.botNames||[])[i]||'')}"></label>`).join('')}</div></div>
    </div>
    <div class="set-sec">Gameplay</div>
    <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Table view: just the game board with big tiles, and your hands open from the Hands button. Fit to screen: board plus the hands panels, no page scrolling. Scroll: everything at full size and you scroll the page.</span></span>
@@ -2983,14 +3010,15 @@ function showSettings(tab){
      <p class="setnote">${settings.house?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'}</p>
      ${HR.map(([k,l,d])=>swRow('hr_'+k,l,d,settings.hr[k])).join('')}</div>
    <div class="set-sec">Party mode</div>
-   ${GOD().on?`<div class="setrow col party"><span class="st"><b>Mahjong Admin is on</b><span class="d">Control who gets what, the draw pile, the discards and the bots. Works in solo games and when you host a room.</span></span>
+   ${GOD().on?`<div class="setrow col party"><span class="st"><b>Mahjong Admin is on</b><span class="d">Control who gets what, the draw pile, the discards and the bots. Works in solo games and when you host a room. It turns itself off when the page reloads.</span></span>
        <span class="mrow" style="margin:0;justify-content:flex-start"><button class="btn btn-gold" id="s_godopen">Open Mahjong Admin</button><button class="btn btn-ghost" id="s_godoff">Turn off party mode</button></span></div>`
      :`<div class="setrow party"><span class="st"><b>Party mode</b><span class="d">Got a code? Enter it here.</span></span>
        <span class="pcode"><input id="s_pcode" type="password" inputmode="numeric" maxlength="8" placeholder="Code" autocomplete="off" aria-label="Party mode code"><button class="btn btn-ghost" id="s_pgo">Enter</button></span></div>`}
    <div class="danger-zone"><div><b>Reset progress</b><span class="d">Clears scores, the East rotation and any saved game.</span></div><button class="btn btn-danger" id="s_reset">Reset progress</button></div>
    <div class="mrow"><button class="btn btn-gold" onclick="settingsDone()">Done</button></div>`);
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{fn(e.checked);saveSettings();render()}};
-  on('s_dbl',v=>settings.dblDiscard=v);on('s_undo',v=>settings.undo=v);
+  on('s_dbl',v=>settings.dblDiscard=v);on('s_thnames',v=>{settings.themeNames=v;applyNames()});
+  document.querySelectorAll('[data-bname]').forEach(e=>e.oninput=()=>{const n=Array.isArray(settings.botNames)?settings.botNames.slice(0,3):['','',''];n[+e.dataset.bname]=e.value;settings.botNames=n;saveSettings();applyNames();render()});on('s_undo',v=>settings.undo=v);
   on('s_topbub',v=>settings.topBubble=v);
   on('s_sound',v=>{Sound.on=v;try{localStorage.setItem('amj_sound',v?'on':'off')}catch(e){}renderSoundBtn();if(v){Sound.init();Sound.chime()}});
   on('s_hints',v=>setHints(v));
@@ -3208,7 +3236,7 @@ if(!myCid){myCid=Math.random().toString(36).slice(2,12);try{sessionStorage.setIt
 let room=null;      // host: {code, started, seats:[{name,cid}|null x4]}; joined player: {code, seats}
 const cleanName=n=>String(n||'').replace(/[<>&"'`]/g,'').replace(/\s+/g,' ').trim().slice(0,16)||'Player';
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const avatarFor=x=>x.human?{c:HUMAN_COL[x.abs%4],fg:'#1d1a14',t:esc((x.name||'?').trim().charAt(0).toUpperCase()||'?')}:BULLET[x.abs];
+const avatarFor=x=>x.human?{c:HUMAN_COL[x.abs%4],fg:'#1d1a14',t:esc((x.name||'?').trim().charAt(0).toUpperCase()||'?')}:botBullet(x.abs,x.name);
 
 // ---- same-browser stand-in for PeerJS (testing only) ----
 class LocalPeer{
@@ -3280,7 +3308,7 @@ async function createRoom(px){
   NET.peer=peer;
   const slow=setTimeout(()=>{if(!room)mpMsg(px,"The multiplayer service didn't answer (step 1 of 2: reaching the server). Check your internet, then try again in a minute.",true)},15000);
   peer.on('open',()=>{clearTimeout(slow);NET.mode='host';NET.conns={};room={code,started:false,seats:[{name:myName,cid:myCid},null,null,null]};
-    SEATNAME=[myName,'Queens','Bronx','Brooklyn'];applySpeed();document.body.classList.add('in-room');startHeartbeat();$('#splash').classList.add('hide');showLobby()});
+    SEATNAME=[myName,...botNames()];applySpeed();document.body.classList.add('in-room');startHeartbeat();$('#splash').classList.add('hide');showLobby()});
   peer.on('connection',hostOnConn);
   peer.on('error',e=>{if(e&&e.type==='unavailable-id'){try{peer.destroy()}catch(_){}createRoom(px);return}
     if(!room)mpMsg(px,`Couldn't reach the multiplayer service (${esc(e&&e.type||'unknown error')}). Check your connection and try again.`,true)});
@@ -3331,7 +3359,7 @@ function startRoomGame(){
   if(room.seats.filter(Boolean).length<2)return;
   room.started=true;
   HUMAN=room.seats.map(x=>!!x);
-  SEATNAME=room.seats.map((x,i)=>x?x.name:['','Queens','Bronx','Brooklyn'][i]);
+  SEATNAME=room.seats.map((x,i)=>x?x.name:['',...botNames()][i]);
   refreshNames();
   scores=[0,0,0,0];shown=[0,0,0,0];pendingStart=true;dealer=-1;
   netBroadcast({t:'lobby',seats:room.seats.map(x=>x?{name:x.name}:null),started:true});
