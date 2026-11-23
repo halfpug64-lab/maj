@@ -1287,6 +1287,35 @@ body.rack-easy .rack,body.rack-easy .orack{background:linear-gradient(180deg,#f3
 body.rack-easy .rack::after{background:#2a3a4e}
 body.table-view.rack-easy .orack .exps{background:linear-gradient(180deg,#f3f5f8,#dfe4ea)}
 
+/* ================= Party mode: Mahjong Admin ================= */
+.pcode{display:flex;gap:8px;align-items:center}
+.pcode input{width:110px;padding:9px 12px;border-radius:10px;border:1px solid #cdbb8c;background:#fffdf6;color:var(--paper-ink);font:600 16px Inter,Arial,sans-serif;letter-spacing:3px}
+.pcode input.shake{animation:nudge .09s 4;border-color:#c0392b}
+body.mp-client #btnGod{display:none}
+#btnGod{color:#ffd23f}
+#god .godtitle{display:flex;align-items:center;gap:10px}#god .godtitle svg{width:28px;height:28px;color:#c99a2e}
+#god .gwarn{background:rgba(229,72,77,.08);border:1px solid rgba(194,48,42,.3);border-radius:10px;padding:8px 12px;font-size:14px}
+#god .gpick{position:sticky;top:-24px;z-index:3;margin:0 -8px;padding:10px 8px;background:linear-gradient(180deg,var(--paper),var(--paper-2));border-bottom:1px solid #e2d5b5}
+#god .ghead{font-weight:800;margin:0 0 8px}#god .ghead span{font-weight:500;color:var(--paper-muted);font-size:13px}
+#god .grow{display:flex;flex-wrap:wrap;gap:5px}
+#god .gt,#god .gk{all:unset;cursor:pointer;position:relative;border-radius:7px;line-height:0}
+#god .gt:focus-visible,#god .gk:focus-visible{outline:3px solid #2557b8;outline-offset:2px}
+#god .gt.on{outline:3px solid #a87b22;outline-offset:2px}
+#god .gt[disabled],#god .gk[disabled]{opacity:.35;cursor:default}
+#god .gk>.gcnt{position:absolute;z-index:3;right:-5px;bottom:-5px;min-width:14px;padding:0 3px;border-radius:8px;background:#1d1a14;color:#fff;font:700 10px/14px Inter,Arial,sans-serif;text-align:center}
+#god .gnum{position:absolute;left:50%;bottom:-2px;transform:translate(-50%,100%);font:700 9px/1 Inter,Arial,sans-serif;font-style:normal;color:var(--paper-muted)}
+#god .gsec{margin:16px 0 6px;font-weight:800;font-size:15px}
+#god .gsec+.grow .gnum{display:block}
+#god .grow:has(.gnum){row-gap:16px;padding-bottom:12px}
+#god .gtag{font-weight:600;font-size:12px;color:var(--paper-muted);background:rgba(0,0,0,.05);border-radius:20px;padding:2px 8px;margin-left:4px}
+#god .gacts,#god .gquick{justify-content:flex-start;margin:10px 0 0}
+#god .btn.sm{padding:7px 12px;font-size:13px}
+#god .gsec{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+#god .gdraw{margin-left:auto;padding:4px 10px;font-size:12px}#god .gdraw.on{border-color:#a87b22;box-shadow:0 0 0 2px #a87b22 inset}
+#god .gx{all:unset;cursor:pointer;margin-left:4px;font-weight:800;padding:0 3px}
+#god .gnum{white-space:nowrap}
+@media(max-width:560px){#god .gk .tile.sm{--w:24px}#god .gpick .grow{gap:4px}}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -1299,6 +1328,7 @@ body.table-view.rack-easy .orack .exps{background:linear-gradient(180deg,#f3f5f8
     <div class="scores" id="scores" aria-label="Scores"></div>
     <div class="tools">
       <button class="btn btn-ghost" id="btnHome" title="Home screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/></svg><span class="lbl">Home</span></button>
+      <button class="btn btn-ghost icon" id="btnGod" title="Mahjong Admin" aria-label="Mahjong Admin" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></button>
       <button class="btn btn-ghost" id="btnCard" title="See the card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg><span class="lbl">The Card</span></button>
       <button class="btn btn-ghost" id="btnHelp" title="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5V14"/><path d="M12 17.2h.01"/></svg><span class="lbl">How to play</span></button>
       <button class="btn btn-ghost" id="btnHands" title="Your hands and the card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="14" rx="1.5"/><rect x="10" y="5" width="6" height="14" rx="1.5"/><path d="M19 7l2 1-3 11-2-.6"/></svg><span class="lbl">Hands</span></button>
@@ -1913,7 +1943,7 @@ function toast(m,kind=''){document.querySelectorAll('.toast').forEach(t=>t.remov
   d.innerHTML=`<span>${m}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1700)}
 
 function newGame(){
-  gid++;closeModal();Sound.init();undoStack=[];homeOpen=false;
+  godNext={};godDraw={};godDrawFor=null;gid++;closeModal();Sound.init();undoStack=[];homeOpen=false;
   wall=buildWall();discards=[];logs=[];logVer++;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];
   if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false}else dealer=(dealer+1)%4;
   try{if(settings.save)localStorage.setItem('amj_progress',JSON.stringify({scores,dealer}))}catch(e){}
@@ -1926,12 +1956,13 @@ function newGame(){
 function deal(){
   for(let r=0;r<13;r++)for(let i=0;i<4;i++)players[i].hand.push(wall.pop());
   players[dealer].hand.push(wall.pop());players.forEach(p=>sortHand(p.hand));
+  godRigDeal();
   phase='charleston';passIdx=0;
   log(`Fresh deal with ${cardMode==='mine'?'your loaded card':'the 2026 card'}. ${dealer===0?"You're East with 14 tiles and throw first.":`${NAMES[dealer]} is East and throws first. You're ${windOf(0)}.`}`);
   dealAnim=true;render();for(let i=0;i<14;i++)later(()=>Sound.tap(),120+i*45);
   later(()=>toastAll(v=>dealer===v?"You're East":`${nameV(dealer,v)} is East · you're ${windOf(v)}`),700);
   const hv=isWin(players[dealer].hand,[]);
-  if(hv&&!HUMAN[dealer])later(()=>{log(`${NAMES[dealer]} was dealt a complete hand. Heavenly Hand!`);win(dealer,hv,null)},900);
+  if(hv&&!HUMAN[dealer]&&!godPow('noWin'))later(()=>{log(`${NAMES[dealer]} was dealt a complete hand. Heavenly Hand!`);win(dealer,hv,null)},900);
 }
 function askNew(){
   if(NET.mode==='client'){toast('Only the host can start a new game');return}
@@ -2183,15 +2214,16 @@ function startTurn(i){
   if(dead[i]){startTurn(nextAlive(i));return}
   if(!wall.length){endWall();return}
   turnSrc=null;
-  const t=wall.pop();players[i].hand.push(t);if(!HUMAN[i])sortHand(players[i].hand);turn=i;step='discard';callState=null;
+  const t=godPull(i)||wall.pop();players[i].hand.push(t);if(!HUMAN[i])sortHand(players[i].hand);turn=i;step='discard';callState=null;
   if(i===0){newIds=new Set([t.id]);selected=null;log(`You drew ${tname(t.k)}.`);queueFly(t,rectOf('#wallStack'),0,460);render();Sound.tap()}
   else if(HUMAN[i])render();          // another person's turn: wait for their move
   else{render();later(()=>botAct(i),SPEED)}
 }
 function botAct(i){
   if(phase!=='play'||HUMAN[i]||turn!==i)return;const p=players[i];botSwaps(i);
-  const w=isWin(p.hand,p.exp);if(w){win(i,w,turnSrc);return}
-  discard(i,chooseDiscard(p));
+  const w=isWin(p.hand,p.exp);if(w&&!godPow('noWin')){win(i,w,turnSrc);return}
+  const forced=godOn()&&godNext[i]!=null?p.hand.find(t=>t.id===godNext[i]):null;delete godNext[i];
+  discard(i,forced||chooseDiscard(p));
 }
 function discard(i,t){
   if(i===0)takeSnap();
@@ -2221,8 +2253,8 @@ function resolveCalls(i,t){
   const order=[1,2,3].map(d=>(i+d)%4),pos=j=>order.indexOf(j);
   let botMJ=null,botExp=null;const offers={};
   if(t.k!=='J'){
-    for(const j of order){if(HUMAN[j]||dead[j])continue;if(botLevel(j)===0&&Math.random()<.2)continue;const w=isWin([...players[j].hand,t],players[j].exp);if(w){botMJ={j,w};break}}
-    if(!botMJ)for(const j of order){if(HUMAN[j]||dead[j])continue;const n=botCall(players[j],t.k);if(n){botExp={j,n};break}}
+    if(!godPow('noWin'))for(const j of order){if(HUMAN[j]||dead[j])continue;if(botLevel(j)===0&&Math.random()<.2)continue;const w=isWin([...players[j].hand,t],players[j].exp);if(w){botMJ={j,w};break}}
+    if(!botMJ&&!godPow('noCall'))for(const j of order){if(HUMAN[j]||dead[j])continue;const n=botCall(players[j],t.k);if(n){botExp={j,n};break}}
     for(const j of order){if(!HUMAN[j]||dead[j])continue;
       const o=humanOptions(t.k,j);
       if(botMJ&&pos(botMJ.j)<pos(j))o.mj=false;   // a Mah Jongg caller sits ahead
@@ -2412,7 +2444,7 @@ const seatTag=i=>NET.mode==='client'?(NET.tags&&NET.tags[i]||''):(HUMAN[i]?(i===
 function renderSeat(i){
   const p=players[i],el=$('#seat'+i);const active=turn===i&&phase==='play';
   el.className=`seat seat-${SEATPOS[i]}${active?' turn':''}${active&&step==='discard'&&!callState?' thinking':''}`;
-  const body=phase==='over'?`<div class="reveal">${p.hand.map(t=>tileHTML(t,'xs')).join('')}</div>`:`<div class="backs">${p.hand.map(()=>'<i class="back"></i>').join('')}</div>`;
+  const body=phase==='over'||godPow('reveal')?`<div class="reveal">${p.hand.map(t=>tileHTML(t,'xs')).join('')}</div>`:`<div class="backs">${p.hand.map(()=>'<i class="back"></i>').join('')}</div>`;
   el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${dealer===i?'<span class="eastchip">E</span> ':''}${windOf(i)} · ${p.hand.length} tiles<span class="lvl"> · ${seatTag(i)}</span>${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="orack-wrap"><div class="orack">${body}${p.exp.length?expHTML(p,'xs'):'<div class="exps ledge-empty"></div>'}</div></div>`;
 }
 function renderScores(){
@@ -2673,6 +2705,145 @@ function setHints(v){
 }
 function renderLog(){if(shownLogVer===logVer||!$('#log'))return;shownLogVer=logVer;$('#log').innerHTML=logs.map((m,i)=>`<div${i===0?' class="fresh"':''}>${m}</div>`).join('')}
 
+
+// ================= Party mode: Mahjong Admin =================
+// Unlocked in Settings with a code (only a hash of it is kept here). Every power swaps real tiles between
+// racks, the draw pile and the discards, so the set always stays exactly 152 tiles and every rule check still works.
+// Works in solo and for the host of a room (the host's screen runs the game); joined players can't use it.
+const PARTY_HASH=1539971991;
+const pHash=v=>{let h=2166136261;for(const ch of String(v))h=Math.imul(h^ch.charCodeAt(0),16777619)>>>0;return h};
+function GOD(){if(!settings.god||typeof settings.god!=='object')settings.god={on:false,reveal:false,noCall:false,noWin:false,rigJ:0,rigReady:false};return settings.god}
+const godOn=()=>!!(settings.god&&settings.god.on)&&NET.mode!=='client';
+const godPow=k=>godOn()&&!!settings.god[k];
+let godSel=null,godNext={},godDraw={},godDrawFor=null;   // godDraw: what a seat draws on its next turn (seat -> kind); godDrawFor: seat being picked for   // godSel: id of the tile picked in the panel; godNext: a bot's forced next throw (seat -> tile id)
+const KINDS=[...SUITS.flatMap(su=>[1,2,3,4,5,6,7,8,9].map(n=>su+n)),'N','E','W','S','R','G','0','F','J'];
+function godFind(id){
+  for(let i=0;i<4;i++){const x=players[i].hand.findIndex(t=>t.id===id);if(x>=0)return{list:players[i].hand,idx:x,area:'h',seat:i}}
+  let x=wall.findIndex(t=>t.id===id);if(x>=0)return{list:wall,idx:x,area:'w'};
+  x=discards.findIndex(t=>t.id===id);if(x>=0)return{list:discards,idx:x,area:'d'};
+  return null}
+// the newest discard is off limits while it's still being called on
+const godLocked=l=>l.area==='d'&&l.idx===discards.length-1&&(!!callState||step==='wait');
+function godWhyNot(){if(!godOn())return 'Party mode is off.';if(phase!=='charleston'&&phase!=='play')return 'Deal a game to use the tile powers.';
+  if(callState)return 'Someone is deciding on a call. Tile powers come back once that\'s done.';if(building)return 'Finish building your exposure first.';return ''}
+// every free copy of kind k, best first: the far end of the draw pile, then other racks, then the discards
+function godSources(k,not){const out=[];
+  wall.forEach((t,x)=>{if(t.k===k)out.push({list:wall,idx:x,area:'w'})});
+  for(let i=0;i<4;i++)if(!(not&&not.area==='h'&&not.seat===i))players[i].hand.forEach((t,x)=>{if(t.k===k)out.push({list:players[i].hand,idx:x,area:'h',seat:i})});
+  discards.forEach((t,x)=>{const l={list:discards,idx:x,area:'d'};if(t.k===k&&!godLocked(l))out.push(l)});
+  return out.filter(l=>!(not&&l.list===not.list&&l.idx===not.idx))}
+function godTidy(locs){
+  for(const l of locs)if(l.area==='h'&&!HUMAN[l.seat])sortHand(players[l.seat].hand);
+  for(const x in chSub)chSub[x]=chSub[x].filter(id=>players[x].hand.some(t=>t.id===id));
+  sel=new Set([...sel].filter(id=>players[0].hand.some(t=>t.id===id)));
+  if(selected!=null&&!players[0].hand.some(t=>t.id===selected))selected=null;
+  for(const x in godNext)if(!players[x].hand.some(t=>t.id===godNext[x]))delete godNext[x];
+}
+// turn the tile with this id into a k, by swapping it with a real k from somewhere else
+function godReplace(id,k,quiet){
+  const a=godFind(id);if(!a||godLocked(a))return null;if(a.list[a.idx].k===k)return a.list[a.idx];
+  const b=godSources(k,a)[0];if(!b){if(!quiet)toast(`No free ${tname(k)} left`);return null}
+  [a.list[a.idx],b.list[b.idx]]=[b.list[b.idx],a.list[a.idx]];
+  const t=a.list[a.idx];if(a.area==='h'&&a.seat===0)newIds=new Set([t.id]);
+  godTidy([a,b]);return t}
+const godWorst=()=>{const p=players[0];return chooseDiscard(p)||p.hand.find(t=>t.k!=='J')};
+// swap in tiles until your best hand is `target` tiles away (1 = one away, 0 = Mah Jongg with 14 tiles)
+function godReady(target){
+  const p=players[0];const r0=analyze(p.hand,p.exp).res[0];if(!r0)return false;const cp=r0.cp;
+  for(let n=0;n<18;n++){
+    const {c,j}=countTiles(p.hand);const ev=evalPat(cp,c,j,p.exp);if(!ev||ev.dist<=target)break;
+    const miss=Object.keys(ev.need).filter(k=>(c[k]||0)<ev.need[k]);
+    const give=p.hand.find(t=>t.k!=='J'&&(c[t.k]||0)>(ev.need[t.k]||0));if(!give||!miss.length)break;
+    let moved=false;for(const k of miss)if(godReplace(give.id,k,true)){moved=true;break}
+    if(!moved)break;
+    const {c:c2,j:j2}=countTiles(p.hand);if(evalPat(cp,c2,j2,p.exp).dist>=ev.dist)break}
+  const {c,j}=countTiles(p.hand);return evalPat(cp,c,j,p.exp).dist<=target}
+function godPull(i){
+  const k=godDraw[i];if(!godOn()||!k)return null;delete godDraw[i];
+  let x=-1;for(let n=wall.length-1;n>=0;n--)if(wall[n].k===k){x=n;break}
+  if(x>=0)return wall.splice(x,1)[0];
+  const src=godSources(k,{area:'h',seat:i})[0];if(!src||!wall.length)return null;   // none left anywhere: a normal draw
+  const top=wall.pop(),got=src.list[src.idx];src.list[src.idx]=top;godTidy([src]);return got}
+function godRigDeal(){
+  if(!godOn())return;const G=GOD(),p=players[0];
+  for(let n=0;n<8&&p.hand.filter(t=>t.k==='J').length<(G.rigJ||0);n++){const w=p.hand.find(t=>t.k!=='J'&&t===godWorst())||p.hand.find(t=>t.k!=='J');if(!w||!godReplace(w.id,'J',true))break}
+  if(G.rigReady)godReady(1);
+  sortHand(p.hand);newIds=new Set();
+}
+function godAvail(k){if(godDrawFor!=null)return godSources(k,{area:'h',seat:godDrawFor}).length;const a=godSel!=null?godFind(godSel):null;return godSources(k,a||{area:'h',seat:0}).length}
+// whose draw each tile on top of the pile would be, if nobody calls
+function godDrawOrder(n){if(phase!=='charleston'&&phase!=='play')return[];let s=phase==='charleston'?dealer:callState?callState.i:turn;const out=[];
+  for(let x=0;x<n;x++){s=nextAlive(s);out.push(s)}return out}
+function syncGodBtn(){const b=$('#btnGod');if(b)b.hidden=!godOn()}
+function showGod(){if(!godOn()){toast(NET.mode==='client'?'Only works in solo or when you host':'Party mode is off');return}
+  pauseGame();godSel=null;closeHands();openModal(`<div id="god">${godHTML()}</div>`);bindGod()}
+function godRefresh(){const g=$('#god');if(!g)return;const box=$('#modal .box'),y=box?box.scrollTop:0;g.innerHTML=godHTML();bindGod();if(box)box.scrollTop=y;render()}
+function godHTML(){
+  const G=GOD(),why=godWhyNot(),ed=!why;
+  const tl=(t,num)=>`<button class="gt${godSel===t.id?' on':''}" data-gid="${t.id}" ${ed?'':'disabled'} title="${tname(t.k)}">${tileHTML(t,'sm')}${num!=null?`<i class="gnum">${num}</i>`:''}</button>`;
+  const at=godSel!=null?godFind(godSel):null;if(godSel!=null&&!at)godSel=null;
+  const where=at?(at.area==='h'?(at.seat===0?'your rack':NAMES[at.seat]+"'s rack"):at.area==='w'?`the draw pile (#${wall.length-at.idx})`:'the discards'):'';
+  const selT=at?at.list[at.idx]:null;
+  const myTurn=phase==='play'&&turn===0&&step==='discard'&&!callState;const p0=players[0];const tiles0=p0.hand.length+p0.exp.reduce((x,e)=>x+e.n,0);
+  const pick=`<div class="gpick">
+     <div class="ghead">${godDrawFor!=null?`${godDrawFor===0?'Your':NAMES[godDrawFor]+"'s"} next draw will be:`:selT?`Change the ${tname(selT.k)} in ${where} to:`:'Give yourself a tile <span>(it replaces your least useful tile, or tap any tile below to change that one)</span>'}</div>
+     <div class="grow">${KINDS.map(k=>{const n=ed||(godDrawFor!=null&&godOn())?godAvail(k):0;return `<button class="gk" data-k="${k}" ${n?'':'disabled'} title="${tname(k)}">${tileHTML(k,'sm')}<b class="gcnt">${n}</b></button>`}).join('')}</div>
+     ${godDrawFor!=null?'<div class="mrow gacts"><button class="btn btn-ghost sm" id="gUnsel">Cancel</button></div>':''}
+     ${selT?`<div class="mrow gacts">${at.area==='h'&&!HUMAN[at.seat]&&phase==='play'?`<button class="btn btn-ghost sm" id="gThrow">Make ${NAMES[at.seat]} throw this next</button>`:''}${at.area==='w'?'<button class="btn btn-ghost sm" id="gDrawNext">Make this the next draw</button>':''}<button class="btn btn-ghost sm" id="gUnsel">Cancel</button></div>`:''}
+   </div>`;
+  const rack=i=>{const p=players[i];const nx=godNext[i]!=null&&p.hand.find(t=>t.id===godNext[i]);
+    const dk=godDraw[i];
+    return `<div class="gsec">${i===0?'Your rack':NAMES[i]}${HUMAN[i]&&i!==0?' <span class="gtag">person</span>':''}${nx?` <span class="gtag">throws ${tname(nx.k)} next</span>`:''}${dk?` <span class="gtag">draws ${tname(dk)} next <button class="gx" data-gdclear="${i}" aria-label="Cancel">×</button></span>`:''}
+      <button class="btn btn-ghost sm gdraw${godDrawFor===i?' on':''}" data-gdraw="${i}" ${ed||phase==='charleston'?'':'disabled'}>Pick ${i===0?'my':'their'} next draw</button></div><div class="grow">${p.hand.map(t=>tl(t)).join('')}</div>`};
+  const next=wall.slice(-18).reverse(),who=godDrawOrder(next.length);
+  return `<h2 class="godtitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>Mahjong Admin</h2>
+   <p class="setnote">Party mode. You control the table. Tiles always trade places with real ones, so nothing is created or lost.</p>
+   ${why?`<p class="gwarn">${why}</p>`:''}
+   ${pick}
+   <div class="mrow gquick">
+     <button class="btn btn-gold sm" id="gReady" ${ed?'':'disabled'}>${myTurn&&tiles0===14?'Make my hand Mah Jongg':'Put me one tile away'}</button>
+     <button class="btn btn-ghost sm" id="gJoker" ${ed?'':'disabled'}>Give me a Joker</button>
+     <button class="btn btn-ghost sm" id="gShuffle" ${ed?'':'disabled'}>Shuffle the draw pile</button>
+   </div>
+   ${phase==='idle'||phase==='shuffle'?'':[0,1,2,3].map(rack).join('')}
+   ${phase==='idle'||phase==='shuffle'?'':`<div class="gsec">Draw pile <span class="gtag">${wall.length} left · 1 is the next draw${who.length?`, ${who[0]===0?'yours':NAMES[who[0]]+"'s"}`:''}</span></div><div class="grow">${next.map((t,x)=>tl(t,x+1)).join('')}</div>
+   <div class="gsec">Discards <span class="gtag">${discards.length}</span></div><div class="grow">${discards.length?discards.map(t=>tl(t)).join(''):'<span class="setnote">None yet</span>'}</div>`}
+   <div class="gsec">Powers</div>
+   ${swRow('g_reveal','Show everyone\'s tiles','Flip the other racks face up on the table.',!!G.reveal)}
+   ${swRow('g_nocall','Bots never call','Computer players never call a discard.',!!G.noCall)}
+   ${swRow('g_nowin','Bots never win','Computer players never declare Mah Jongg.',!!G.noWin)}
+   ${swRow('g_rigready','Deal me a hand one tile away','Every new deal starts you one tile from Mah Jongg.',!!G.rigReady)}
+   <div class="setrow"><span class="st"><b>Jokers in my deal</b><span class="d">How many Jokers you're dealt every new game.</span></span>
+     <span class="seg" role="group" aria-label="Jokers in my deal">${[0,1,2,3,4,5,6,7,8].map(n=>`<button class="${(G.rigJ||0)===n?'on':''}" data-rigj="${n}" aria-pressed="${(G.rigJ||0)===n}">${n}</button>`).join('')}</span></div>
+   <div class="setrow"><span class="st"><b>Scores</b><span class="d">You ${scores[0]} · ${NAMES.slice(1).map((n,i)=>n+' '+scores[i+1]).join(' · ')}</span></span>
+     <span class="mrow" style="margin:0"><button class="btn btn-ghost sm" id="gPts">+100 for me</button><button class="btn btn-ghost sm" id="gPtsReset">Reset scores</button></span></div>
+   <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Done</button></div>`;
+}
+function bindGod(){
+  const b=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
+  document.querySelectorAll('#god [data-gid]').forEach(e=>e.onclick=()=>{const id=+e.dataset.gid;godSel=godSel===id?null:id;godDrawFor=null;godRefresh()});
+  document.querySelectorAll('#god [data-gdraw]').forEach(e=>e.onclick=()=>{const i=+e.dataset.gdraw;godDrawFor=godDrawFor===i?null:i;godSel=null;godRefresh();const b=$('#modal .box');if(b)b.scrollTo({top:0,behavior:REDUCED?'auto':'smooth'})});
+  document.querySelectorAll('#god [data-gdclear]').forEach(e=>e.onclick=ev=>{ev.stopPropagation();delete godDraw[+e.dataset.gdclear];godRefresh()});
+  document.querySelectorAll('#god [data-k]').forEach(e=>e.onclick=()=>{const k=e.dataset.k;
+    if(godDrawFor!=null){godDraw[godDrawFor]=k;toast(`${godDrawFor===0?'You draw':NAMES[godDrawFor]+' draws'} ${tname(k)} next`);godDrawFor=null;Sound.tap();godRefresh();return}
+    if(godWhyNot())return;
+    const id=godSel!=null?godSel:(godWorst()||{}).id;if(id==null)return;
+    const t=godReplace(id,k);if(t){godSel=null;Sound.tap();toast(`${tname(k)} placed`)}godRefresh()});
+  b('gUnsel',()=>{godSel=null;godDrawFor=null;godRefresh()});
+  b('gThrow',()=>{const a=godFind(godSel);if(a&&a.area==='h'){godNext[a.seat]=godSel;toast(`${NAMES[a.seat]} throws it next`)}godSel=null;godRefresh()});
+  b('gDrawNext',()=>{const a=godFind(godSel);if(a&&a.area==='w'){const [t]=wall.splice(a.idx,1);wall.push(t);toast('That\'s the next draw')}godSel=null;godRefresh()});
+  b('gReady',()=>{if(godWhyNot())return;const p0=players[0];const n=p0.hand.length+p0.exp.reduce((x,e)=>x+e.n,0);
+    const win=phase==='play'&&turn===0&&step==='discard'&&n===14;const ok=godReady(win?0:1);
+    toast(ok?(win?'Mah Jongg is yours: hit Mah Jongg!':'One tile away'):'Got as close as the tiles allow');godSel=null;godRefresh()});
+  b('gJoker',()=>{if(godWhyNot())return;const w=godWorst();if(w&&w.k!=='J'&&godReplace(w.id,'J'))toast('Joker placed');godRefresh()});
+  b('gShuffle',()=>{if(godWhyNot())return;for(let i=wall.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[wall[i],wall[j]]=[wall[j],wall[i]]}toast('Draw pile shuffled');godRefresh()});
+  b('gPts',()=>{scores[0]+=100;shown=[...scores];saveScores();godRefresh()});
+  b('gPtsReset',()=>{resetScores();godRefresh()});
+  const on=(id,key)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{GOD()[key]=e.checked;saveSettings();render()}};
+  on('g_reveal','reveal');on('g_nocall','noCall');on('g_nowin','noWin');on('g_rigready','rigReady');
+  document.querySelectorAll('#god [data-rigj]').forEach(e=>e.onclick=()=>{GOD().rigJ=+e.dataset.rigj;saveSettings();godRefresh()});
+}
+
 // ================= Undo =================
 // A copy of the whole table is taken right before each of your moves that can't be taken back
 // (discard, call, Joker swap, Charleston pass or vote, Mah Jongg). Undo puts the newest copy back.
@@ -2811,6 +2982,11 @@ function showSettings(tab){
    <div id="hrList" class="hrlist${settings.house?'':' off'}" hidden>
      <p class="setnote">${settings.house?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'}</p>
      ${HR.map(([k,l,d])=>swRow('hr_'+k,l,d,settings.hr[k])).join('')}</div>
+   <div class="set-sec">Party mode</div>
+   ${GOD().on?`<div class="setrow col party"><span class="st"><b>Mahjong Admin is on</b><span class="d">Control who gets what, the draw pile, the discards and the bots. Works in solo games and when you host a room.</span></span>
+       <span class="mrow" style="margin:0;justify-content:flex-start"><button class="btn btn-gold" id="s_godopen">Open Mahjong Admin</button><button class="btn btn-ghost" id="s_godoff">Turn off party mode</button></span></div>`
+     :`<div class="setrow party"><span class="st"><b>Party mode</b><span class="d">Got a code? Enter it here.</span></span>
+       <span class="pcode"><input id="s_pcode" type="password" inputmode="numeric" maxlength="8" placeholder="Code" autocomplete="off" aria-label="Party mode code"><button class="btn btn-ghost" id="s_pgo">Enter</button></span></div>`}
    <div class="danger-zone"><div><b>Reset progress</b><span class="d">Clears scores, the East rotation and any saved game.</span></div><button class="btn btn-danger" id="s_reset">Reset progress</button></div>
    <div class="mrow"><button class="btn btn-gold" onclick="settingsDone()">Done</button></div>`);
   const on=(id,fn)=>{const e=document.getElementById(id);if(e)e.onchange=()=>{fn(e.checked);saveSettings();render()}};
@@ -2824,6 +3000,12 @@ function showSettings(tab){
     askConfirm({title:'Turn off Save progress?',body:'Your saved scores and unfinished game will be deleted, and nothing will be saved from now on. Reloading the page will start fresh.',
       yes:'Turn it off',onYes:()=>{settings.save=false;saveSettings();clearProgress();$('#s_save').checked=false;toast('Save progress is off')}});
   };
+  const pgo=()=>{const i=$('#s_pcode');if(!i)return;if(pHash(i.value.trim())===PARTY_HASH){GOD().on=true;saveSettings();syncGodBtn();Sound.fanfare();toast('Mahjong Admin unlocked','big');
+      const box=$('#modal .box'),y=box?box.scrollTop:0;showSettings('game');const b2=$('#modal .box');if(b2)b2.scrollTop=y}
+    else{i.value='';i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake');toast('Wrong code')}};
+  if($('#s_pgo')){$('#s_pgo').onclick=pgo;$('#s_pcode').onkeydown=e=>{if(e.key==='Enter')pgo()}}
+  if($('#s_godopen'))$('#s_godopen').onclick=showGod;
+  if($('#s_godoff'))$('#s_godoff').onclick=()=>{GOD().on=false;godNext={};saveSettings();syncGodBtn();render();const box=$('#modal .box'),y=box?box.scrollTop:0;showSettings('game');const b2=$('#modal .box');if(b2)b2.scrollTop=y;toast('Party mode is off')};
   $('#s_reset').onclick=()=>askConfirm({title:'Reset progress?',body:'All scores go back to 0, the saved game is deleted, and a fresh game is dealt with you at your starting seat. Your settings stay the same.',
     yes:'Reset progress',onYes:resetProgress});
   on('s_house',v=>{settings.house=v;const l=$('#hrList');l.classList.toggle('off',!v);l.querySelector('.setnote').textContent=v?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'});
@@ -3343,6 +3525,7 @@ function goHome(){
   $('#splash').classList.remove('hide');
 }
 $('#btnHome').onclick=goHome;
+$('#btnGod').onclick=showGod;syncGodBtn();
 $('#btnResume').onclick=()=>{if(homeOpen){homeOpen=false;$('#splash').classList.add('hide');unpauseGame();render()}else resumeGame()};
 if(savedGame()){$('#btnResume').hidden=false;$('#btnStart').textContent='New game'}
 addEventListener('keydown',e=>{if(e.key!=='Escape')return;if($('#modal').innerHTML)closeModal();else document.body.classList.remove('show-hands')});
