@@ -28,6 +28,7 @@ button{font:inherit}
 .top{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(0,0,0,.35);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
 body.light .top{background:rgba(255,255,255,.6)}
 .top h1{margin:0;font:700 clamp(17px,2.4vw,24px)/1 var(--display);color:var(--accent);white-space:nowrap}
+.beta{display:inline-block;font:800 9px/1 var(--body);font-style:normal;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle;padding:3px 5px;border-radius:6px;background:#e5484d;color:#fff;position:relative;top:-.15em}
 .top .sc{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
 .chip{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:4px 11px;font-weight:700;font-size:13px;white-space:nowrap}
 .chip b{color:var(--accent)}
@@ -95,6 +96,17 @@ main{display:grid;grid-template-columns:minmax(64px,110px) 1fr minmax(64px,110px
 .toast{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%);background:rgba(10,10,10,.88);color:#fff;font-weight:800;padding:12px 20px;border-radius:14px;z-index:60;pointer-events:none;animation:tst 1.7s forwards}
 @keyframes tst{0%{opacity:0;transform:translate(-50%,-30%)}12%{opacity:1;transform:translate(-50%,-50%)}80%{opacity:1}100%{opacity:0}}
 .log{font-size:12px;color:var(--muted);text-align:center;min-height:16px}
+@media(max-width:640px){
+  main{grid-template-areas:"left top right" "mid mid mid" "me me me"!important;grid-template-columns:1fr 1fr 1fr!important}
+  .seat{flex-direction:column!important;gap:3px;padding:6px 4px}.seat .backs,.seat .vbacks{display:none}
+  #s2{grid-area:top}#s1{grid-area:left}#s3{grid-area:right}
+  .center{gap:10px;padding:2px 0;flex-wrap:nowrap}.center .banner{flex:1;min-width:0}.banner .st{font-size:15px}.banner .sub{font-size:12px}
+  .stock,.emptypile,.center .card{--cw:38px}
+  .zone{min-height:0}.zone h3{font-size:11px}
+  .me{position:sticky;bottom:0;z-index:4;background:color-mix(in srgb,var(--felt-dk) 94%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:8px;border-radius:16px 16px 0 0;margin:0 -8px -14px}
+  body.light .me{background:rgba(255,236,245,.95)}
+  .mehead{margin-bottom:2px}.hand{padding-top:12px}.acts{margin-top:6px;gap:6px}
+}
 @media(max-width:640px){.top{gap:6px}.top h1{font-size:16px;white-space:normal;line-height:1.1}.top .sc{flex-direction:column;gap:3px;align-items:flex-end}#bNew{padding:6px 9px;font-size:12px}
   main{grid-template-columns:52px 1fr 52px;padding:8px;gap:8px}.seat{padding:6px 4px}.seat .nm{font-size:12px}.top{padding:8px 10px}.top .sc .chip{font-size:12px;padding:3px 8px}
   :root{--cw:clamp(34px,10.5vw,46px)}.zone{padding:6px}.btn{padding:8px 12px}}
@@ -104,7 +116,7 @@ main{display:grid;grid-template-columns:minmax(64px,110px) 1fr minmax(64px,110px
 <body>
 <header class="top">
   <a class="btn icon" href="index.html" title="Home screen" aria-label="Home screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/></svg></a>
-  <h1>American Canasta</h1>
+  <h1>American Canasta <i class="beta">Beta</i></h1>
   <div class="sc" id="scores"></div>
   <button class="btn icon" id="bHelp" title="How to play" aria-label="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5V14"/><path d="M12 17.2h.01"/></svg></button>
   <button class="btn gold sm" id="bNew">New game</button>
@@ -133,6 +145,7 @@ main{display:grid;grid-template-columns:minmax(64px,110px) 1fr minmax(64px,110px
 const $=s=>document.querySelector(s);
 const SUITS=['♠','♥','♦','♣'],RANKS=['4','5','6','7','8','9','10','J','Q','K','A'];
 const ORDER=[...RANKS,'2','JK','3'];
+const RN={A:'Aces',K:'Kings',Q:'Queens',J:'Jacks',W:'wild cards'};const rn=r=>RN[r]||r+'s';
 const isWild=c=>c.r==='2'||c.r==='JK',isThree=c=>c.r==='3',isNat=c=>!isWild(c)&&!isThree(c);
 const isRed=c=>c.s==='♥'||c.s==='♦';
 const val=c=>c.r==='JK'?50:c.r==='A'||c.r==='2'?20:['8','9','10','J','Q','K'].includes(c.r)?10:5;
@@ -178,7 +191,7 @@ const minMeld=t=>score[t]>=5000?180:score[t]>=3000?155:125;
 const sortHand=h=>h.sort((a,b)=>ORDER.indexOf(a.r)-ORDER.indexOf(b.r)||SUITS.indexOf(a.s)-SUITS.indexOf(b.s)||a.id-b.id);
 
 function newHand(){
-  gid++;dealer=(dealer+1)%4;sel.clear();staged=[];
+  gid++;dealer=(dealer+1)%4;sel.clear();staged=[];logs=[];
   const deck=newDeck();const hands=[[],[],[],[]];
   for(let r=0;r<13;r++)for(let x=1;x<=4;x++)hands[(dealer+x)%4].push(deck.pop());
   G={stock:deck,pile:[],hands,melds:[[],[]],threes:[[],[]],opened:[false,false],talon:[[],[],[],[]],turn:(dealer+1)%4,phase:'draw',
@@ -187,7 +200,7 @@ function newHand(){
   log(`${NAMES[dealer]==='You'?'You deal':NAMES[dealer]+' deals'}. ${NAMES[G.turn]==='You'?'You go':NAMES[G.turn]+' goes'} first.`);
   startTurn();
 }
-function log(m){logMsg=m}
+let logs=[];function log(m){logs.unshift(m);logs=logs.slice(0,3);logMsg=m}
 function toast(m){document.querySelectorAll('.toast').forEach(t=>t.remove());const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),1800)}
 
 // ---- threes: always laid out, with a replacement drawn ----
@@ -223,8 +236,8 @@ function checkNew(t,cards,initial,stagedRanks=[]){
     return '';
   }
   const r=nat[0].r;if(nat.some(c=>c.r!==r))return 'A meld is one rank (plus wild cards)';
-  if(isDead(r))return `${r}s are dead: someone already made a canasta of them`;
-  if(teamMeld(t,r)||stagedRanks.includes(r))return `Your team already has a meld of ${r}s`;
+  if(isDead(r))return `${rn(r)} are dead: someone already made a canasta of them`;
+  if(teamMeld(t,r)||stagedRanks.includes(r))return `Your team already has a meld of ${rn(r)}`;
   if(nat.length<2)return 'A meld needs at least two natural cards';
   if(w>2)return 'A meld can hold at most two wild cards';
   if(w&&r==='7')return '7s can never have wild cards';
@@ -239,7 +252,7 @@ function checkAdd(t,m,cards){
   if(cards.some(isThree))return '3s can\'t be melded';
   if(m.r==='W')return cards.every(isWild)?'':'Only 2s and jokers go on a wild card meld';
   const nat=cards.filter(isNat),w=cards.length-nat.length;
-  if(nat.some(c=>c.r!==m.r))return `Only ${m.r}s (and wild cards) go on that meld`;
+  if(nat.some(c=>c.r!==m.r))return `Only ${rn(m.r)} (and wild cards) go on that meld`;
   if(w){
     if(m.r==='7')return '7s can never have wild cards';
     if(m.r==='A'&&!wildCount(m))return 'A pure meld of Aces can\'t take wild cards';
@@ -304,18 +317,19 @@ function packOption(i,extraIds=[]){
   const t=team(i),top=G.pile[G.pile.length-1];
   if(!top)return {why:'The discard pile is empty'};
   if(!isNat(top))return {why:'You can\'t take the pack when a wild card is on top'};
-  if(isDead(top.r))return {why:`${top.r}s are dead`};
-  const m=teamMeld(t,top.r);if(m&&m.cards.length>=5)return {why:`Your team already has ${m.cards.length} ${top.r}s down`};
+  if(isDead(top.r))return {why:`${rn(top.r)} are dead`};
+  const m=teamMeld(t,top.r);if(m&&m.cards.length>=5)return {why:`Your team already has ${m.cards.length} ${rn(top.r)} down`};
   const pair=G.hands[i].filter(c=>c.r===top.r&&!extraIds.includes(c.id)).slice(0,2);
   if(pair.length===2)return {how:'pair',ids:pair.map(c=>c.id)};
   if(m&&G.opened[t])return {how:'meld',ids:[]};
-  return {why:`You need two natural ${top.r}s in your hand${G.opened[t]?' or a meld of '+top.r+'s':''}`};
+  return {why:`You need two natural ${rn(top.r)} in your hand${G.opened[t]?' or a meld of '+rn(top.r):''}`};
 }
 function takePack(i,openMelds){
   const t=team(i),top=G.pile[G.pile.length-1];
   if(!G.opened[t]){
     const used=openMelds.flatMap(m=>m.cards.map(c=>c.id));const o=packOption(i,used);if(!o.how)return o.why;
     const info=openingInfo(t,openMelds);if(!info.ok)return `Your opening needs ${info.need} points with a clean triple (you have ${info.pts})`;
+    const same=openMelds.find(m=>rankOf(m.cards)===top.r);if(same&&same.cards.length+1+o.ids.length>7)return `That would make more than 7 ${rn(top.r)} in one meld`;
     for(const m of openMelds){const cards=takeCards(i,m.cards.map(c=>c.id));putMeld(t,cards)}
     G.opened[t]=true;if(G.firstOpen==null)G.firstOpen=t;
     G.pile.pop();const cards=[top,...takeCards(i,o.ids)];const m=putMeld(t,cards);sortMeld(m);
@@ -403,7 +417,7 @@ function scoreTeam(t,outSeat,special){
   if(C>=1){
     for(const m of canastas(t)){const w=wildCount(m),j=m.cards.filter(c=>c.r==='JK').length;
       let v,n;if(m.r==='W'){v=j===0?3000:j===4?2500:2000;n=j===0?'Canasta of 2s':j===4?'Joker canasta':'Wild canasta'}
-      else if(!w){v=m.r==='7'||m.r==='A'?2500:500;n=`Natural canasta of ${m.r}s`}else{v=300;n=`Mixed canasta of ${m.r}s`}
+      else if(!w){v=m.r==='7'||m.r==='A'?2500:500;n=`Natural canasta of ${rn(m.r)}`}else{v=300;n=`Mixed canasta of ${rn(m.r)}`}
       add(n,v)}
     if(outSeat!=null&&team(outSeat)===t)add('Going out',100);
   }
@@ -413,7 +427,7 @@ function scoreTeam(t,outSeat,special){
   const mv=G.melds[t].reduce((s,m)=>s+meldPts(m.cards),0);add('Melded cards',C>=1?mv:-mv);
   const hand=teamHand(t);add('Cards left in hand',-hand.filter(c=>!isThree(c)).reduce((s,c)=>s+val(c),0));
   if(hand.some(isThree))add('3 left in hand',-5*hand.filter(isThree).length);
-  for(const seat of [t,t+2])for(const r of ['A','7']){if(G.hands[seat].filter(c=>c.r===r).length>=3)add(`Three or more ${r}s left in hand`,-1500)}
+  for(const seat of [t,t+2])for(const r of ['A','7']){if(G.hands[seat].filter(c=>c.r===r).length>=3)add(`Three or more ${rn(r)} left in hand`,-1500)}
   return {rows,total:rows.reduce((s,x)=>s+x[1],0)};
 }
 function endHand(outSeat,why,special){
@@ -456,7 +470,7 @@ function botTurn(i){
   later(()=>botDiscard(i),SPEED*.6);
 }
 function botMeld(i){
-  const t=team(i),h=G.hands[i];
+  const t=team(i),h=G.hands[i];const before=G.melds[t].reduce((s,m)=>s+m.cards.length,0),cBefore=canastas(t).length;
   for(let pass=0;pass<20;pass++){
     let did=false;
     // add naturals to our melds
@@ -472,8 +486,8 @@ function botMeld(i){
       if(!meldAdd(i,m,[w.id])){wilds.shift();did=true}}
     if(!did)break;
   }
-  // going out: meld everything but one card
-  if(canGoOut(t)&&h.length===1)return;
+  const n=G.melds[t].reduce((s,m)=>s+m.cards.length,0)-before,c=canastas(t).length-cBefore;
+  if(n)log(`${NAMES[i]} melded ${n} card${n>1?'s':''}${c?` and finished ${c===1?'a canasta':c+' canastas'}!`:'.'}`);
 }
 function botDiscard(i){
   if(G.over||G.turn!==i)return;const t=team(i),h=G.hands[i],opp=1-t;
@@ -502,8 +516,11 @@ function doDraw(){if(!myTurn()||G.phase!=='draw')return;if(!G.stock.length){if(p
   if(!G.opened[0]){const sp=specialHand(G.hands[0]);if(sp)toast(`You have ${sp.name}! You can lay it down.`)}}
 function doPack(){if(!myTurn()||G.phase!=='draw')return;
   let open=[];
-  if(!G.opened[0]){open=staged.length?staged.map(g=>({cards:g.cards})):(findOpening(0,0)||[]);
-    if(!open.length){toast('To take the pack before your team has melded, you need a full initial meld in your hand');return}}
+  if(!G.opened[0]){
+    if(!staged.length){const op=findOpening(0,0);
+      if(!op){toast('To take the pack before your team has melded, you need a full initial meld in your hand');return}
+      staged=op;render();toast('This opening lets you take the pack. Tap Take the pack again to lay it down and take it.');return}
+    open=staged.map(g=>({cards:g.cards}))}
   const e=takePack(0,open);if(e){toast(e);return}staged=[];Sound.good();sel.clear();render()}
 function doStage(){if(!myTurn())return;const cs=selCards();if(!cs.length)return;
   const ranks=staged.map(g=>rankOf(g.cards));const e=checkNew(0,cs,true,ranks);if(e){toast(e);return}
@@ -527,7 +544,7 @@ function cardHTML(c,cls=''){
 }
 function backs(n,v){return `<div class="${v?'vbacks':'backs'}">${Array.from({length:Math.min(n,v?9:15)},()=>'<i></i>').join('')}</div>`}
 function meldHTML(m,x,mine){const c=m.cards.length>=7;const mixed=c&&m.r!=='W'&&wildCount(m)>0;
-  return `<button class="meld${c?' canasta':''}${mixed?' mixed':''}${mine&&myTurn()&&G.phase==='play'&&sel.size&&!c?' target':''}" ${mine?`data-add="${x}"`:''} aria-label="${m.r==='W'?'Wild cards':m.r+'s'}: ${m.cards.length} cards${c?', canasta':''}">${m.cards.map(k=>cardHTML(k,'sm')).join('')}<span class="cnt">${m.cards.length}</span></button>`}
+  return `<button class="meld${c?' canasta':''}${mixed?' mixed':''}${mine&&myTurn()&&G.phase==='play'&&sel.size&&!c?' target':''}" ${mine?`data-add="${x}"`:''} aria-label="${m.r==='W'?'Wild cards':rn(m.r)}: ${m.cards.length} cards${c?', canasta':''}">${m.cards.map(k=>cardHTML(k,'sm')).join('')}<span class="cnt">${m.cards.length}</span></button>`}
 function zoneHTML(t){
   const me=t===0,o=G.opened[t];
   const th=G.threes[t].length?`<span class="threes">${G.threes[t].map(c=>cardHTML(c,'sm')).join('')}</span>`:'';
@@ -549,7 +566,7 @@ function render(){
   $('#center').innerHTML=`<div class="pile"><div class="stock" aria-hidden="true"></div>${G.stock.length} left${G.stock.length<=8?' · bottom 8':''}</div>
     <div class="banner"><div class="st">${st}</div><div class="sub">${sub}</div></div>
     <div class="pile">${top?cardHTML(top):'<div class="emptypile"></div>'}Pack: ${G.pile.length}</div>`;
-  $('#log').textContent=logMsg;
+  $('#log').innerHTML=logs.map((m,x)=>`<div${x?' style="opacity:'+(x===1?.75:.5)+'"':''}>${m}</div>`).join('');
   const h=G.hands[0],me=$('#me');me.className='me'+(myTurn()?' turn':'');
   const sp=myTurn()&&G.phase==='play'&&!G.opened[0]?specialHand(h):null;
   let acts='';
@@ -562,6 +579,7 @@ function render(){
       acts=`${sp?`<button class="btn red" id="aSpecial">Lay down ${sp.name} (${sp.pts})</button>`:''}<button class="btn" id="aStage" ${sel.size?'':'disabled'}>Add to opening</button><button class="btn gold" id="aOpen" ${info.ok?'':'disabled'}>Lay down opening (${info.pts}/${info.need})</button><button class="btn sm" id="aSuggest">Suggest</button>${staged.length?'<button class="btn sm" id="aUnstage">Clear</button>':''}<button class="btn" id="aDiscard" ${sel.size===1&&!staged.length?'':'disabled'}>Discard</button>`}
     else acts=`<button class="btn" id="aMeld" ${sel.size?'':'disabled'}>Meld selected</button><button class="btn gold" id="aDiscard" ${sel.size===1?'':'disabled'}>${h.length===1?'Discard and go out':'Discard'}</button>`;
   }else if(G.over)acts='<button class="btn gold" id="aNext">Next hand</button>';
+  if(myTurn()&&sel.size)acts+=`<button class="btn sm" id="aClear">Clear selection (${sel.size})</button>`;
   const stagedIds=new Set(staged.flatMap(g=>g.cards.map(c=>c.id)));
   const shown=h.filter(c=>!stagedIds.has(c.id));
   me.innerHTML=`<div class="mehead"><span class="nm">Your hand</span><span class="info">${h.length} cards${G.talon[0].length?' · '+G.talon[0].length+' bonus cards next turn':''} · ${G.stock.length} in the draw pile</span></div>
@@ -573,9 +591,9 @@ function render(){
   hd.querySelectorAll('.card').forEach(e=>{e.tabIndex=0;e.setAttribute('role','button');const go=()=>{if(!myTurn())return;const id=+e.dataset.id;sel.has(id)?sel.delete(id):sel.add(id);Sound.tap();render()};e.onclick=go;e.onkeydown=k=>{if(k.key==='Enter'||k.key===' '){k.preventDefault();go()}}});
   document.querySelectorAll('[data-add]').forEach(e=>e.onclick=()=>addTo(+e.dataset.add));
   const b=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
-  b('aDraw',doDraw);b('aPack',doPack);b('aStage',doStage);b('aUnstage',unstage);b('aOpen',doOpen);b('aSuggest',doSuggest);b('aMeld',doMeld);b('aDiscard',doDiscard);b('aSpecial',doSpecial);b('aEnd',doEnd);b('aNext',newHand);
+  b('aDraw',doDraw);b('aPack',doPack);b('aStage',doStage);b('aUnstage',unstage);b('aOpen',doOpen);b('aSuggest',doSuggest);b('aMeld',doMeld);b('aDiscard',doDiscard);b('aSpecial',doSpecial);b('aEnd',doEnd);b('aNext',newHand);b('aClear',()=>{sel.clear();render()});
 }
-addEventListener('resize',()=>{if(G)render()});
+let lastW=innerWidth;addEventListener('resize',()=>{if(G&&Math.abs(innerWidth-lastW)>8){lastW=innerWidth;render()}});
 
 function showHelp(){
   $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>How to play</h2>
@@ -594,7 +612,10 @@ function showHelp(){
   $('#mClose').onclick=closeModal;$('#mClose').focus();
 }
 $('#bHelp').onclick=showHelp;
-$('#bNew').onclick=()=>{if(G&&!G.over&&!confirm('Start a new game? The scores go back to 0.'))return;score=[0,0];dealer=3;closeModal();newHand()};
+$('#bNew').onclick=()=>{
+  $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>Start a new game?</h2><p>Both scores go back to 0 and a fresh hand is dealt.</p>
+    <div class="mrow"><button class="btn gold" id="mYes">New game</button><button class="btn" id="mNo">Keep playing</button></div></div></div>`;
+  $('#mYes').onclick=()=>{score=[0,0];dealer=3;saveScores();closeModal();newHand()};$('#mNo').onclick=closeModal;$('#mNo').focus()};
 addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 newHand();

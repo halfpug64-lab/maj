@@ -2,7 +2,7 @@
 // The page itself is fetched fresh whenever there's a connection, so updates always reach players;
 // the saved copy is only used offline. Tiles, fonts and scripts load from the saved copy and refresh in the background.
 // Bump VERSION when files are added or removed so old copies get cleared.
-const VERSION='v2';
+const VERSION='v3';
 const CACHE='amj-'+VERSION;
 const FILES=[
   './',
@@ -409,13 +409,16 @@ self.addEventListener('fetch',e=>{
   const mine=u.origin===self.location.origin,font=u.hostname==='fonts.googleapis.com'||u.hostname==='fonts.gstatic.com';
   if(!mine&&!font)return;                       // multiplayer servers and anything else go straight to the network
   if(mine&&u.pathname.endsWith('/sw.js'))return;
-  if(r.mode==='navigate'||(mine&&(u.href.split(/[?#]/)[0]===PAGE||u.href.split(/[?#]/)[0]===new URL('./',self.registration.scope).href))){e.respondWith(pageFirst(r));return}
+  // pages and the game's own scripts come from the network first, so fixes reach players right away
+  if(r.mode==='navigate'||(mine&&/\.(html|js|webmanifest)$|\/$/.test(u.pathname))){e.respondWith(pageFirst(r));return}
   e.respondWith(savedFirst(r));
 });
 // the game page: the network, unless it's offline or takes more than 4 seconds; then the saved copy
 async function pageFirst(r){
-  const c=await caches.open(CACHE);const saved=()=>c.match(PAGE);
-  const net=fetch(r).then(res=>{if(res.ok)c.put(PAGE,res.clone());return res});
+  // each page is saved under its own address (without ?query), and the folder address is the game page
+  let key=r.url.split(/[?#]/)[0];if(key===new URL('./',self.registration.scope).href)key=PAGE;
+  const c=await caches.open(CACHE);const saved=()=>c.match(key);
+  const net=fetch(r).then(res=>{if(res.ok)c.put(key,res.clone());return res});
   const slow=new Promise(ok=>setTimeout(ok,4000)).then(saved);
   try{const res=await Promise.race([net,slow]);if(res)return res;return await net}
   catch(err){const s=await saved();if(s)return s;throw err}

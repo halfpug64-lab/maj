@@ -1336,6 +1336,8 @@ body.mp-client #btnGod{display:none}
 .gamepick button.on{background:var(--gold);color:#2b1d02;border-color:var(--gold)}.gamepick button.on small{color:#5a4410}
 .gamepick button:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
 @media(max-width:420px){.gamepick button{font-size:12.5px;min-height:54px;padding:8px 5px}}
+.beta{display:inline-block;font:800 9px/1 var(--body);font-style:normal;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle;padding:3px 5px;border-radius:6px;background:#e5484d;color:#fff;-webkit-text-fill-color:#fff;position:relative;top:-.1em}
+.splash-title .beta,.brand h1 .beta{font-size:clamp(10px,1.6vw,15px);padding:4px 7px;border-radius:8px;top:-.6em;animation:none;background-image:none}
 .faanlist,.faanref{display:grid;grid-template-columns:1fr auto;gap:4px 14px;margin:8px 0 12px;font-size:14px}
 .faanlist b,.faanref b{text-align:right}
 .faanref{font-size:12.5px;color:var(--muted)}.faanref b{color:var(--txt)}
@@ -1397,8 +1399,8 @@ body.mp-client #btnGod{display:none}
   <div class="splash-tag">NEW YORK EDITION</div>
   <div class="gamepick" role="radiogroup" aria-label="Game">
     <button role="radio" data-game="american" aria-checked="true">American Mah Jongg<small>2026 card</small></button>
-    <button role="radio" data-game="hk" aria-checked="false">Chinese Mahjong<small>Hong Kong rules</small></button>
-    <button role="radio" data-game="canasta" aria-checked="false">American Canasta<small>Modern rules</small></button>
+    <button role="radio" data-game="hk" aria-checked="false"><span>Chinese Mahjong <i class="beta">Beta</i></span><small>Hong Kong rules</small></button>
+    <button role="radio" data-game="canasta" aria-checked="false"><span>American Canasta <i class="beta">Beta</i></span><small>Modern rules</small></button>
   </div>
   <div class="splash-tabs" role="tablist" aria-label="Game mode"><button role="tab" id="tabSolo" class="on" aria-selected="true" aria-controls="splashSolo">Solo</button><button role="tab" id="tabMP" aria-selected="false" aria-controls="splashMP">Multiplayer</button></div>
   <div id="splashSolo" role="tabpanel">
@@ -1972,7 +1974,7 @@ let wallBreak=0,wallBuild=false;   // the four walls: 76 stacks of 2; draws star
 let building=null;   // exposure you're placing yourself: {t, from, tiles, botMJ, botExp}   // pendingStart: the next new game seats you at your chosen starting wind
 if(!settings.save){try{['amj_progress','amj_game','amj_progress_hk','amj_game_hk'].forEach(k=>localStorage.removeItem(k))}catch(e){}}   // off: nothing carries over
 // which game is on the table: 'american' or 'hk' (Hong Kong). Each keeps its own scores, East and saved game.
-let GAME=settings.game==='hk'?'hk':'american';
+let GAME=['hk','canasta'].includes(settings.game)?settings.game:'american';   // 'canasta' only marks the home screen choice: it plays on canasta.html
 function loadProgress(){
   scores=[0,0,0,0];dealer=-1;pendingStart=true;
   if(!settings.save)return;
@@ -2006,6 +2008,7 @@ function toast(m,kind=''){document.querySelectorAll('.toast').forEach(t=>t.remov
 
 function newGame(){
   if(GAME==='hk'){hkNewGame();return}
+  if(GAME==='canasta'){location.href='canasta.html?deal=1';return}
   godNext={};godDraw={};godDrawFor=null;gid++;closeModal();Sound.init();undoStack=[];homeOpen=false;
   wall=buildWall();discards=[];logs=[];logVer++;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];
   if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false}else dealer=(dealer+1)%4;
@@ -2861,7 +2864,7 @@ function godHTML(){
   const myTurn=phase==='play'&&turn===0&&step==='discard'&&!callState;const p0=players[0];const tiles0=p0.hand.length+p0.exp.reduce((x,e)=>x+e.n,0);
   const pick=`<div class="gpick">
      <div class="ghead">${godDrawFor!=null?`${godDrawFor===0?'Your':NAMES[godDrawFor]+"'s"} next draw will be:`:selT?`Change the ${tname(selT.k)} in ${where} to:`:'Give yourself a tile <span>(it replaces your least useful tile, or tap any tile below to change that one)</span>'}</div>
-     <div class="grow">${(GAME==='hk'?KINDS.filter(k=>k!=='J'):KINDS).map(k=>{const n=ed||(godDrawFor!=null&&godOn())?godAvail(k):0;return `<button class="gk" data-k="${k}" ${n?'':'disabled'} title="${tname(k)}">${tileHTML(k,'sm')}<b class="gcnt">${n}</b></button>`}).join('')}</div>
+     <div class="grow">${(GAME==='hk'?KINDS.filter(k=>k!=='J'&&k!=='F'):KINDS).map(k=>{const n=ed||(godDrawFor!=null&&godOn())?godAvail(k):0;return `<button class="gk" data-k="${k}" ${n?'':'disabled'} title="${tname(k)}">${tileHTML(k,'sm')}<b class="gcnt">${n}</b></button>`}).join('')}</div>
      ${godDrawFor!=null?'<div class="mrow gacts"><button class="btn btn-ghost sm" id="gUnsel">Cancel</button></div>':''}
      ${selT?`<div class="mrow gacts">${at.area==='h'&&!HUMAN[at.seat]&&phase==='play'?`<button class="btn btn-ghost sm" id="gThrow">Make ${NAMES[at.seat]} throw this next</button>`:''}${at.area==='w'?'<button class="btn btn-ghost sm" id="gDrawNext">Make this the next draw</button>':''}<button class="btn btn-ghost sm" id="gUnsel">Cancel</button></div>`:''}
    </div>`;
@@ -3578,7 +3581,7 @@ function showLobby(){
 const ICON_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
 const ICON_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>';
 function renderSoundBtn(){const b=$('#btnSound');b.innerHTML=Sound.on?ICON_ON:ICON_OFF;const l=Sound.on?'Mute sound':'Turn sound on';b.title=l;b.setAttribute('aria-label',l)}
-function startFromSplash(){if(NET.mode==='client')return;if(NET.mode==='host'&&room&&!room.started){showLobby();return}Sound.init();$('#splash').classList.add('hide');newGame()}
+function startFromSplash(){if(GAME==='canasta'){location.href='canasta.html?deal=1';return}if(NET.mode==='client')return;if(NET.mode==='host'&&room&&!room.started){showLobby();return}Sound.init();$('#splash').classList.add('hide');newGame()}
 $('#btnSound').onclick=()=>{Sound.on=!Sound.on;try{localStorage.setItem('amj_sound',Sound.on?'on':'off')}catch(e){}renderSoundBtn();if(Sound.on){Sound.init();Sound.chime()}};
 $('#btnCard').onclick=()=>GAME==='hk'?hkShowRules():showCard('view');
 $('#btnHelp').onclick=()=>GAME==='hk'?hkShowRules():showHelp();
@@ -3601,24 +3604,24 @@ $('#btnFull').onclick=()=>{try{document.fullscreenElement?document.exitFullscree
 // Home: solo games pause behind the home screen and Resume picks up right where you were.
 // ---- choosing a game on the home screen ----
 const GAMES={american:{title:'American Mah Jongg',sub:'Play your 2026 card against three computer players.'},
-  hk:{title:'Chinese Mahjong',tag:'HONG KONG OLD STYLE',sub:'Hong Kong Old Style rules against three computer players. You need 3 faan to win.'}};
-const gameSaved=()=>GAME==='hk'?hkSavedGame():savedGame();
-function syncSplashButtons(){const live=homeOpen,sv=!!gameSaved();$('#btnResume').hidden=!live&&!sv;$('#btnStart').textContent=live||sv?'New game':'Deal me in'}
+  hk:{title:'Chinese Mahjong',beta:true,tag:'HONG KONG OLD STYLE',sub:'Hong Kong Old Style rules against three computer players. You need 3 faan to win.'},
+  canasta:{title:'American Canasta',beta:true,tag:'MODERN AMERICAN RULES',sub:'You and a partner against two computer players, using the Canasta League of America rules. First team to 8,500 wins.'}};
+const gameSaved=()=>GAME==='hk'?hkSavedGame():GAME==='canasta'?null:savedGame();
+function syncSplashButtons(){const live=homeOpen&&GAME!=='canasta',sv=!!gameSaved();$('#btnResume').hidden=!live&&!sv;$('#btnStart').textContent=live||sv?'New game':'Deal me in'}
 function applyGameLabels(){
-  const g=GAMES[GAME];const h1=document.querySelector('.brand h1');if(h1)h1.textContent=g.title;
-  const st=document.querySelector('.splash-title');if(st)st.textContent=g.title;
+  const g=GAMES[GAME];const h1=document.querySelector('.brand h1');if(h1)h1.innerHTML=g.title+(g.beta?' <i class="beta">Beta</i>':'');
+  const st=document.querySelector('.splash-title');if(st)st.innerHTML=g.title+(g.beta?' <i class="beta">Beta</i>':'');
   const sb=document.querySelector('#splashSolo .splash-sub');if(sb)sb.textContent=g.sub;
   if(g.tag)document.querySelectorAll('.brand small,.splash-tag').forEach(e=>e.textContent=g.tag);
   document.querySelectorAll('[data-game]').forEach(b=>{const o=b.dataset.game===GAME;b.classList.toggle('on',o);b.setAttribute('aria-checked',o)});
-  const mp=document.getElementById('tabMP');if(mp){mp.hidden=GAME==='hk';if(GAME==='hk'&&mp.classList.contains('on'))document.getElementById('tabSolo').click()}
+  const mp=document.getElementById('tabMP');if(mp){mp.hidden=GAME!=='american';if(GAME!=='american'&&mp.classList.contains('on'))document.getElementById('tabSolo').click()}
   document.body.classList.toggle('game-hk',GAME==='hk');
   const cl=document.querySelector('#btnCard .lbl');if(cl)cl.textContent=GAME==='hk'?'Scoring':'The Card';
   const hb=document.getElementById('bHandsCard');if(hb)hb.textContent=GAME==='hk'?'Scoring':'The Card';
   const sh=document.querySelector('.sheet-bar b');if(sh)sh.textContent=GAME==='hk'?'Coach':'Your hands';
-  if(GAME==='hk')document.title='Chinese Mahjong · Hong Kong';
+  if(GAME==='hk')document.title='Chinese Mahjong · Hong Kong';if(GAME==='canasta')document.title='American Canasta';
 }
 function setGame(g){
-  if(g==='canasta'){location.href='canasta.html';return}
   if(g===GAME||MP())return;
   try{saveProgress()}catch(e){}
   GAME=g;settings.game=g;saveSettings();

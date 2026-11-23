@@ -308,7 +308,8 @@ function hkResolve(i,t){
        winShort:r&&r.faan<HK_MIN?r.faan:null,
        pung:c[x]>=2&&!botWin,kong:c[x]>=3&&!botWin&&wall.length>0,
        chows:(0===(i+1)%4&&!botWin&&!botPung)?hkChowSets(c,x):[]};
-    if(!o.win&&!o.pung&&!o.kong&&!o.chows.length&&!(o.winShort!=null&&!botWin))o=null}
+    if(!o.win&&o.winShort!=null&&!botWin)toast(`That ${tname(t.k)} would finish your hand, but only for ${o.winShort} faan (you need ${HK_MIN})`);
+    if(!o.win&&!o.pung&&!o.kong&&!o.chows.length)o=null}
   const cs={hk:true,i,t,o,botWin,botPung,botChow};
   if(o){callState=cs;if(o.win||o.pung||o.kong||o.chows.length)Sound.chime();render();return}
   hkFinish(cs,null);
