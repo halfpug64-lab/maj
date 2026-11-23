@@ -189,7 +189,7 @@ body.light .pillc{background:rgba(255,255,255,.6)}
   <a class="btn icon" href="index.html" id="bHome" title="Home screen" aria-label="Home screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/></svg></a>
   <h1>American Canasta <i class="beta">Beta</i></h1>
   <div class="sc" id="scores"></div>
-  <button class="btn icon" id="bSet" title="Rules and settings" aria-label="Rules and settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  <button class="btn icon" id="bSet" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   <button class="btn icon" id="bHelp" title="How to play" aria-label="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5V14"/><path d="M12 17.2h.01"/></svg></button>
   <button class="btn gold sm" id="bNew">New game</button>
 </header>
@@ -239,7 +239,7 @@ const CR_DEF={open:'pure',wildBase:5,specials:'basic',packOnOpen:true,lastThree:
 function CR(){return {...CR_DEF,...(G&&G.rules?G.rules:((typeof settings==='object'&&settings.canastaRules)||{}))}}
 const SA=()=>CR().sevensAces;   // the special 7s and Aces rules are on
 let settings={};try{settings=JSON.parse(localStorage.getItem('amj_settings'))||{}}catch(e){}
-const SPEED={slow:1300,normal:760,fast:380,instant:120}[settings.botSpeed]||760;
+const SPEEDS={slow:1300,normal:760,fast:380,instant:120};let SPEED=SPEEDS[settings.botSpeed]||760;   // shared with the mahjong games' Bot speed
 const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ---- look: colors and names follow the mahjong theme ----
@@ -832,7 +832,10 @@ function showRules(){
   const R={...CR_DEF,...(settings.canastaRules||{})};
   const seg=(k,label,desc,opts)=>`<div class="crow"><div><b>${label}</b><span>${desc}</span></div><div class="cseg" role="group" aria-label="${label}">${opts.map(([v,l])=>`<button class="${String(R[k])===String(v)?'on':''}" data-cr="${k}" data-v="${v}" aria-pressed="${String(R[k])===String(v)}">${l}</button>`).join('')}</div></div>`;
   const tog=(k,label,desc)=>`<div class="crow"><div><b>${label}</b><span>${desc}</span></div><label class="ctog"><input type="checkbox" data-ct="${k}" ${R[k]?'checked':''}><i></i></label></div>`;
-  $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>Rules</h2><p class="setnote">Changes count from the next hand.</p>
+  const sp=settings.botSpeed||'normal';
+  $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>Settings</h2>
+    <div class="crow"><div><b>Speed</b><span>How quickly the computer players take their turns. Changes apply right away (the mahjong games use the same setting).</span></div><div class="cseg" role="group" aria-label="Speed">${[['slow','Slow'],['normal','Default'],['fast','Fast'],['instant','Instant']].map(([v,l])=>`<button class="${sp===v?'on':''}" data-speed="${v}" aria-pressed="${sp===v}">${l}</button>`).join('')}</div></div>
+    <p class="setnote" style="margin-top:14px">Rule changes count from the next hand.</p>
     <h3>Table rules</h3>
     ${seg('wildBase','Natural cards before a wild','After your team\'s first meld, how many natural cards a meld needs before a wild card can go in.',[[2,'2'],[3,'3'],[5,'5']])}
     ${seg('open','Initial meld must include','What your team\'s first meld needs besides the point count.',[['pure','A clean or wild meld'],['naturals3','3 natural cards'],['none','Nothing extra']])}
@@ -850,6 +853,9 @@ function showRules(){
   document.querySelectorAll('[data-cr]').forEach(b=>b.onclick=()=>{const k=b.dataset.cr,raw=b.dataset.v;save(k,/^\d+$/.test(raw)?+raw:raw);
     document.querySelectorAll(`[data-cr="${k}"]`).forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
   document.querySelectorAll('[data-ct]').forEach(e=>e.onchange=()=>save(e.dataset.ct,e.checked));
+  document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{settings.botSpeed=b.dataset.speed;SPEED=SPEEDS[settings.botSpeed]||760;
+    try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.botSpeed=settings.botSpeed;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}
+    document.querySelectorAll('[data-speed]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
   $('#mDone').onclick=closeModal;$('#mDone').focus();
 }
 $('#bSet').onclick=showRules;

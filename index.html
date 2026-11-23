@@ -3064,7 +3064,7 @@ function showSettings(tab){
    <div class="setrow"><span class="st"><b>Screen layout</b><span class="d">Table view: just the game board with big tiles, and your hands open from the Hands button. Fit to screen: board plus the hands panels, no page scrolling. Scroll: everything at full size and you scroll the page.</span></span>
      <span class="seg" role="group" aria-label="Screen layout">${[['table','Table view'],['fit','Fit to screen'],['scroll','Scroll']].map(([v,l])=>`<button class="${settings.layout===v?'on':''}" data-layout="${v}" aria-pressed="${settings.layout===v}">${l}</button>`).join('')}</span></div>
    <div class="setrow"><span class="st"><b>Bot speed</b><span class="d">How quickly the other players take their turns. Changes apply right away.</span></span>
-     <span class="seg" role="group" aria-label="Bot speed">${[['slow','Slow'],['normal','Normal'],['fast','Fast'],['instant','Instant']].map(([v,l])=>`<button class="${settings.botSpeed===v?'on':''}" data-speed="${v}" aria-pressed="${settings.botSpeed===v}">${l}</button>`).join('')}</span></div>
+     <span class="seg" role="group" aria-label="Bot speed">${[['slow','Slow'],['normal','Default'],['fast','Fast'],['instant','Instant']].map(([v,l])=>`<button class="${settings.botSpeed===v?'on':''}" data-speed="${v}" aria-pressed="${settings.botSpeed===v}">${l}</button>`).join('')}</span></div>
    ${'' && swRow('s_walls','Show walls','Build the four walls around the discards like a real table, and draw tiles from them. When off, a simple counter shows how many tiles are left.',settings.walls)}
    ${swRow('s_topbub','Top suggestion bubble','Keep the top suggested hand in a bubble above your rack, next to your starred hands. Works in every screen layout.',settings.topBubble)}
    ${swRow('s_undo','Undo button','Shows an Undo button that takes back your last move: a discard, a call, a Joker swap, a Charleston pass or vote, or Mah Jongg. Everything the other players did after it is taken back too. Press it again to go further back. Solo games only.',settings.undo)}
@@ -3162,7 +3162,7 @@ function showSettings(tab){
 let settingsFromLobby=false;
 function settingsDone(){if(settingsFromLobby&&room){settingsFromLobby=false;showLobby()}else{settingsFromLobby=false;closeModal()}}
 function setTabs(cur){return `<div class="tabs settabs" role="tablist" aria-label="Settings sections"><button role="tab" aria-selected="${cur==='game'}" class="${cur==='game'?'on':''}" onclick="showSettings('game')">Game</button><button role="tab" aria-selected="${cur==='room'}" class="${cur==='room'?'on':''}" onclick="showSettings('room')">Multiplayer</button></div>`}
-const SPEED_NAMES={slow:'Slow',normal:'Normal',fast:'Fast',instant:'Instant'};
+const SPEED_NAMES={slow:'Slow',normal:'Default',fast:'Fast',instant:'Instant'};
 function showRoomSettings(){
   pauseGame();
   const guest=NET.mode==='client',r=guest?(NET.rules||{}):RM(),hosting=NET.mode==='host';
@@ -3176,7 +3176,7 @@ function showRoomSettings(){
         <li><b>Suggested hands</b><span>${r.hints?'On':'Off'}</span></li>
         <li><b>After each discard</b><span>${r.proceed?'Everyone taps Proceed':'Move on automatically'}</span></li>
         <li><b>Bot difficulty</b><span>${LEVELS[r.diff??1]}</span></li>
-        <li><b>Bot speed</b><span>${SPEED_NAMES[r.botSpeed]||'Normal'}</span></li>
+        <li><b>Bot speed</b><span>${SPEED_NAMES[r.botSpeed]||'Default'}</span></li>
         <li><b>House rules</b><span>${on.length?on.map(esc).join(', '):'None, standard rules only'}</span></li></ul>
       <div class="mrow"><button class="btn btn-gold" onclick="settingsDone()">Done</button></div>`);
     return;
@@ -3581,7 +3581,7 @@ function roomSummaryHTML(r){
   if(!r)return '';
   const hr=r.house?HR.filter(([k])=>r.hr&&r.hr[k]).map(([,l])=>l):[];
   return `<ul class="rulechips" aria-label="Room rules"><li>Suggested hands ${r.hints?'on':'off'}</li><li>${r.proceed?'Everyone taps Proceed':'Moves on automatically'}</li>
-    <li>${LEVELS[r.diff??1]} bots · ${(SPEED_NAMES[r.botSpeed]||'Normal').toLowerCase()} speed</li><li>${hr.length?`House rules: ${hr.length}`:'Standard rules'}</li></ul>`;
+    <li>${LEVELS[r.diff??1]} bots · ${(SPEED_NAMES[r.botSpeed]||'Default').toLowerCase()} speed</li><li>${hr.length?`House rules: ${hr.length}`:'Standard rules'}</li></ul>`;
 }
 function showLobby(){
   if(!room)return;
