@@ -235,10 +235,13 @@ const team=i=>i%2;   // seats 0 and 2 (you and your partner) are team 0
 const THREE_PTS=[0,100,300,500,1000];
 const GOAL=8500;
 // Table and house rules (the gear button). A hand keeps the rules it was dealt with; changes count from the next hand.
-const CR_DEF={open:'pure',wildBase:5,specials:'basic',packOnOpen:true,lastThree:true,deadForBoth:true,barGoOut:false,sevensAces:true,keepThree:false};
+const CR_DEF={v:2,open:'pure',wildBase:5,specials:'basic',packOnOpen:true,lastThree:true,deadForBoth:true,barGoOut:true,sevensAces:true};
 function CR(){return {...CR_DEF,...(G&&G.rules?G.rules:((typeof settings==='object'&&settings.canastaRules)||{}))}}
-const SA=()=>CR().sevensAces;   // the special 7s and Aces rules are on
+const SA=()=>CR().sevensAces;   // the special 7s and Aces rules (on unless the table switches them off)
 let settings={};try{settings=JSON.parse(localStorage.getItem('amj_settings'))||{}}catch(e){}
+// rules saved before v2 had the going-out rule off by default and a "hold a 3" switch: bring them up to date once
+if(settings.canastaRules&&settings.canastaRules.v!==2){const r=settings.canastaRules;r.v=2;r.barGoOut=true;delete r.keepThree;
+  try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.canastaRules=r;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}}
 const SPEEDS={slow:1300,normal:760,fast:380,instant:120};let SPEED=SPEEDS[settings.botSpeed]||760;   // shared with the mahjong games' Bot speed
 const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -296,7 +299,7 @@ function toast(m){document.querySelectorAll('.toast').forEach(t=>t.remove());con
 
 // ---- threes: always laid out, with a replacement drawn ----
 // a player may hold one 3 for a Straight until their team melds (you: the house rule; computer players: when close to one)
-function keepsThree(i){if(G.opened[team(i)])return false;if(i===0)return !!CR().keepThree;return new Set(G.hands[i].filter(c=>!isThree(c)).map(c=>c.r)).size>=10}
+function keepsThree(i){if(G.opened[team(i)])return false;if(i===0)return true;return new Set(G.hands[i].filter(c=>!isThree(c)).map(c=>c.r)).size>=10}
 function layThrees(i){
   const h=G.hands[i];let n=0;const keep=keepsThree(i);
   for(let g=0;g<30;g++){const ts=h.filter(isThree);if(!ts.length||(keep&&ts.length===1))break;const t=ts[0];fly(t,src(i,t.id));h.splice(h.indexOf(t),1);G.threes[team(i)].push(t);n++;
@@ -627,6 +630,13 @@ function botDiscard(i){
   const c=cands[0]||h[0];h.splice(h.indexOf(c),1);G.pile.push(c);if(!h.length&&canGoOut(t)){endHand(i,'out');return}G.turn=(i+1)%4;startTurn();
 }
 
+// lay down the 3 you were holding and draw a replacement
+function layHeldThree(){if(!myTurn())return;const h=G.hands[0],t=h.find(isThree);if(!t)return;
+  fly(t,src(0,t.id));h.splice(h.indexOf(t),1);G.threes[0].push(t);
+  if(G.stock.length){const sr=stockRect();const c=G.stock.pop();h.push(c);G.newIds=new Set([c.id]);fly(c,sr,{delay:200});
+    if(isThree(c)&&h.filter(isThree).length>1)layThrees(0)}
+  sortHand(h);log('You laid out your 3 and drew a replacement.');Sound.flick();sel.clear();render()}
+
 // ================= Hints =================
 function rankDiscards(i){
   const t=team(i),h=G.hands[i],opp=1-t;const swad=c=>isWild(c)||(SA()&&(c.r==='7'||c.r==='A'))||isDead(c.r);
@@ -785,6 +795,7 @@ function render(){
     else acts=`<button class="btn" id="aMeld" ${sel.size?'':'disabled'}>Meld selected</button><button class="btn gold" id="aDiscard" ${sel.size===1?'':'disabled'}>${h.length===1?'Discard and go out':'Discard'}</button>`;
   }else if(G.over)acts='<button class="btn gold" id="aNext">Next hand</button>';
   if(myTurn()&&sel.size)acts+=`<button class="btn sm" id="aClear">Clear selection (${sel.size})</button>`;
+  if(myTurn()&&!G.opened[0]&&h.some(isThree))acts+=`<button class="btn sm" id="aLay3" title="You're holding a 3 for a Straight">Lay down your 3</button>`;
   if(myTurn())acts+=`<button class="btn sm" id="aHint" title="What should I do?">💡 Hint</button>`;
   const stagedIds=new Set(staged.flatMap(g=>g.cards.map(c=>c.id)));
   const shown=h.filter(c=>!stagedIds.has(c.id));
@@ -807,14 +818,14 @@ function render(){
     toast(`${t===0?'Your team':'They'} made a canasta! ${canastaValue(m)[1]} · ${canastaValue(m)[0]}`)}
   const ban=$('#center .banner .st');if(ban&&ban.textContent!==lastBanner){lastBanner=ban.textContent;ban.parentElement.classList.add('swap')}
   if(G.hint!=null){const e=document.querySelector(`#hand [data-id="${G.hint}"]`);if(e)e.classList.add('hint')}
-  b('aDraw',doDraw);b('aPack',doPack);b('aHint',doHint);b('aStage',doStage);b('aUnstage',unstage);b('aOpen',doOpen);b('aSuggest',doSuggest);b('aMeld',doMeld);b('aDiscard',doDiscard);b('aSpecial',doSpecial);b('aEnd',doEnd);b('aNext',newHand);b('aClear',()=>{sel.clear();render()});
+  b('aDraw',doDraw);b('aPack',doPack);b('aHint',doHint);b('aLay3',layHeldThree);b('aStage',doStage);b('aUnstage',unstage);b('aOpen',doOpen);b('aSuggest',doSuggest);b('aMeld',doMeld);b('aDiscard',doDiscard);b('aSpecial',doSpecial);b('aEnd',doEnd);b('aNext',newHand);b('aClear',()=>{sel.clear();render()});
 }
 let lastBanner='';let lastW=innerWidth;addEventListener('resize',()=>{if(G&&Math.abs(innerWidth-lastW)>8){lastW=innerWidth;render()}});
 
 function showHelp(){
   $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>How to play</h2>
    <p>Modern American Canasta, following the Canasta League of America rules. You and ${NAMES[2]} (across) are partners against ${NAMES[1]} and ${NAMES[3]}. First team to <b>${GOAL}</b> wins.</p>
-   <h3>Cards</h3><p>Two decks plus four jokers (108 cards). 2s and jokers are wild. 3s are set out on the table as soon as you get them, and you draw a replacement. Everything else, 4 through Ace, is natural. Values: jokers 50, Aces and 2s 20, 8 through King 10, 4 through 7 5.</p>
+   <h3>Cards</h3><p>Two decks plus four jokers (108 cards). 2s and jokers are wild. 3s go out on the table with a replacement drawn, except that until your team melds you may hold one 3 in your hand for the Straight (lay it down any time). Everything else, 4 through Ace, is natural. Values: jokers 50, Aces and 2s 20, 8 through King 10, 4 through 7 5.</p>
    <h3>Your turn</h3><p>Draw one card, or take the whole pack: show two natural cards of the top card's rank and meld them with it (if your team has a meld of that rank with three or four cards, they join it). Then meld if you like, and finish by discarding one card.</p>
    <h3>Melds</h3><ul><li>Three to seven cards of one rank. Seven cards make a canasta.</li><li>At least two natural cards and no more than two wild cards. After your team's initial meld, a meld needs ${CR().wildBase} natural cards before a wild card can go in.</li>
    ${SA()?'<li>7s never take wild cards. Aces can only take a wild card in the initial meld.</li>':''}<li>A meld of all wild cards is allowed, but your team can't add wild cards anywhere else until it's finished.</li><li>When a natural canasta of a rank closes, ${CR().deadForBoth?'nobody':'that team'} can meld that rank again.</li></ul>
@@ -843,10 +854,8 @@ function showRules(){
     ${tog('packOnOpen','Take the pack when you open','Allow taking the discard pile on the turn your team makes its initial meld.')}
     ${tog('deadForBoth','Closed ranks are dead for both teams','When off, a team can keep melding a rank the other team closed.')}
     ${tog('lastThree','A 3 as the last card ends the hand','Drawing a 3 as the very last card ends the hand at once (it counts 5 against).')}
-    <h3>House rules</h3>
     ${tog('sevensAces','Special 7s and Aces rules','On: 7s never take wild cards, Aces take them only in the first meld, natural Aces or 7s canastas score 2,500, an unfinished 7s meld or an unfinished Aces meld with no wild cards costs 2,500 (an Aces meld with a wild card is an ordinary mixed meld: no penalty), and holding three or more 7s or Aces at the end costs 1,500. Off: 7s and Aces play like any other rank.')}
-    ${tog('barGoOut','No going out with an unfinished 7s or Aces meld','Your team can\'t go out while it has a pure 7s or Aces meld under seven cards.')}
-    ${tog('keepThree','Hold a 3 for a Straight','Keep one 3 in your hand until your team melds, so you can try for the Straight.')}
+    ${tog('barGoOut','No going out with an unfinished 7s or Aces meld','Your team can\'t go out while it has a 7s meld or an Aces meld with no wild cards under seven cards.')}
     <div class="mrow"><button class="btn gold" id="mDone">Done</button></div></div></div>`;
   const save=(k,v)=>{settings.canastaRules={...CR_DEF,...(settings.canastaRules||{}),[k]:v};
     try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.canastaRules=settings.canastaRules;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}};
