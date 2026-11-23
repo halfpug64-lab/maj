@@ -124,7 +124,7 @@ function hkCond(seat,ctx,concealed){
 }
 function hkLimit(seat,name,val,ctx){
   // limit hands score the hand and how it was won; winds, dragons and flowers add nothing
-  const items=[[name,val],...hkCond(seat,ctx,false)];
+  const items=[...(val?[[name,val]]:[]),...hkCond(seat,ctx,false)];
   const raw=items.reduce((s,x)=>s+x[1],0);
   return {faan:Math.min(HK_MAX,raw),raw,items,limit:true};
 }
@@ -462,26 +462,59 @@ function hkStatus(){
   }else{status='Hand over';acts='<button class="btn btn-gold" id="bNext">Next hand</button>'}
   return {status,sub,acts,dir};
 }
+// ---- the faan counter: what your hand is worth right now ----
+// A complete hand shows its exact faan. A ready hand shows the best tile it can win on.
+// Otherwise it adds up what you already hold: dragon and wind pungs, flowers, one suit, a concealed hand.
+let hkFaanOpen=false;
+// the coach (how close you are, what to throw) is its own switch, off unless you turn it on
+const hkCoachOn=()=>settings.hkCoach===true;
+function hkFaanNow(){
+  const p=players[0];if(!p||phase!=='play')return null;
+  const n=p.hand.length+3*p.exp.length;
+  if(n===14&&turn===0&&!hkLast.claimed){const r=hkEval(0,p.hand,hkCtxSelf(0));if(r)return {faan:r.faan,items:r.items,kind:'win'}}
+  if(n===13){const w=hkWaits(0);if(w.length){const top=w.reduce((a,b)=>b.faan>a.faan?b:a);const r=hkEval(0,[...p.hand,{k:top.k}],{win:HKI[top.k]});
+    return {faan:top.faan,items:r?r.items:[],kind:'ready',k:top.k}}}
+  const c=hkCounts(p.hand),it=[];
+  const pung=x=>c[x]>=3||p.exp.some(e=>e.type!=='chow'&&HKI[e.k]===x);
+  const dr=[31,32,33].filter(pung).length;if(dr)it.push([dr===1?'Dragon pung':'Dragon pungs',dr]);
+  const sw=27+hkSeatWind(0),pw=27+hkWind;
+  if(pung(sw))it.push(['Seat wind pung',1]);if(pung(pw))it.push(['Prevailing wind pung',1]);
+  const all=[...p.hand,...p.exp.flatMap(e=>e.tiles)].filter(t=>t.k!=='F').map(t=>HKI[t.k]);
+  const suits=new Set(all.filter(hkIsSuit).map(i=>Math.floor(i/9)));
+  if(suits.size===1)it.push(all.some(hkIsHonor)?['Mixed one suit so far',3]:['All one suit so far',7]);
+  it.push(...hkFlowerItems(0));
+  if(p.exp.every(e=>e.conc))it.push(['Concealed so far',1]);
+  return {faan:Math.min(HK_MAX,it.reduce((a,x)=>a+x[1],0)),items:it,kind:'sofar'};
+}
+function hkFaanHTML(){
+  if(settings.hkFaan===false)return '';
+  const f=hkFaanNow();if(!f)return '';
+  const ok=f.faan>=HK_MIN,label=f.kind==='win'?'Your hand':f.kind==='ready'?'Ready, best win':'So far';
+  const note=f.kind==='ready'?`on ${tileHTML(f.k,'xs')}`:f.kind==='win'?(ok?'<span class="pill done">Enough to win</span>':`<span class="pill">need ${HK_MIN}</span>`):`<span class="fneed">need ${HK_MIN}</span>`;
+  return `<div class="bubble faanbub${ok?' ok':''}"><button class="bhead" onclick="hkFaanOpen=!hkFaanOpen;render()" aria-expanded="${hkFaanOpen}" title="Tap to see what counts"><span class="bk">Faan</span><b class="fnum">${f.faan}</b><span class="flab">${label}</span>${note}</button>
+    ${hkFaanOpen?`<div class="flist">${f.items.length?f.items.map(([n,v])=>`<span>${n}</span><b>${v}</b>`).join(''):'<span>Nothing yet: dragon or wind pungs, flowers and one-suit hands add faan.</span>'}${f.kind==='sofar'?'<em>Ways of winning (self-drawn, last tile, and so on) and the shape of the finished hand (all chows, all pungs) add more when you win.</em>':''}</div>`:''}</div>`;
+}
 function hkBubbleHTML(){
-  if(phase!=='play'||!showHints)return '';
-  const co=hkCoach();if(!co)return '';
+  if(phase!=='play')return '';
+  const fb=hkFaanHTML();if(!hkCoachOn())return fb?`<div class="bubbles">${fb}</div>`:'';
+  const co=hkCoach();if(!co)return fb?`<div class="bubbles">${fb}</div>`:'';
   const pill=co.win?'<span class="pill done">Mah Jongg!</span>':co.sh===0||co.ready?'<span class="pill done">Ready</span>':`<span class="pill">${co.sh} from ready</span>`;
-  return `<div class="bubbles"><div class="bubble"><div class="bhead hkbub"><span class="bk">Coach</span>${pill}<span class="hkbt">${co.suggest?'Throw '+tileHTML(co.suggest,'xs'):co.waits&&co.waits.length?co.waits.map(w=>tileHTML(w.k,'xs')).join(''):''}</span></div></div></div>`;
+  return `<div class="bubbles">${fb}<div class="bubble"><div class="bhead hkbub"><span class="bk">Coach</span>${pill}<span class="hkbt">${co.suggest?'Throw '+tileHTML(co.suggest,'xs'):co.waits&&co.waits.length?co.waits.map(w=>tileHTML(w.k,'xs')).join(''):''}</span></div></div></div>`;
 }
 function hkRenderSide(){
   const p=players[0];
   $('#stars').innerHTML=`<div class="ph"><h3>Scoring</h3><span class="sub">${HK_MIN} faan to win · max ${HK_MAX}</span></div>
    <div class="faanref">${[['All chows',1],['All pungs',3],['Mixed one suit',3],['All one suit',7],['Dragon pung (each)',1],['Seat or prevailing wind pung',1],['Small / Great Three Dragons','5 / 8'],['Small Four Winds',6],['Self-drawn',1],['Concealed hand',1],['No flowers',1],['Own flower or season',1],['Limit hands','10']].map(([n,f])=>`<span>${n}</span><b>${f}</b>`).join('')}</div>`;
   let body;
-  if(!showHints)body='<div class="muted-note">The coach is off. Turn it on to see how close you are and what to throw.</div>';
+  if(!hkCoachOn())body='<div class="muted-note">The coach is off. Turn it on to see how close you are and what to throw.</div>';
   else if(phase!=='play')body='<div class="muted-note">Tips show up once the tiles are dealt.</div>';
   else{const co=hkCoach();
     body=`<div class="hkcoach"><p><b>${co.text}</b></p>
       ${co.suggest?`<div class="hkrow">Suggested throw: ${tileHTML(co.suggest,'md')}</div>`:''}
       ${co.waits&&co.waits.length?`<div class="hkwaits">${co.waits.map(w=>`<div class="${w.faan>=HK_MIN?'':'short'}">${tileHTML(w.k,'md')}<span>${w.faan} faan</span></div>`).join('')}</div>`:''}
       <p class="setnote">Flowers and seasons: ${p.flowers.length?p.flowers.map(t=>HK_FLOWER[t.v]||HK_SEASON[t.v-4]).join(', '):'none yet (worth 1 faan if you win without any)'}. Your wind: ${windOf(0)}. Round: ${HK_WINDNAME[hkWind]}.</p></div>`}
-  $('#hints').innerHTML=`<div class="ph"><h3>Coach</h3><label class="switch" for="hintToggle"><input type="checkbox" id="hintToggle" ${showHints?'checked':''}><span class="track"><span class="knob"></span></span><span>${showHints?'On':'Off'}</span></label></div>${body}`;
-  $('#hintToggle').onchange=e=>{setHints(e.target.checked);render()};
+  $('#hints').innerHTML=`<div class="ph"><h3>Coach</h3><label class="switch" for="hintToggle"><input type="checkbox" id="hintToggle" ${hkCoachOn()?'checked':''}><span class="track"><span class="knob"></span></span><span>${hkCoachOn()?'On':'Off'}</span></label></div>${body}`;
+  $('#hintToggle').onchange=e=>{settings.hkCoach=e.target.checked;saveSettings();render()};
 }
 function hkShowRules(){
   pauseGame();

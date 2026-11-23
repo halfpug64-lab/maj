@@ -61,7 +61,13 @@ main{display:grid;grid-template-columns:minmax(64px,110px) 1fr minmax(64px,110px
 .meld .cnt{position:absolute;right:-6px;top:-8px;background:#1d1a14;color:#fff;border-radius:10px;font:800 11px/1 var(--body);padding:3px 6px;z-index:3}
 .meld.canasta{border-color:#e5484d;box-shadow:0 0 0 2px #e5484d inset}.meld.canasta.mixed{border-color:#111;box-shadow:0 0 0 2px #111 inset}
 .meld.canasta .cnt{background:#e5484d}.meld.canasta.mixed .cnt{background:#111}
-.meld.staged{border:2px dashed var(--accent)}
+.meld.staged{border:2px dashed var(--accent);cursor:pointer;background:rgba(255,255,255,.05)}
+.meld.staged .cnt{background:var(--accent);color:#1d1a14}
+.opentray{display:flex;align-items:center;gap:8px;align-self:center;font-size:13px;color:var(--muted)}.opentray b{color:var(--accent);font-size:16px}
+.ptsbub{margin-left:auto;display:inline-flex;align-items:baseline;gap:6px;border:0;border-radius:999px;padding:5px 10px 5px 12px;background:var(--accent);color:#1d1a14;font:700 13px/1 var(--body);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.3);animation:bubIn .18s ease-out}
+.ptsbub b{font-size:18px;font-weight:900}.ptsbub span{font-size:11px;opacity:.75}.ptsbub i{font-style:normal;font-size:11px;opacity:.6;margin-left:2px}
+@keyframes bubIn{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.ptsbub{animation:none}}
 .threes{display:flex;gap:3px;align-items:center;margin-left:auto}
 .center{display:flex;align-items:center;justify-content:center;gap:clamp(14px,4vw,40px);padding:6px 0;flex-wrap:wrap}
 .pile{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--muted);font-weight:700}
@@ -239,7 +245,7 @@ const GOAL=8500;
 // Table and house rules (the gear button). A hand keeps the rules it was dealt with; changes count from the next hand.
 const CR_DEF={v:2,open:'pure',wildBase:5,specials:'basic',packOnOpen:true,lastThree:true,deadForBoth:true,barGoOut:true,sevensAces:true};
 function CR(){return {...CR_DEF,...(G&&G.rules?G.rules:((typeof settings==='object'&&settings.canastaRules)||{}))}}
-const showSuggest=()=>settings.cnSuggest!==false,showHint=()=>settings.cnHint!==false;   // helper buttons (Settings)
+const showSuggest=()=>settings.cnSuggest===true,showHint=()=>settings.cnHint===true,showPts=()=>settings.cnPoints!==false;   // helpers (Settings): Suggest and Hint start off, the points bubble on
 const SA=()=>CR().sevensAces;   // the special 7s and Aces rules (on unless the table switches them off)
 let settings={};try{settings=JSON.parse(localStorage.getItem('amj_settings'))||{}}catch(e){}
 // rules saved before v2 had the going-out rule off by default and a "hold a 3" switch: bring them up to date once
@@ -704,7 +710,7 @@ function doHint(){
     else msg='Draw a card.';
   }else{
     const ideas=[];
-    if(!G.opened[0]){const op=findOpening(0,G.stock.length>8?1:2);if(op)ideas.push('You can open now: tap Suggest, then Lay down opening.');else ideas.push(`Not enough to open yet (you need ${minMeld(0)}).`)}
+    if(!G.opened[0]){const op=findOpening(0,G.stock.length>8?1:2);if(op)ideas.push(showSuggest()?'You can open now: tap Suggest opening.':'You can open now: pick each group and tap Meld.');else ideas.push(`Not enough to open yet (you need ${minMeld(0)}).`)}
     else{
       const by={};for(const c of h)if(isNat(c))(by[c.r]=by[c.r]||[]).push(c);
       const list=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
@@ -727,7 +733,7 @@ function myTurn(){return G&&!G.over&&G.turn===0}
 function selCards(){return [...sel].map(id=>G.hands[0].find(c=>c.id===id)).filter(Boolean)}
 function act(fn){const e=fn();if(e){toast(e);return false}sel.clear();G.hint=null;render();return true}
 function doDraw(){if(!myTurn()||G.phase!=='draw')return;if(!G.stock.length){if(packOption(0).how&&G.opened[0]){toast('No cards left to draw: take the pack or end the hand');return}endHand(null,'stock');return}
-  drawCard(0);if(G.over)return;Sound.tap();sel.clear();render();
+  drawCard(0);if(G.over)return;Sound.tap();if(staged.length&&!G.opened[0]&&openingInfo(0,staged).ok)tryOpen();else render();
   if(!G.opened[0]){const sp=specialHand(G.hands[0]);if(sp)toast(`You have ${sp.name}! You can lay it down.`)}}
 function doPack(){if(!myTurn()||G.phase!=='draw')return;
   let open=[];
@@ -738,16 +744,30 @@ function doPack(){if(!myTurn()||G.phase!=='draw')return;
     open=staged.map(g=>({cards:g.cards}))}
   const e=takePack(0,open);if(e){toast(e);return}staged=[];Sound.good();sel.clear();render()}
 function doStage(){if(!myTurn())return;const cs=selCards();if(!cs.length)return;
-  const ranks=staged.map(g=>rankOf(g.cards));const e=checkNew(0,cs,true,ranks);if(e){toast(e);return}
-  staged.push({cards:cs});sel.clear();render()}
+  // same rank as a group already waiting: add to it
+  const r=rankOf(cs),gx=cs.some(isNat)?staged.findIndex(g=>rankOf(g.cards)===r):-1;
+  if(gx>=0){const all=[...staged[gx].cards,...cs],ranks=staged.filter((g,x)=>x!==gx).map(g=>rankOf(g.cards));const e=checkNew(0,all,true,ranks);if(e){toast(e);return}staged[gx]={cards:all}}
+  else{const ranks=staged.map(g=>rankOf(g.cards));const e=checkNew(0,cs,true,ranks);if(e){toast(e);return}staged.push({cards:cs})}
+  sel.clear();Sound.tap();tryOpen()}
+// the waiting groups go down as soon as they make the minimum (only after you've drawn)
+function tryOpen(){
+  if(G.phase==='play'&&staged.length&&openingInfo(0,staged).ok){const e=layMelds(0,staged);if(!e){staged=[];Sound.good();render();return}toast(e)}
+  else if(G.phase==='draw'&&staged.length)toast(openingInfo(0,staged).ok?'Draw to lay it down, or take the pack with it.':'Saved toward your opening. Draw, or take the pack with it.');
+  render()}
+// tap a waiting group: with cards picked, add them to it; with nothing picked, take it back
+function stagedTap(x){if(!myTurn())return;const cs=selCards();
+  if(!cs.length){staged.splice(x,1);render();return}
+  const all=[...staged[x].cards,...cs],ranks=staged.filter((g,y)=>y!==x).map(g=>rankOf(g.cards));const e=checkNew(0,all,true,ranks);if(e){toast(e);return}
+  staged[x]={cards:all};sel.clear();Sound.tap();tryOpen()}
 function unstage(){staged=[];render()}
 function doOpen(){if(!myTurn()||G.phase!=='play')return;const e=layMelds(0,staged);if(e){toast(e);return}staged=[];Sound.good();render()}
-function doSuggest(){if(!myTurn())return;const op=findOpening(0,G.phase==='draw'?0:(G.stock.length>8?1:2));if(!op){toast(`No initial meld of ${openNeed(0)} in your hand yet`);return}staged=op;sel.clear();render()}
-function doMeld(){if(!myTurn()||G.phase!=='play')return;const cs=selCards();if(!cs.length)return;
+function doSuggest(){if(!myTurn())return;const op=findOpening(0,G.phase==='draw'?0:(G.stock.length>8?1:2));if(!op){toast(`No initial meld of ${openNeed(0)} in your hand yet`);return}staged=op;sel.clear();if(G.phase==='play')tryOpen();else render()}
+function doMeld(){if(!myTurn())return;if(G.phase!=='play'&&G.opened[0])return;const cs=selCards();if(!cs.length)return;
+  if(!G.opened[0]){doStage();return}
   const r=rankOf(cs);const m=teamMeld(0,r);act(()=>m?meldAdd(0,m,cs.map(c=>c.id)):meldNew(0,cs.map(c=>c.id)))}
 function addTo(mi){if(!myTurn()||G.phase!=='play'||!G.opened[0])return;const cs=selCards();if(!cs.length){toast('Pick cards first, then tap the meld');return}act(()=>meldAdd(0,G.melds[0][mi],cs.map(c=>c.id)))}
 function doDiscard(){if(!myTurn()||G.phase!=='play')return;const cs=selCards();if(cs.length!==1){toast('Pick one card to discard');return}
-  if(staged.length){toast('Lay down or clear your opening first');return}
+  if(staged.length){const n=openingInfo(0,staged);toast(`Your opening is ${n.pts} of ${n.need}. Add more, or tap Cancel to take the cards back.`);return}
   if(G.mustOut&&G.mustOut[0]&&G.hands[0].length>1&&canFinish(0)){toast(`You told ${NAMES[2]} you'd go out: meld everything but one card first, then discard it.`);return}
   G.hint=null;const e=discardCard(0,cs[0].id);if(e){toast(e);return}sel.clear();render()}
 function doSpecial(){if(!myTurn()||G.phase!=='play'||G.opened[0])return;const sp=specialHand(G.hands[0]);if(sp)endHand(null,'special',{...sp,t:0,seat:0})}
@@ -810,7 +830,7 @@ function zoneHTML(t){
   const me=t===0,o=G.opened[t];
   const th=G.threes[t].length?`<span class="threes">${G.threes[t].map(c=>cardHTML(c,'sm')).join('')}</span>`:'';
   return `<h3><span class="team ${me?'us':'them'}">${me?`You & ${NAMES[2]}`:`${NAMES[1]} & ${NAMES[3]}`}</span><b>${score[t]}</b><span class="pillc">${o?`${canastas(t).length} canasta${canastas(t).length===1?'':'s'}`:`needs ${minMeld(t)} to open`}</span>${th}</h3>
-   <div class="melds">${G.melds[t].map((m,x)=>meldHTML(m,x,me,t)).join('')}${me&&staged.length?staged.map(g=>`<div class="meld staged">${g.cards.map(k=>cardHTML(k,'sm')).join('')}<span class="cnt">${g.cards.length}</span></div>`).join(''):''}${!G.melds[t].length&&!(me&&staged.length)?'<span class="log">No melds yet</span>':''}</div>`;
+   <div class="melds">${G.melds[t].map((m,x)=>meldHTML(m,x,me,t)).join('')}${me&&staged.length?(()=>{const n=openingInfo(0,staged);return staged.map((g,x)=>`<button class="meld staged" data-stg="${x}" title="Tap with cards picked to add them; tap with nothing picked to take this back" aria-label="Waiting for your opening: ${g.cards.length} cards">${g.cards.map(k=>cardHTML(k,'sm')).join('')}<span class="cnt">${meldPts(g.cards)}</span></button>`).join('')+`<div class="opentray"><span><b>${n.pts}</b> of ${n.need}${n.pts>=n.need&&!n.clean?' · needs a clean meld':''}</span><button class="btn sm" id="aUnstage">Cancel</button></div>`})():''}${!G.melds[t].length&&!(me&&staged.length)?'<span class="log">No melds yet</span>':''}</div>`;
 }
 function render(){
   $('#scores').innerHTML=`<span class="chip">Us <b>${score[0]}</b></span><span class="chip">Them <b>${score[1]}</b></span>`;
@@ -834,13 +854,13 @@ function render(){
   if(myTurn()&&G.phase==='draw'){
     const po=packOption(0);
     acts=`<button class="btn gold" id="aDraw" title="Take the top card of the draw pile" ${G.stock.length?'':'disabled'}>Draw a card</button><button class="btn" id="aPack" ${top&&isNat(top)?'':'disabled'} title="${po.why||''}">Take the pack (${G.pile.length})</button>${!G.stock.length?'<button class="btn" id="aEnd" title="The draw pile is empty: end and score the hand">End the hand</button>':''}`;
-    if(!G.opened[0])acts+=`<button class="btn sm" id="aStage" title="Set the selected cards aside as part of your opening meld" ${sel.size?'':'disabled'}>Set aside as opening</button>${showSuggest()?`<button class="btn sm" id="aSuggest" title="Find an opening meld in your hand and set it aside for you">Suggest opening</button>`:''}${staged.length?'<button class="btn sm" id="aUnstage" title="Put the set-aside cards back in your hand">Clear opening</button>':''}`;
+    if(!G.opened[0]&&sel.size)acts+=`<button class="btn" id="aMeld" title="Put these down toward your opening (use them to take the pack, or draw to lay them down)">Meld</button>`;
+    if(!G.opened[0]&&showSuggest()&&!staged.length)acts+=`<button class="btn sm" id="aSuggest" title="Find an opening meld in your hand">Suggest opening</button>`;
   }else if(myTurn()&&G.phase==='play'){
-    if(!G.opened[0]){const info=openingInfo(0,staged);
-      acts=`${sp?`<button class="btn red" id="aSpecial">Lay down ${sp.name} (${sp.pts})</button>`:''}<button class="btn" id="aStage" title="Set the selected cards aside as part of your opening meld" ${sel.size?'':'disabled'}>Add to opening</button><button class="btn gold" id="aOpen" title="Lay down the cards you set aside as your team&#39;s first meld" ${info.ok?'':'disabled'}>Lay down opening (${info.pts}/${info.need})</button>${showSuggest()?`<button class="btn sm" id="aSuggest" title="Find an opening meld in your hand and set it aside for you">Suggest</button>`:''}${staged.length?'<button class="btn sm" id="aUnstage" title="Put the set-aside cards back in your hand">Clear</button>':''}<button class="btn" id="aDiscard" title="Throw the selected card on the discard pile and end your turn" ${sel.size===1&&!staged.length?'':'disabled'}>Discard</button>`}
-    else acts=`<button class="btn" id="aMeld" title="Lay down the selected cards, or add them to your meld of that rank" ${sel.size?'':'disabled'}>Meld selected</button><button class="btn gold" id="aDiscard" title="Throw the selected card on the discard pile and end your turn" ${sel.size===1?'':'disabled'}>${h.length===1?'Discard and go out':'Discard'}</button>`;
+    if(!G.opened[0])
+      acts=`${sp?`<button class="btn red" id="aSpecial">Lay down ${sp.name} (${sp.pts})</button>`:''}<button class="btn" id="aMeld" title="Put the selected cards down. Before your team opens they wait on the table until they reach ${minMeld(0)}." ${sel.size?'':'disabled'}>Meld</button>${showSuggest()&&!staged.length?`<button class="btn sm" id="aSuggest" title="Find an opening meld in your hand">Suggest opening</button>`:''}<button class="btn gold" id="aDiscard" title="Throw the selected card on the discard pile and end your turn" ${sel.size===1?'':'disabled'}>Discard</button>`;
+    else acts=`<button class="btn" id="aMeld" title="Lay down the selected cards, or add them to your meld of that rank" ${sel.size?'':'disabled'}>Meld</button><button class="btn gold" id="aDiscard" title="Throw the selected card on the discard pile and end your turn" ${sel.size===1?'':'disabled'}>${h.length===1?'Discard and go out':'Discard'}</button>`;
   }else if(G.over)acts='<button class="btn gold" id="aNext">Next hand</button>';
-  if(myTurn()&&sel.size)acts+=`<button class="btn sm" id="aClear" title="Unselect all your cards">Clear selection (${sel.size})</button>`;
   if(myTurn()&&G.phase==='play'&&G.opened[0]&&!(G.asked&&G.asked[0])&&canFinish(0))acts+=`<button class="btn" id="aAsk" title="You can ask once per hand">${NAMES[2]}, may I go out?</button>`;
   if(myTurn()&&G.mustOut&&G.mustOut[0])acts+=`<span class="mustout">${NAMES[2]} said yes: go out this turn</span>`;
   // like Swap for Joker in mahjong: select your 3 and the button appears
@@ -848,7 +868,9 @@ function render(){
   if(myTurn()&&showHint())acts+=`<button class="btn sm" id="aHint" title="What should I do?">💡 Hint</button>`;
   const stagedIds=new Set(staged.flatMap(g=>g.cards.map(c=>c.id)));
   const shown=h.filter(c=>!stagedIds.has(c.id));
-  me.innerHTML=`<div class="mehead"><span class="nm">Your hand</span><span class="info">${h.length} cards${G.talon[0].length?' · '+G.talon[0].length+' bonus cards next turn':''} · ${G.stock.length} in the draw pile</span></div>
+  const sc=selCards(),pv=sc.filter(c=>!isThree(c)).reduce((a,c)=>a+val(c),0);
+  const bub=showPts()&&sc.length?`<button class="ptsbub" id="aClear" title="Tap to unselect" aria-label="${sc.length} picked, ${pv} points. Tap to unselect."><b>${pv}</b> pts<span>${sc.length} card${sc.length===1?'':'s'}${staged.length&&!G.opened[0]?' · opening '+(openingInfo(0,staged).pts+pv):''}</span><i aria-hidden="true">✕</i></button>`:'';
+  me.innerHTML=`<div class="mehead"><span class="nm">Your hand</span><span class="info">${h.length} cards${G.talon[0].length?' · '+G.talon[0].length+' bonus cards next turn':''} · ${G.stock.length} in the draw pile</span>${bub}</div>
     <div class="hand" id="hand">${shown.map(c=>cardHTML(c,(sel.has(c.id)?'sel ':'')+(G.newIds.has(c.id)?'new':''))).join('')}</div>
     <div class="acts">${acts}</div>`;
   // squeeze the hand so it fits
@@ -867,7 +889,7 @@ function render(){
     toast(`${t===0?'Your team':'They'} made a canasta! ${canastaValue(m)[1]} · ${canastaValue(m)[0]}`)}
   const ban=$('#center .banner .st');if(ban&&ban.textContent!==lastBanner){lastBanner=ban.textContent;ban.parentElement.classList.add('swap')}
   if(G.hint!=null){const e=document.querySelector(`#hand [data-id="${G.hint}"]`);if(e)e.classList.add('hint')}
-  b('aDraw',doDraw);b('aPack',doPack);b('aHint',doHint);b('aAsk',askPartner);b('aLay3',layHeldThree);b('aStage',doStage);b('aUnstage',unstage);b('aOpen',doOpen);b('aSuggest',doSuggest);b('aMeld',doMeld);b('aDiscard',doDiscard);b('aSpecial',doSpecial);b('aEnd',doEnd);b('aNext',newHand);b('aClear',()=>{sel.clear();render()});
+  b('aDraw',doDraw);b('aPack',doPack);b('aHint',doHint);b('aAsk',askPartner);b('aLay3',layHeldThree);b('aUnstage',unstage);b('aSuggest',doSuggest);b('aMeld',doMeld);b('aDiscard',doDiscard);b('aSpecial',doSpecial);b('aEnd',doEnd);b('aNext',newHand);b('aClear',()=>{sel.clear();render()});document.querySelectorAll('[data-stg]').forEach(e=>e.onclick=()=>stagedTap(+e.dataset.stg));
 }
 let lastBanner='';let lastW=innerWidth;addEventListener('resize',()=>{if(G&&Math.abs(innerWidth-lastW)>8){lastW=innerWidth;render()}});
 
@@ -878,7 +900,7 @@ function showHelp(){
    <h3>Your turn</h3><p>Draw one card, or take the whole pack: show two natural cards of the top card's rank and meld them with it (if your team has a meld of that rank with three or four cards, they join it). Then meld if you like, and finish by discarding one card.</p>
    <h3>Melds</h3><ul><li>Three to seven cards of one rank. Seven cards make a canasta.</li><li>At least two natural cards and no more than two wild cards. After your team's initial meld, a meld needs ${CR().wildBase} natural cards before a wild card can go in.</li>
    ${SA()?'<li>7s never take wild cards. Aces can only take a wild card in the initial meld.</li>':''}<li>A meld of all wild cards is allowed, but your team can't add wild cards anywhere else until it's finished.</li><li>When a natural canasta of a rank closes, ${CR().deadForBoth?'nobody':'that team'} can meld that rank again.</li></ul>
-   <h3>Initial meld</h3><p>Your team's first meld must be worth 125 points (155 once you have 3,000, 180 from 5,000)${CR().open==='pure'?' and include a clean meld: three natural cards of one rank, or three wild cards':CR().open==='naturals3'?' and include a meld with three natural cards':''}. A 7-card natural or wild canasta from your hand opens with no minimum. Open while 9 or more cards are left in the draw pile and you get bonus cards next turn: 4 if your team opened first, 3 if second.</p>
+   <h3>Initial meld</h3><p>Your team's first meld must be worth 125 points (155 once you have 3,000, 180 from 5,000)${CR().open==='pure'?' and include a clean meld: three natural cards of one rank, or three wild cards':CR().open==='naturals3'?' and include a meld with three natural cards':''}. A 7-card natural or wild canasta from your hand opens with no minimum. To open, pick a group and tap Meld: it waits on the table, showing its points, and goes down by itself once your groups reach the minimum. Tap Cancel to take them all back, or tap one group to take just that one back. Open while 9 or more cards are left in the draw pile and you get bonus cards next turn: 4 if your team opened first, 3 if second.</p>
    <h3>Discarding</h3><p>Never a 3. Wild cards only as your very last card. On an empty pile, avoid Sevens, Wilds, Aces and Dead cards.</p>
    <h3>Going out</h3><p>Your team needs two canastas${CR().barGoOut?', and no unfinished pure Aces or 7s meld':''}. Meld everything but one card and discard it. You may ask your partner once per hand whether to go out: if they say yes you must go out that turn, if no you can't that turn. You never have to ask.</p>
    <h3>Scoring</h3><p>Mixed canasta 300, natural canasta 500, natural Aces or 7s 2,500, wild canasta 2,000 (all 2s 3,000, four jokers 2,500), going out 100, plus the value of your melded cards. With no canasta, melded cards count against you. 3s: with no canasta they cost you, with one they don't count, with two or more they score (100, 300, 500, 1,000 for one to four of a color). Cards left in your hands count against you. Unfinished 7s or pure Aces meld −2,500, unfinished wild meld −2,000 (−2,500 with all four jokers), three or more Aces or 7s left in a player's hand −1,500.</p>
@@ -896,7 +918,8 @@ function showRules(){
   $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>Settings</h2>
     <div class="crow"><div><b>Speed</b><span>How quickly the computer players take their turns. Changes apply right away (the mahjong games use the same setting).</span></div><div class="cseg" role="group" aria-label="Speed">${[['slow','Slow'],['normal','Default'],['fast','Fast'],['instant','Instant']].map(([v,l])=>`<button class="${sp===v?'on':''}" data-speed="${v}" aria-pressed="${sp===v}">${l}</button>`).join('')}</div></div>
     <h3>Helpers</h3>
-    <div class="crow"><div><b>Suggest opening button</b><span>Finds a first meld in your hand and sets it aside for you.</span></div><label class="ctog"><input type="checkbox" data-hp="cnSuggest" ${showSuggest()?'checked':''}><i></i></label></div>
+    <div class="crow"><div><b>Points bubble</b><span>Shows what the cards you've picked are worth, adding up as you pick more.</span></div><label class="ctog"><input type="checkbox" data-hp="cnPoints" ${showPts()?'checked':''}><i></i></label></div>
+    <div class="crow"><div><b>Suggest opening button</b><span>Finds a first meld in your hand and puts it down for you.</span></div><label class="ctog"><input type="checkbox" data-hp="cnSuggest" ${showSuggest()?'checked':''}><i></i></label></div>
     <div class="crow"><div><b>Hint button</b><span>Tells you what to do this turn and highlights a good card to throw.</span></div><label class="ctog"><input type="checkbox" data-hp="cnHint" ${showHint()?'checked':''}><i></i></label></div>
     <p class="setnote" style="margin-top:14px">Rule changes count from the next hand.</p>
     <h3>Table rules</h3>

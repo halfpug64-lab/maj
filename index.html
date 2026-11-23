@@ -512,6 +512,11 @@ body.table-view .pname{font-size:15px}
 body.table-view .felt{grid-template-columns:minmax(150px,240px) minmax(0,1fr) minmax(150px,240px)}
 /* bubbles */
 .bubbles{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;margin-top:8px}
+.faanbub .fnum{font:800 20px/1 var(--display,inherit);color:var(--gold,#ecc66d);min-width:1ch;text-align:center}
+.faanbub.ok{border-color:rgba(120,210,140,.6)}.faanbub.ok .fnum{color:#8fe0a0}
+.faanbub .flab{font-size:12px;opacity:.8;white-space:nowrap}.faanbub .fneed{font-size:11px;opacity:.6;white-space:nowrap}
+.faanbub .flist{color:var(--txt);display:grid;grid-template-columns:1fr auto;gap:3px 14px;padding:4px 12px 9px;font-size:13px}
+.faanbub .flist b{text-align:right}.faanbub .flist em{grid-column:1/-1;font-size:11px;opacity:.65;margin-top:4px;font-style:normal}
 .bubble{border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(236,198,109,.35);overflow:hidden;max-width:100%}
 .bubble.fresh{animation:rise .3s}
 .bubble.open{background:rgba(0,0,0,.4)}
@@ -3098,7 +3103,9 @@ function showSettings(tab){
       +seg('discPay','Discard wins','Who pays when someone wins on a discard.',[['all','Thrower pays all'],['half','Thrower pays half']])
       +seg('repeat','East repeats','Whether East keeps the deal after winning or a drawn hand.',[['always','Always'],['cap3','Up to 3 times'],['never','Never']])
       +swRow('hkr_sevenPairs','Seven Pairs','Allow a hand of seven different pairs, worth 4 faan.',!!R.sevenPairs)
-      +swRow('hkr_noLastCalls','No calls on the last discard','Once the wall is empty, the last discard can only be claimed to win.',!!R.noLastCalls)})()}
+      +swRow('hkr_noLastCalls','No calls on the last discard','Once the wall is empty, the last discard can only be claimed to win.',!!R.noLastCalls)
+      +swRow('s_hkCoach','Coach','Tells you how many tiles you are from ready and suggests a tile to throw.',settings.hkCoach===true)
+      +swRow('s_hkFaan','Faan counter','A bubble by your rack that shows how much faan your hand has right now.',settings.hkFaan!==false)})()}
    <div class="set-sec">Party mode</div>
    ${GOD().on?`<div class="setrow col party"><span class="st"><b>Mahjong Admin is on</b><span class="d">Control who gets what, the draw pile, the discards and the bots. Works in solo games and when you host a room. It turns itself off when the page reloads.</span></span>
        <span class="mrow" style="margin:0;justify-content:flex-start"><button class="btn btn-gold" id="s_godopen">Open Mahjong Admin</button><button class="btn btn-ghost" id="s_godoff">Turn off party mode</button></span></div>`
@@ -3128,6 +3135,8 @@ function showSettings(tab){
   document.querySelectorAll('[data-hkr]').forEach(b=>b.onclick=()=>{const k=b.dataset.hkr,raw=b.dataset.v;hkSet(k,/^\d+$/.test(raw)?+raw:raw);
     document.querySelectorAll(`[data-hkr="${k}"]`).forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
   ['sevenPairs','noLastCalls'].forEach(k=>{const e=document.getElementById('hkr_'+k);if(e)e.onchange=()=>hkSet(k,e.checked)});
+  if($('#s_hkCoach'))$('#s_hkCoach').onchange=e=>{settings.hkCoach=e.target.checked;saveSettings();render()};
+  if($('#s_hkFaan'))$('#s_hkFaan').onchange=e=>{settings.hkFaan=e.target.checked;saveSettings();render()};
   $('#s_reset').onclick=()=>askConfirm({title:'Reset progress?',body:'All scores go back to 0, the saved game is deleted, and a fresh game is dealt with you at your starting seat. Your settings stay the same.',
     yes:'Reset progress',onYes:resetProgress});
   on('s_house',v=>{settings.house=v;const l=$('#hrList');l.classList.toggle('off',!v);l.querySelector('.setnote').textContent=v?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'});
