@@ -1336,6 +1336,16 @@ body.mp-client #btnGod{display:none}
 .gamepick button.on{background:var(--gold);color:#2b1d02;border-color:var(--gold)}.gamepick button.on small{color:#5a4410}
 .gamepick button:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
 @media(max-width:420px){.gamepick button{font-size:12.5px;min-height:54px;padding:8px 5px}}
+.pcard{--w:64px;position:relative;width:var(--w);height:calc(var(--w)*1.4);border-radius:calc(var(--w)*.12);background:linear-gradient(170deg,#fff,#fbf6e9);color:#1d1a14;border:1px solid #cfc6b0;
+  box-shadow:0 3px 0 rgba(0,0,0,.18),0 10px 18px rgba(0,0,0,.35);animation:float 4s ease-in-out calc(var(--d) + 1s) infinite}
+.pcard.red{color:#c8102e}
+.pcard .ix{position:absolute;left:calc(var(--w)*.08);top:calc(var(--w)*.06);display:flex;flex-direction:column;align-items:center;font:800 calc(var(--w)*.32)/1 var(--body)}
+.pcard .ix small{font-size:calc(var(--w)*.27);line-height:1}
+.pcard .pip{position:absolute;right:calc(var(--w)*.1);bottom:calc(var(--w)*.07);font-size:calc(var(--w)*.52);line-height:1}
+.pcard.jk .ix{font-size:calc(var(--w)*.2);writing-mode:vertical-rl;text-orientation:upright;letter-spacing:-.1em}
+.pcard.jk .pip{color:#a8781c}
+.pcard.wild::after,.pcard.jk::after{content:"";position:absolute;inset:3px;border-radius:calc(var(--w)*.1);box-shadow:inset 0 0 0 2px rgba(168,120,28,.55)}
+@media(min-width:561px){.fan .pcard{--w:74px}}
 .beta{display:inline-block;font:800 9px/1 var(--body);font-style:normal;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle;padding:3px 5px;border-radius:6px;background:#e5484d;color:#fff;-webkit-text-fill-color:#fff;position:relative;top:-.1em}
 .splash-title .beta,.brand h1 .beta{font-size:clamp(10px,1.6vw,15px);padding:4px 7px;border-radius:8px;top:-.6em;animation:none;background-image:none}
 .faanlist,.faanref{display:grid;grid-template-columns:1fr auto;gap:4px 14px;margin:8px 0 12px;font-size:14px}
@@ -1955,7 +1965,12 @@ function applyTheme(){
   document.title={nyc:'American Mah Jongg · NYC',paris:'American Mah Jongg · Paris',ocean:'American Mah Jongg · Ocean',celestial:'American Mah Jongg · Celestial',forest:'American Mah Jongg · Forest',desert:'American Mah Jongg · Desert Night',arctic:'American Mah Jongg · Arctic',garden:'American Mah Jongg · Garden',volcano:'American Mah Jongg · Volcano',easy:'American Mah Jongg · Easy to read',candy:'American Mah Jongg · Candy Land'}[settings.bg]||'American Mah Jongg';
   const em=document.getElementById('emblem');if(em)em.innerHTML=tileHTML({k:'F',v:3})+tileHTML(typeof GAME!=='undefined'&&GAME==='hk'?'E':'J');
   applyNames();if(typeof applyGameLabels==='function'&&typeof GAME!=='undefined')applyGameLabels();
-  const fan=document.getElementById('fan');if(fan)fan.innerHTML=[{k:'F',v:3},'R',typeof GAME!=='undefined'&&GAME==='hk'?'E':'J','G',{k:'F',v:0}].map((t,x)=>`<div class="fan-slot" style="--r:${(x-2)*13}deg;--d:${x*90}ms">${tileHTML(t)}</div>`).join('');
+  const fan=document.getElementById('fan');const gm=typeof GAME!=='undefined'?GAME:'american';
+  // Canasta is a card game, so its home screen shows playing cards instead of tiles
+  const pcard=([r,s])=>r==='JK'?`<div class="pcard jk"><span class="ix">JOKER</span><span class="pip">★</span></div>`
+    :`<div class="pcard${s==='♥'||s==='♦'?' red':''}${r==='2'?' wild':''}"><span class="ix">${r}<small>${s}</small></span><span class="pip">${s}</span></div>`;
+  if(fan)fan.innerHTML=(gm==='canasta'?[['A','♥'],['K','♠'],['JK',''],['7','♦'],['2','♣']].map(pcard)
+    :[{k:'F',v:3},'R',gm==='hk'?'E':'J','G',{k:'F',v:0}].map(t=>tileHTML(t))).map((h,x)=>`<div class="fan-slot" style="--r:${(x-2)*13}deg;--d:${x*90}ms">${h}</div>`).join('');
 }
 function applyLayout(){document.body.classList.toggle('scroll-layout',settings.layout==='scroll');document.body.classList.toggle('table-view',settings.layout==='table')}
 function saveSettings(){try{localStorage.setItem('amj_settings',JSON.stringify(settings))}catch(e){}}
