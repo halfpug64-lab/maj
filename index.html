@@ -1417,7 +1417,7 @@ body.table-view .seat-top .plate{flex-wrap:nowrap}body.table-view .plate .pname{
   <div class="gamepick" role="radiogroup" aria-label="Game">
     <button role="radio" data-game="american" aria-checked="true">American Mah Jongg<small>2026 card</small></button>
     <button role="radio" data-game="hk" aria-checked="false"><span>Chinese Mahjong <i class="beta">Beta</i></span><small>Hong Kong rules</small></button>
-    <button role="radio" data-game="canasta" aria-checked="false"><span>American Canasta <i class="beta">Beta</i></span><small>Modern rules</small></button>
+    <button role="radio" data-game="canasta" aria-checked="false"><span>American Canasta <i class="beta">Alpha</i></span><small>Modern rules</small></button>
   </div>
   <div class="splash-tabs" role="tablist" aria-label="Game mode"><button role="tab" id="tabSolo" class="on" aria-selected="true" aria-controls="splashSolo">Solo</button><button role="tab" id="tabMP" aria-selected="false" aria-controls="splashMP">Multiplayer</button></div>
   <div id="splashSolo" role="tabpanel">
@@ -3642,8 +3642,8 @@ $('#btnFull').onclick=()=>{try{document.fullscreenElement?document.exitFullscree
 // Home: solo games pause behind the home screen and Resume picks up right where you were.
 // ---- choosing a game on the home screen ----
 const GAMES={american:{title:'American Mah Jongg',sub:'Play your 2026 card against three computer players.'},
-  hk:{title:'Chinese Mahjong',beta:true,tag:'HONG KONG OLD STYLE',sub:'Hong Kong rules against three computer players. You need 3 faan to win (you can change that in Settings).'},
-  canasta:{title:'American Canasta',beta:true,tag:'MODERN AMERICAN RULES',sub:'You and a partner against two computer players, using the Canasta League of America rules. First team to 8,500 wins.'}};
+  hk:{title:'Chinese Mahjong',beta:'Beta',tag:'HONG KONG OLD STYLE',sub:'Hong Kong rules against three computer players. You need 3 faan to win (you can change that in Settings).'},
+  canasta:{title:'American Canasta',beta:'Alpha',tag:'MODERN AMERICAN RULES',sub:'You and a partner against two computer players, using the Canasta League of America rules. First team to 8,500 wins.'}};
 function canastaSaved(){try{const g=JSON.parse(localStorage.getItem('amj_canasta_hand'));return g&&Array.isArray(g.hands)&&!g.over?g:null}catch(e){return null}}
 const gameSaved=()=>GAME==='hk'?hkSavedGame():GAME==='canasta'?canastaSaved():savedGame();
 function syncSplashButtons(){const cn=GAME==='canasta',live=homeOpen&&!cn,sv=!!gameSaved();const rs=$('#btnResume'),st=$('#btnStart');
@@ -3652,8 +3652,8 @@ function syncSplashButtons(){const cn=GAME==='canasta',live=homeOpen&&!cn,sv=!!g
   const main=cn&&sv;rs.classList.toggle('btn-gold',main);rs.classList.toggle('btn-ghost',!main);st.classList.toggle('btn-gold',!main);st.classList.toggle('btn-ghost',main);
   if(main)rs.parentNode.insertBefore(rs,st);else st.parentNode.insertBefore(st,rs)}
 function applyGameLabels(){
-  const g=GAMES[GAME];const h1=document.querySelector('.brand h1');if(h1)h1.innerHTML=g.title+(g.beta?' <i class="beta">Beta</i>':'');
-  const st=document.querySelector('.splash-title');if(st)st.innerHTML=g.title+(g.beta?' <i class="beta">Beta</i>':'');
+  const g=GAMES[GAME];const h1=document.querySelector('.brand h1');if(h1)h1.innerHTML=g.title+(g.beta?` <i class="beta">${g.beta}</i>`:'');
+  const st=document.querySelector('.splash-title');if(st)st.innerHTML=g.title+(g.beta?` <i class="beta">${g.beta}</i>`:'');
   const sb=document.querySelector('#splashSolo .splash-sub');if(sb)sb.textContent=g.sub;
   if(g.tag)document.querySelectorAll('.brand small,.splash-tag').forEach(e=>e.textContent=g.tag);
   document.querySelectorAll('[data-game]').forEach(b=>{const o=b.dataset.game===GAME;b.classList.toggle('on',o);b.setAttribute('aria-checked',o)});
