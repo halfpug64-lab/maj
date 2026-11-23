@@ -1872,14 +1872,14 @@ const WIND=['East','South','West','North'];
 const SEATPOS={1:'right',2:'top',3:'left'};
 const BULLET=[{c:'#ecc66d',t:'★',fg:'#2a1d00'},{c:'#9b3fb5',t:'7'},{c:'#00933c',t:'4'},{c:'#0039a6',t:'A'}];
 // Computer players' names: each theme has its own, and you can type your own (seat 1 sits on your right, 2 across, 3 on your left).
-const THEME_NAMES={default:['Queens','Bronx','Brooklyn'],nyc:['Harlem','SoHo','Chelsea'],paris:['Amélie','Colette','Juliette'],ocean:['Coral','Marina','Pearl'],
+const THEME_NAMES={default:['Sarah','Mike','Linda'],nyc:['Queens','Bronx','Brooklyn'],paris:['Amélie','Colette','Juliette'],ocean:['Coral','Marina','Pearl'],
   celestial:['Luna','Nova','Stella'],forest:['Willow','Fern','Hazel'],desert:['Sahara','Mirage','Dune'],arctic:['Aurora','Flurry','Glacier'],
   garden:['Daisy','Violet','Ivy'],volcano:['Ember','Blaze','Cinder'],candy:['Gumdrop','Taffy','Sprinkles'],easy:['Anna','Ben','Cara']};
 const themeBotNames=()=>settings.themeNames!==false?(THEME_NAMES[settings.bg]||THEME_NAMES.default):THEME_NAMES.default;
 const tidyName=n=>String(n||'').replace(/[<>&"'`]/g,'').replace(/\s+/g,' ').trim().slice(0,14);
 function botNames(){const base=themeBotNames(),c=Array.isArray(settings.botNames)?settings.botNames:[];return [0,1,2].map(i=>tidyName(c[i])||base[i])}
 // the borough bullets (7, 4, A) go with the borough names; any other name gets its first letter
-const botBullet=(abs,name)=>name&&name!==THEME_NAMES.default[abs-1]?{...BULLET[abs],t:esc(name.charAt(0).toUpperCase())}:BULLET[abs];
+const botBullet=(abs,name)=>name&&name!==THEME_NAMES.nyc[abs-1]?{...BULLET[abs],t:esc(name.charAt(0).toUpperCase())}:BULLET[abs];
 function applyNames(){
   if(NET.mode==='client')return;const b=botNames();
   if(NET.mode==='solo'){SEATNAME=['You',...b];NAMES=['You',...b]}
@@ -2977,7 +2977,7 @@ function showSettings(tab){
        ${themeCards('rack',THEMES,settings.rack)}</div>
      <div class="setrow col"><span class="st"><b>Background</b><span class="d">The table, colors and scenery.</span></span>
        ${themeCards('bg',THEMES,settings.bg)}</div>
-     ${swRow('s_thnames','Player names match the theme','The computer players get names that go with the background, like Luna, Nova and Stella for Celestial. Off: Queens, Bronx and Brooklyn.',settings.themeNames!==false)}
+     ${swRow('s_thnames','Player names match the theme','The computer players get names that go with the background, like Queens, Bronx and Brooklyn for NYC or Luna, Nova and Stella for Celestial. Off: Sarah, Mike and Linda.',settings.themeNames!==false)}
      <div class="setrow col"><span class="st"><b>Type their names</b><span class="d">Leave a box empty to use the name shown in it.</span></span>
        <div class="namein">${['On your right','Across from you','On your left'].map((l,i)=>`<label><span>${l}</span><input data-bname="${i}" maxlength="14" autocomplete="off" placeholder="${esc(themeBotNames()[i])}" value="${esc((settings.botNames||[])[i]||'')}"></label>`).join('')}</div></div>
    </div>
