@@ -148,6 +148,15 @@ body.light .pillc{background:rgba(255,255,255,.6)}
 .final span{display:block;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#7a6a4a}.final b{font:700 30px/1.1 var(--display);color:#5a3d0c}
 .setnote{color:#6b5a3b;font-size:13px}
 @media(prefers-reduced-motion:reduce){.seat.turn,.card.hint{animation:none}}
+.crow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid #e2d5b5}
+.crow b{display:block;font-size:14.5px}.crow span{display:block;font-size:12.5px;color:#6b5a3b;margin-top:2px}
+.cseg{display:flex;flex-shrink:0;border:1px solid #d6c79f;border-radius:10px;overflow:hidden}
+.cseg button{border:0;background:#fffaf0;color:#2b2216;font:700 13px var(--body);padding:8px 11px;cursor:pointer}.cseg button+button{border-left:1px solid #d6c79f}
+.cseg button.on{background:#2b2216;color:#ecc66d}
+.ctog{position:relative;flex-shrink:0;width:46px;height:26px}.ctog input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;z-index:1;width:100%;height:100%}.ctog i{pointer-events:none}
+.ctog i{position:absolute;inset:0;border-radius:20px;background:#d8ccb0;transition:background .2s}.ctog i::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.ctog input:checked+i{background:#c8952a}.ctog input:checked+i::after{transform:translateX(20px)}.ctog input:focus-visible+i{outline:3px solid #2557b8;outline-offset:2px}
+@media(max-width:560px){.crow{flex-wrap:wrap}.cseg{width:100%}.cseg button{flex:1}}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
 .box{background:linear-gradient(180deg,#fbf6e9,#f1e6cc);color:#2b2216;border-radius:20px;padding:22px;max-width:640px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.5)}
 .box h2{margin:0 0 10px;font:700 26px var(--display);color:#5a3d0c}.box h3{margin:16px 0 6px;font-size:15px}
@@ -180,6 +189,7 @@ body.light .pillc{background:rgba(255,255,255,.6)}
   <a class="btn icon" href="index.html" id="bHome" title="Home screen" aria-label="Home screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/></svg></a>
   <h1>American Canasta <i class="beta">Beta</i></h1>
   <div class="sc" id="scores"></div>
+  <button class="btn icon" id="bSet" title="Rules and settings" aria-label="Rules and settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   <button class="btn icon" id="bHelp" title="How to play" aria-label="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5V14"/><path d="M12 17.2h.01"/></svg></button>
   <button class="btn gold sm" id="bNew">New game</button>
 </header>
@@ -224,6 +234,10 @@ const val=c=>c.r==='JK'?50:c.r==='A'||c.r==='2'?20:['8','9','10','J','Q','K'].in
 const team=i=>i%2;   // seats 0 and 2 (you and your partner) are team 0
 const THREE_PTS=[0,100,300,500,1000];
 const GOAL=8500;
+// Table and house rules (the gear button). A hand keeps the rules it was dealt with; changes count from the next hand.
+const CR_DEF={open:'pure',wildBase:5,specials:'basic',packOnOpen:true,lastThree:true,deadForBoth:true,barGoOut:false,sevensAces:true,keepThree:false};
+function CR(){return {...CR_DEF,...(G&&G.rules?G.rules:((typeof settings==='object'&&settings.canastaRules)||{}))}}
+const SA=()=>CR().sevensAces;   // the special 7s and Aces rules are on
 let settings={};try{settings=JSON.parse(localStorage.getItem('amj_settings'))||{}}catch(e){}
 const SPEED={slow:1300,normal:760,fast:380,instant:120}[settings.botSpeed]||760;
 const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -271,7 +285,7 @@ function newHand(){
   gid++;dealer=(dealer+1)%4;sel.clear();staged=[];logs=[];
   const deck=newDeck();const hands=[[],[],[],[]];
   for(let r=0;r<13;r++)for(let x=1;x<=4;x++)hands[(dealer+x)%4].push(deck.pop());
-  G={stock:deck,pile:[],hands,melds:[[],[]],threes:[[],[]],opened:[false,false],talon:[[],[],[],[]],turn:(dealer+1)%4,phase:'draw',
+  G={rules:{...CR_DEF,...(settings.canastaRules||{})},stock:deck,pile:[],hands,melds:[[],[]],threes:[[],[]],opened:[false,false],talon:[[],[],[],[]],turn:(dealer+1)%4,phase:'draw',
      firstOpen:null,emptyAtTurn:true,newIds:new Set(),over:false,justPicked:false,seenCan:[],dealFx:true};
   hands.forEach(sortHand);saveScores();
   log(`${NAMES[dealer]==='You'?'You deal':NAMES[dealer]+' deals'}. ${NAMES[G.turn]==='You'?'You go':NAMES[G.turn]+' goes'} first.`);
@@ -281,9 +295,11 @@ let logs=[];function log(m){logs.unshift(m);logs=logs.slice(0,3);logMsg=m}
 function toast(m){document.querySelectorAll('.toast').forEach(t=>t.remove());const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),1800)}
 
 // ---- threes: always laid out, with a replacement drawn ----
+// a player may hold one 3 for a Straight until their team melds (you: the house rule; computer players: when close to one)
+function keepsThree(i){if(G.opened[team(i)])return false;if(i===0)return !!CR().keepThree;return new Set(G.hands[i].filter(c=>!isThree(c)).map(c=>c.r)).size>=10}
 function layThrees(i){
-  const h=G.hands[i];let n=0;
-  for(let g=0;g<30;g++){const t=h.find(isThree);if(!t)break;fly(t,src(i,t.id));h.splice(h.indexOf(t),1);G.threes[team(i)].push(t);n++;
+  const h=G.hands[i];let n=0;const keep=keepsThree(i);
+  for(let g=0;g<30;g++){const ts=h.filter(isThree);if(!ts.length||(keep&&ts.length===1))break;const t=ts[0];fly(t,src(i,t.id));h.splice(h.indexOf(t),1);G.threes[team(i)].push(t);n++;
     if(!G.stock.length){G.lastThree=i;return n}const sr=stockRect();const c=G.stock.pop();h.push(c);if(i===0){G.newIds.add(c.id);fly(c,sr,{delay:200})}else fly(null,sr,{toSeat:i,delay:200})}
   if(n){sortHand(h);log(`${NAMES[i]} laid out ${n} three${n>1?'s':''} and drew ${n>1?'replacements':'a replacement'}.`)}
   return n;
@@ -301,7 +317,8 @@ function startTurn(){
 
 // ================= Melds =================
 const teamMeld=(t,r)=>G.melds[t].find(m=>m.r===r);
-const isDead=r=>G.melds.some(ms=>ms.some(m=>m.r===r&&m.cards.length>=7&&r!=='W'));
+// a closed natural canasta kills its rank (for both teams, unless the table lets the other team keep using it)
+const isDead=(r,t)=>r!=='W'&&G.melds.some((ms,tt)=>(t==null||CR().deadForBoth||tt===t)&&ms.some(m=>m.r===r&&m.cards.length>=7&&!m.cards.some(isWild)));
 const natCount=m=>m.cards.filter(isNat).length,wildCount=m=>m.cards.filter(isWild).length;
 const openWild=t=>G.melds[t].some(m=>m.r==='W'&&m.cards.length<7);
 const canastas=t=>G.melds[t].filter(m=>m.cards.length>=7);
@@ -315,13 +332,13 @@ function checkNew(t,cards,initial,stagedRanks=[]){
     return '';
   }
   const r=nat[0].r;if(nat.some(c=>c.r!==r))return 'A meld is one rank (plus wild cards)';
-  if(isDead(r))return `${rn(r)} are dead: someone already made a canasta of them`;
+  if(isDead(r,t))return `${rn(r)} are dead: a natural canasta of them is closed`;
   if(teamMeld(t,r)||stagedRanks.includes(r))return `Your team already has a meld of ${rn(r)}`;
   if(nat.length<2)return 'A meld needs at least two natural cards';
   if(w>2)return 'A meld can hold at most two wild cards';
-  if(w&&r==='7')return '7s can never have wild cards';
-  if(w&&r==='A'&&!initial)return 'Aces can only take a wild card in your initial meld';
-  if(w&&!initial&&nat.length<5)return 'After your initial meld, a new meld needs five natural cards before a wild card goes in';
+  if(w&&r==='7'&&SA())return '7s can never have wild cards';
+  if(w&&r==='A'&&!initial&&SA())return 'Aces can only take a wild card in your initial meld';
+  if(w&&!initial&&nat.length<CR().wildBase)return `After your initial meld, a new meld needs ${CR().wildBase} natural cards before a wild card goes in`;
   if(w&&openWild(t))return 'Finish your wild card canasta before adding wild cards elsewhere';
   return '';
 }
@@ -333,10 +350,10 @@ function checkAdd(t,m,cards){
   const nat=cards.filter(isNat),w=cards.length-nat.length;
   if(nat.some(c=>c.r!==m.r))return `Only ${rn(m.r)} (and wild cards) go on that meld`;
   if(w){
-    if(m.r==='7')return '7s can never have wild cards';
-    if(m.r==='A'&&!wildCount(m))return 'A pure meld of Aces can\'t take wild cards';
+    if(m.r==='7'&&SA())return '7s can never have wild cards';
+    if(m.r==='A'&&!wildCount(m)&&SA())return 'A pure meld of Aces can\'t take wild cards';
     if(wildCount(m)+w>2)return 'A meld can hold at most two wild cards';
-    if(natCount(m)+nat.length<5)return 'A meld needs five natural cards before a wild card goes in';
+    if(natCount(m)+nat.length<CR().wildBase)return `A meld needs ${CR().wildBase} natural cards before a wild card goes in`;
     if(openWild(t))return 'Finish your wild card canasta before adding wild cards elsewhere';
   }
   return '';
@@ -346,35 +363,39 @@ function takeCards(i,ids){const h=G.hands[i];return ids.map(id=>h.splice(h.findI
 function rankOf(cards){const n=cards.find(isNat);return n?n.r:'W'}
 function putMeld(t,cards){const r=rankOf(cards);const m=teamMeld(t,r);if(m){m.cards.push(...cards);return m}const nm={r,cards:[...cards]};G.melds[t].push(nm);return nm}
 function sortMeld(m){m.cards.sort((a,b)=>isWild(a)-isWild(b)||ORDER.indexOf(a.r)-ORDER.indexOf(b.r))}
-// a team can't go out while holding an incomplete pure Aces, 7s or wild card meld
-function badIncomplete(t){return G.melds[t].some(m=>m.cards.length<7&&(m.r==='7'||m.r==='W'||(m.r==='A'&&!wildCount(m))))}
-const canGoOut=t=>canastas(t).length>=2&&!badIncomplete(t);
+// some tables bar going out while holding an unfinished 7s or pure Aces meld
+function badIncomplete(t){return SA()&&G.melds[t].some(m=>m.cards.length<7&&(m.r==='7'||(m.r==='A'&&!wildCount(m))))}
+const canGoOut=t=>canastas(t).length>=2&&!(CR().barGoOut&&badIncomplete(t));
 
 // ---- initial meld ----
 // staged: [{cards:[...]}]; valid when it reaches the minimum with a clean triple (or is a natural canasta, the "splash")
 function openingInfo(t,melds){
-  const pts=melds.reduce((s,m)=>s+meldPts(m.cards),0);
-  const clean=melds.some(m=>m.cards.length>=3&&m.cards.every(isNat));
-  const splash=melds.some(m=>m.cards.length>=7&&m.cards.every(isNat));
+  const pts=melds.reduce((s,m)=>s+meldPts(m.cards),0),o=CR().open;
+  const pure=melds.some(m=>m.cards.length>=3&&(m.cards.every(isNat)||m.cards.every(isWild)));
+  const nat3=melds.some(m=>m.cards.filter(isNat).length>=3);
+  const clean=o==='none'?true:o==='naturals3'?nat3:pure;
+  // the Splash: a 7-card natural or wild canasta from your hand opens with no minimum
+  const splash=melds.some(m=>m.cards.length>=7&&(m.cards.every(isNat)||m.cards.every(isWild)));
   const ok=melds.length&&(splash||(clean&&pts>=minMeld(t)));
   return {pts,clean,splash,ok,need:minMeld(t)};
 }
+function openNeed(t){const o=CR().open;return `${minMeld(t)} points${o==='pure'?' with a clean meld (three natural cards of one rank, or three wild cards)':o==='naturals3'?' with a meld of three natural cards':''}`}
 // best opening a hand can make on its own (used by the bots and the Suggest button)
 function findOpening(i,keep){
   const t=team(i),h=G.hands[i].filter(c=>!isThree(c));
   const by={};for(const c of h)if(isNat(c))(by[c.r]=by[c.r]||[]).push(c);
   const wilds=h.filter(isWild).sort((a,b)=>val(b)-val(a));
   const ms=[];const used=new Set();
-  const ranks=Object.keys(by).filter(r=>!isDead(r)).sort((a,b)=>by[b].length*val(by[b][0])-by[a].length*val(by[a][0]));
-  for(const r of ranks){const cs=by[r];if(cs.length<3)continue;if((r==='7'||r==='A')&&cs.length<4&&i!==0)continue;ms.push({cards:cs.slice(0,7)});cs.slice(0,7).forEach(c=>used.add(c.id))}
+  const ranks=Object.keys(by).filter(r=>!isDead(r,t)).sort((a,b)=>by[b].length*val(by[b][0])-by[a].length*val(by[a][0]));
+  for(const r of ranks){const cs=by[r];if(cs.length<3)continue;if(SA()&&(r==='7'||r==='A')&&cs.length<4&&i!==0)continue;ms.push({cards:cs.slice(0,7)});cs.slice(0,7).forEach(c=>used.add(c.id))}
   if(!ms.length)return null;
   let info=openingInfo(t,ms);
   let wi=0;
   // add wild cards to pairs (not 7s), then to other melds, until the minimum is reached
-  for(const r of ranks){if(info.ok)break;const cs=by[r];if(cs.length!==2||r==='7')continue;if(wi>=wilds.length)break;
+  for(const r of ranks){if(info.ok)break;const cs=by[r];if(cs.length!==2||(r==='7'&&SA()))continue;if(wi>=wilds.length)break;
     const add=[wilds[wi++]];ms.push({cards:[...cs,...add]});[...cs,...add].forEach(c=>used.add(c.id));info=openingInfo(t,ms)}
   for(const m of ms){if(info.ok)break;if(m.cards.every(isNat)&&ms.filter(x=>x.cards.every(isNat)).length<2)continue;
-    const r=rankOf(m.cards);if(r==='7')continue;
+    const r=rankOf(m.cards);if(r==='7'&&SA())continue;
     while(!info.ok&&wi<wilds.length&&m.cards.filter(isWild).length<2&&m.cards.length<7){m.cards.push(wilds[wi]);used.add(wilds[wi].id);wi++;info=openingInfo(t,ms)}}
   if(!info.ok)return null;
   const left=h.length-used.size;if(left<keep)return null;
@@ -386,31 +407,33 @@ function drawCard(i){
   if(!G.stock.length){endHand(null,'stock');return false}
   const sr=stockRect();const c=G.stock.pop();G.hands[i].push(c);if(i===0){G.newIds=new Set([c.id]);fly(c,sr)}else fly(null,sr,{toSeat:i});Sound.flick();
   if(isThree(c)){
-    if(!G.stock.length){G.lastThree=i;endHand(null,'three');return false}   // the last card was a 3: it stays in hand (5 points against)
+    if(!G.stock.length&&CR().lastThree){G.lastThree=i;endHand(null,'three');return false}   // the last card was a 3: it stays in hand (5 points against)
     layThrees(i);
   }
   sortHand(G.hands[i]);G.phase='play';return true;
 }
 // what taking the pack would look like: {how:'pair'|'meld', ids} or a reason why not
-function packOption(i,extraIds=[]){
+function packOption(i,extraIds=[],openMelds=null){
   const t=team(i),top=G.pile[G.pile.length-1];
   if(!top)return {why:'The discard pile is empty'};
   if(!isNat(top))return {why:'You can\'t take the pack when a wild card is on top'};
-  if(isDead(top.r))return {why:`${rn(top.r)} are dead`};
+  if(isDead(top.r,t))return {why:`${rn(top.r)} are dead`};
+  if(!G.opened[t]&&!CR().packOnOpen)return {why:'Your table rules don\'t allow taking the pack on the turn you open'};
   const m=teamMeld(t,top.r);if(m&&m.cards.length>=5)return {why:`Your team already has ${m.cards.length} ${rn(top.r)} down`};
   const pair=G.hands[i].filter(c=>c.r===top.r&&!extraIds.includes(c.id)).slice(0,2);
   if(pair.length===2)return {how:'pair',ids:pair.map(c=>c.id)};
-  if(m&&G.opened[t])return {how:'meld',ids:[]};
-  return {why:`You need two natural ${rn(top.r)} in your hand${G.opened[t]?' or a meld of '+rn(top.r):''}`};
+  // opening: the pair can be part of one of your opening melds; the top card joins it
+  if(!G.opened[t]&&openMelds&&openMelds.some(g=>rankOf(g.cards)===top.r&&g.cards.filter(isNat).length>=2))return {how:'open',ids:[]};
+  return {why:`You need two natural ${rn(top.r)} in your hand`};
 }
 function takePack(i,openMelds){
   const t=team(i),top=G.pile[G.pile.length-1];const pr=pileRect();const before=G.hands[i].map(c=>({c,r:src(i,c.id)}));
   if(!G.opened[t]){
-    const used=openMelds.flatMap(m=>m.cards.map(c=>c.id));const o=packOption(i,used);if(!o.how)return o.why;
-    const info=openingInfo(t,openMelds);if(!info.ok)return `Your opening needs ${info.need} points with a clean triple (you have ${info.pts})`;
+    const used=openMelds.flatMap(m=>m.cards.map(c=>c.id));const o=packOption(i,used,openMelds);if(!o.how)return o.why;
+    const info=openingInfo(t,openMelds);if(!info.ok)return `Your opening needs ${openNeed(t)} (you have ${info.pts})`;
     const same=openMelds.find(m=>rankOf(m.cards)===top.r);if(same&&same.cards.length+1+o.ids.length>7)return `That would make more than 7 ${rn(top.r)} in one meld`;
     for(const m of openMelds){const cards=takeCards(i,m.cards.map(c=>c.id));putMeld(t,cards)}
-    G.opened[t]=true;if(G.firstOpen==null)G.firstOpen=t;
+    G.opened[t]=true;if(G.firstOpen==null)G.firstOpen=t;if(G.stock.length>8)G.pendingTalon=i;   // bonus cards still come
     G.pile.pop();const cards=[top,...takeCards(i,o.ids)];const m=putMeld(t,cards);sortMeld(m);
   }else{
     const o=packOption(i);if(!o.how)return o.why;
@@ -430,10 +453,10 @@ function discardCard(i,id){
   const h=G.hands[i];const c=h.find(x=>x.id===id);if(!c)return 'Pick a card';
   if(isThree(c))return '3s are never discarded';
   const t=team(i),out=h.length===1&&G.pendingTalon!==i;
-  if(out&&!canGoOut(t))return canastas(t).length<2?'You need two canastas to go out':'You can\'t go out with an unfinished Aces, 7s or wild card meld';
+  if(out&&!canGoOut(t))return canastas(t).length<2?'You need two canastas to go out':'Your table rules don\'t let you go out with an unfinished 7s or Aces meld';
   if(isWild(c)&&!out&&h.some(x=>!isWild(x)))return 'Wild cards can only be discarded as your last card, or when you hold nothing else';
-  if(!G.pile.length&&!out){const swad=x=>isWild(x)||x.r==='7'||x.r==='A'||isDead(x.r);
-    if(swad(c)&&h.some(x=>!swad(x)))return 'On an empty pile you can\'t throw a Seven, Wild, Ace or Dead card while you have another choice'}
+  if(!G.pile.length&&!out){const swad=x=>isWild(x)||(SA()&&(x.r==='7'||x.r==='A'))||isDead(x.r);
+    if(swad(c)&&h.some(x=>!swad(x)))return SA()?'On an empty pile you can\'t throw a Seven, Ace, Wild or Dead card while you have another choice':'On an empty pile you can\'t throw a Wild or Dead card while you have another choice'}
   const fr=src(i,id);h.splice(h.indexOf(c),1);G.pile.push(c);G.newIds=new Set();fly(c,fr,{dur:380});Sound.flick();
   log(`${NAMES[i]} discarded ${c.r==='JK'?'a joker':c.r+c.s}.`);
   // talon: bonus cards for the player who just made their team's initial meld
@@ -446,10 +469,10 @@ function discardCard(i,id){
 function layMelds(i,groups){
   const t=team(i);
   if(!G.opened[t]){
-    const info=openingInfo(t,groups);if(!info.ok)return `Your opening needs ${info.need} points with a clean triple (you have ${info.pts})`;
+    const info=openingInfo(t,groups);if(!info.ok)return `Your opening needs ${openNeed(t)} (you have ${info.pts})`;
     const ranks=[];for(const g of groups){const e=checkNew(t,g.cards,true,ranks);if(e)return e;ranks.push(rankOf(g.cards))}
     const after=G.hands[i].length-groups.reduce((s,g)=>s+g.cards.length,0);
-    const talon=G.stock.length>8&&!G.justPicked;
+    const talon=G.stock.length>8;
     if(after<1||(after<2&&!talon))return after<1?'Keep a card to discard':'Keep at least two cards (one to discard)';
     for(const g of groups){const fr=g.cards.map(c=>src(i,c.id));const m=putMeld(t,takeCards(i,g.cards.map(c=>c.id)));sortMeld(m);g.cards.forEach((c,x)=>fly(c,fr[x],{delay:x*40}))}
     G.opened[t]=true;if(G.firstOpen==null)G.firstOpen=t;if(talon)G.pendingTalon=i;say(i,'Opening meld!');Sound.good();
@@ -458,8 +481,10 @@ function layMelds(i,groups){
   return 'Already open';
 }
 // melding must leave a card to discard, and two cards unless the team can then go out; otherwise it's undone
+// computer players won't go out while their team still has an unfinished 7s or Aces meld (it costs 2,500)
+const goOutOK=i=>canGoOut(team(i))&&(i===0||!badIncomplete(team(i)));
 function keepRule(i,undo){const t=team(i),n=G.hands[i].length;
-  if(n<1||(n<2&&!canGoOut(t))){undo();return n<1?'Keep a card to discard':'Keep at least two cards unless you can go out'}return ''}
+  if(n<1||(n<2&&!goOutOK(i))){undo();return n<1?'Keep a card to discard':'Keep at least two cards unless you can go out'}return ''}
 function meldNew(i,ids){const t=team(i);const cards=ids.map(id=>G.hands[i].find(c=>c.id===id));const e=checkNew(t,cards,false);if(e)return e;
   const fr=ids.map(id=>src(i,id));const taken=takeCards(i,ids);const m=putMeld(t,taken);sortMeld(m);
   const k=keepRule(i,()=>{G.melds[t].splice(G.melds[t].indexOf(m),1);G.hands[i].push(...taken);sortHand(G.hands[i])});
@@ -471,9 +496,22 @@ function meldAdd(i,m,ids){const t=team(i);const cards=ids.map(id=>G.hands[i].fin
 
 // ================= Special hands =================
 // 14 cards, no 3s, only before the team has melded. "Matching wilds" means a group of all 2s or all jokers.
-const SPECIALS=[['Dream Hand Plus 4',8500],['Dream Hand Plus 5',8500],['Triples',3500],['Quads',3500],['Garbage',3000],['Blast Off',3000],['Pairs',2500],['Miami Pairs',2500],['Zip Code',2500],['Wild Pairs',2000]];
+// Standard: Straight 3,000, Pairs 2,500, Pairs with 2s 2,000, Garbage 2,000. Canasta League list as a table rule.
+const SPECIALS_STD=[['Straight',3000],['Pairs',2500],['Pairs with 2s',2000],['Garbage',2000]];
+const SPECIALS=[['Dream Hand Plus 4',8500],['Dream Hand Plus 5',8500],['Triples',3500],['Quads',3500],['Straight',3000],['Garbage',3000],['Blast Off',3000],['Pairs',2500],['Miami Pairs',2500],['Zip Code',2500],['Wild Pairs',2000]];
 function specialHand(h){
-  if(h.length!==14||h.some(isThree))return null;
+  if(h.length!==14)return null;
+  // the Straight: one of every rank, A through K, plus a joker (the only special hand with a 3)
+  {const rk=new Set(h.map(c=>c.r));if(rk.size===14&&['A','2','3','4','5','6','7','8','9','10','J','Q','K','JK'].every(r=>rk.has(r)))return {name:'Straight',pts:3000}}
+  if(h.some(isThree))return null;
+  if(CR().specials!=='cla'){
+    const nat={};let w2=0,wj=0;for(const c of h){if(c.r==='2')w2++;else if(c.r==='JK')wj++;else nat[c.r]=(nat[c.r]||0)+1}
+    const nc=Object.values(nat).sort((a,b)=>b-a),eq=(a,b)=>a.length===b.length&&a.every((x,k)=>x===b[k]);
+    if(!w2&&!wj&&eq(nc,[2,2,2,2,2,2,2]))return {name:'Pairs',pts:2500};
+    if(w2===2&&!wj&&eq(nc,[2,2,2,2,2,2])&&nat.A===2&&nat['7']===2)return {name:'Pairs with 2s',pts:2000};
+    if(!w2&&!wj&&eq(nc,[4,4,3,3]))return {name:'Garbage',pts:2000};
+    return null;
+  }
   const nat={};let w2=0,wj=0;for(const c of h){if(c.r==='2')w2++;else if(c.r==='JK')wj++;else nat[c.r]=(nat[c.r]||0)+1}
   const nc=Object.values(nat).sort((a,b)=>b-a),wc=[w2,wj].filter(Boolean).sort((a,b)=>b-a);
   const eq=(a,b)=>a.length===b.length&&a.every((x,k)=>x===b[k]);
@@ -501,17 +539,18 @@ function scoreTeam(t,outSeat,special){
   if(C>=1){
     for(const m of canastas(t)){const w=wildCount(m),j=m.cards.filter(c=>c.r==='JK').length;
       let v,n;if(m.r==='W'){v=j===0?3000:j===4?2500:2000;n=j===0?'Canasta of 2s':j===4?'Joker canasta':'Wild canasta'}
-      else if(!w){v=m.r==='7'||m.r==='A'?2500:500;n=`Natural canasta of ${rn(m.r)}`}else{v=300;n=`Mixed canasta of ${rn(m.r)}`}
+      else if(!w){v=SA()&&(m.r==='7'||m.r==='A')?2500:500;n=`Natural canasta of ${rn(m.r)}`}else{v=300;n=`Mixed canasta of ${rn(m.r)}`}
       add(n,v)}
     if(outSeat!=null&&team(outSeat)===t)add('Going out',100);
   }
   for(const m of G.melds[t])if(m.cards.length<7){
-    if(m.r==='7')add('Unfinished 7s meld',-2500);else if(m.r==='W')add('Unfinished wild card meld',-2000);else if(m.r==='A'&&!wildCount(m))add('Unfinished Aces meld',-2500)}
+    if(m.r==='W')add('Unfinished wild card meld',m.cards.filter(c=>c.r==='JK').length===4?-2500:-2000);
+    else if(SA()&&m.r==='7')add('Unfinished 7s meld',-2500);else if(SA()&&m.r==='A'&&!wildCount(m))add('Unfinished Aces meld',-2500)}
   if(C!==1)for(const red of [true,false]){const n=G.threes[t].filter(c=>isRed(c)===red).length;if(n)add(`${n} ${red?'red':'black'} 3${n>1?'s':''}`,(C===0?-1:1)*THREE_PTS[Math.min(4,n)])}
   const mv=G.melds[t].reduce((s,m)=>s+meldPts(m.cards),0);add('Melded cards',C>=1?mv:-mv);
   const hand=teamHand(t);add('Cards left in hand',-hand.filter(c=>!isThree(c)).reduce((s,c)=>s+val(c),0));
   if(hand.some(isThree))add('3 left in hand',-5*hand.filter(isThree).length);
-  for(const seat of [t,t+2])for(const r of ['A','7']){if(G.hands[seat].filter(c=>c.r===r).length>=3)add(`Three or more ${rn(r)} left in hand`,-1500)}
+  if(SA())for(const seat of [t,t+2])for(const r of ['A','7']){if(G.hands[seat].filter(c=>c.r===r).length>=3)add(`${NAMES[seat]==='You'?'You':NAMES[seat]} held three or more ${rn(r)}`,-1500)}
   return {rows,total:rows.reduce((s,x)=>s+x[1],0)};
 }
 function endHand(outSeat,why,special){
@@ -545,8 +584,8 @@ function botTurn(i){
   // take the pack when it helps
   let took=false;
   if(G.pile.length){
-    if(G.opened[t]){const o=packOption(i);if(o.how&&(G.pile.length>=2||o.how==='pair')){took=!takePack(i,[])}}
-    else{const op=findOpening(i,0);if(op){const used=op.flatMap(m=>m.cards.map(c=>c.id));const o=packOption(i,used);if(o.how==='pair'&&!takePack(i,op))took=true}}
+    if(G.opened[t]){const o=packOption(i);if(o.how&&G.pile.length>=2){took=!takePack(i,[])}}
+    else{const op=findOpening(i,0);if(op){const used=op.flatMap(m=>m.cards.map(c=>c.id));const o=packOption(i,used,op);if(o.how&&!takePack(i,op))took=true}}
   }
   if(!took){if(!G.stock.length){if(G.pile.length){const o=packOption(i);if(o.how&&G.opened[t]&&!takePack(i,[])){took=true}}if(!took){endHand(null,'stock');return}}
     else if(!drawCard(i))return}
@@ -566,7 +605,7 @@ function botMeld(i){
       const take=cs.slice(0,7-m.cards.length);if(!meldAdd(i,m,take.map(c=>c.id))){did=true}}
     // new clean melds (7s and Aces only with four or more)
     const by={};for(const c of h)if(isNat(c))(by[c.r]=by[c.r]||[]).push(c);
-    for(const r in by){const cs=by[r];if(cs.length<3||((r==='7'||r==='A')&&cs.length<4))continue;if(teamMeld(t,r)||isDead(r))continue;
+    for(const r in by){const cs=by[r];if(cs.length<3||(SA()&&(r==='7'||r==='A')&&cs.length<4))continue;if(teamMeld(t,r)||isDead(r,t))continue;
       if(!meldNew(i,cs.slice(0,7).map(c=>c.id)))did=true}
     // wild cards finish canastas: a meld with five or more naturals and room
     const wilds=h.filter(isWild);
@@ -581,7 +620,7 @@ function botMeld(i){
 function botDiscard(i){
   if(G.over||G.turn!==i)return;const t=team(i),h=G.hands[i],opp=1-t;
   if(!h.length){endHand(i,'out');return}
-  if(h.length===1&&canGoOut(t)){discardCard(i,h[0].id);return}
+  if(h.length===1&&canGoOut(t)){discardCard(i,h[0].id);return}   // only reachable when going out is allowed
   const cands=rankDiscards(i);
   for(const c of cands){if(!discardCard(i,c.id))return}
   // nothing legal (a rare corner): throw the lowest card anyway so the game can't stall
@@ -590,12 +629,12 @@ function botDiscard(i){
 
 // ================= Hints =================
 function rankDiscards(i){
-  const t=team(i),h=G.hands[i],opp=1-t;const swad=c=>isWild(c)||c.r==='7'||c.r==='A'||isDead(c.r);
+  const t=team(i),h=G.hands[i],opp=1-t;const swad=c=>isWild(c)||(SA()&&(c.r==='7'||c.r==='A'))||isDead(c.r);
   let cands=h.filter(c=>!isThree(c)&&!isWild(c));
   if(!G.pile.length&&cands.some(c=>!swad(c)))cands=cands.filter(c=>!swad(c));
   if(!cands.length)cands=h.filter(c=>!isThree(c));
   const cnt=r=>h.filter(c=>c.r===r).length;
-  const rate=c=>{let s=cnt(c.r)*3;const ours=teamMeld(t,c.r);if(ours&&ours.cards.length<7)s+=5;if(c.r==='7'||c.r==='A')s+=2;
+  const rate=c=>{let s=cnt(c.r)*3;const ours=teamMeld(t,c.r);if(ours&&ours.cards.length<7)s+=5;if(SA()&&(c.r==='7'||c.r==='A'))s+=2;
     if(isDead(c.r))s-=8;const theirs=teamMeld(opp,c.r);if(theirs&&theirs.cards.length>=5)s-=6;if(theirs&&theirs.cards.length<5)s+=6;
     s+=val(c)/20+(i===0?0:Math.random()*.5);return s};
   return cands.sort((a,b)=>rate(a)-rate(b));
@@ -607,7 +646,7 @@ function doHint(){
     const o=packOption(0);
     if(G.opened[0]&&o.how&&G.pile.length>=2)msg=`Take the pack: your ${o.how==='pair'?'pair':'meld'} of ${rn(top.r)} picks up ${G.pile.length} cards.`;
     else if(!G.opened[0]){const op=findOpening(0,0);const used=op?op.flatMap(m=>m.cards.map(c=>c.id)):[];
-      msg=op&&packOption(0,used).how==='pair'&&G.pile.length>=2?'You can open and take the pack. Tap Take the pack.':op?'You can open this turn. Draw a card, then tap Suggest.':'Draw a card.'}
+      msg=op&&packOption(0,used,op).how&&G.pile.length>=2?'You can open and take the pack. Tap Take the pack.':op?'You can open this turn. Draw a card, then tap Suggest.':'Draw a card.'}
     else msg='Draw a card.';
   }else{
     const ideas=[];
@@ -617,7 +656,7 @@ function doHint(){
       const list=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
       const adds=G.melds[0].filter(m=>m.cards.length<7&&m.r!=='W'&&by[m.r]).map(m=>rn(m.r));
       if(adds.length)ideas.push(`Add your ${list(adds)} to your melds.`);
-      const news=Object.keys(by).filter(r=>by[r].length>=((r==='7'||r==='A')?4:3)&&!teamMeld(0,r)&&!isDead(r)).map(r=>`${by[r].length} ${rn(r)}`);
+      const news=Object.keys(by).filter(r=>by[r].length>=(SA()&&(r==='7'||r==='A')?4:3)&&!teamMeld(0,r)&&!isDead(r,0)).map(r=>`${by[r].length} ${rn(r)}`);
       if(news.length)ideas.push(`Start a meld with your ${list(news)}.`);
       const w=h.filter(isWild).length;const near=G.melds[0].find(m=>m.r!=='W'&&m.cards.length===6&&natCount(m)>=5&&wildCount(m)<2&&m.r!=='7'&&!(m.r==='A'&&!wildCount(m)));
       if(w&&near)ideas.push(`A wild card finishes your ${rn(near.r)} canasta.`);
@@ -649,7 +688,7 @@ function doStage(){if(!myTurn())return;const cs=selCards();if(!cs.length)return;
   staged.push({cards:cs});sel.clear();render()}
 function unstage(){staged=[];render()}
 function doOpen(){if(!myTurn()||G.phase!=='play')return;const e=layMelds(0,staged);if(e){toast(e);return}staged=[];Sound.good();render()}
-function doSuggest(){if(!myTurn())return;const op=findOpening(0,G.phase==='draw'?0:(G.stock.length>8?1:2));if(!op){toast(`No initial meld of ${minMeld(0)} points with a clean triple in your hand yet`);return}staged=op;sel.clear();render()}
+function doSuggest(){if(!myTurn())return;const op=findOpening(0,G.phase==='draw'?0:(G.stock.length>8?1:2));if(!op){toast(`No initial meld of ${openNeed(0)} in your hand yet`);return}staged=op;sel.clear();render()}
 function doMeld(){if(!myTurn()||G.phase!=='play')return;const cs=selCards();if(!cs.length)return;
   const r=rankOf(cs);const m=teamMeld(0,r);act(()=>m?meldAdd(0,m,cs.map(c=>c.id)):meldNew(0,cs.map(c=>c.id)))}
 function addTo(mi){if(!myTurn()||G.phase!=='play'||!G.opened[0])return;const cs=selCards();if(!cs.length){toast('Pick cards first, then tap the meld');return}act(()=>meldAdd(0,G.melds[0][mi],cs.map(c=>c.id)))}
@@ -704,7 +743,7 @@ function cardHTML(c,cls=''){
 }
 function canastaValue(m){const w=wildCount(m),j=m.cards.filter(c=>c.r==='JK').length;
   if(m.r==='W')return j===0?[3000,'Canasta of 2s']:j===4?[2500,'Joker canasta']:[2000,'Wild canasta'];
-  if(!w)return m.r==='7'||m.r==='A'?[2500,`Natural ${rn(m.r)}`]:[500,'Natural'];return [300,'Mixed']}
+  if(!w)return SA()&&(m.r==='7'||m.r==='A')?[2500,`Natural ${rn(m.r)}`]:[500,'Natural'];return [300,'Mixed']}
 function backs(n,v){return `<div class="${v?'vbacks':'backs'}">${Array.from({length:Math.min(n,v?9:15)},()=>'<i></i>').join('')}</div>`}
 function meldHTML(m,x,mine,t){const c=m.cards.length>=7;const mixed=c&&m.r!=='W'&&wildCount(m)>0;const key=t+'-'+m.r;
   if(c){const [v,name]=canastaValue(m);const nat=m.cards.filter(isNat);const top=m.r==='W'?m.cards[0]:mixed?(nat.find(k=>!isRed(k))||nat[0]):(nat.find(isRed)||nat[0]);
@@ -727,7 +766,7 @@ function render(){
   let st,sub='';
   if(G.over){st='Hand over'}
   else if(G.turn===0){st=G.phase==='draw'?'Your turn: draw or take the pack':'Meld, then discard';
-    sub=!G.opened[0]?`Your team needs ${minMeld(0)} points with a clean triple (three natural cards of one rank) to open.`:canGoOut(0)?'You have two canastas: you can go out by melding all but one card and discarding it.':`${2-Math.min(2,canastas(0).length)} more canasta${canastas(0).length===1?'':'s'} before you can go out.`}
+    sub=!G.opened[0]?`Your team needs ${openNeed(0)} to open.`:canGoOut(0)?'You have two canastas: you can go out by melding all but one card and discarding it.':`${2-Math.min(2,canastas(0).length)} more canasta${canastas(0).length===1?'':'s'} before you can go out.`}
   else{st=`${NAMES[G.turn]} is playing`;sub=team(G.turn)===0?'Your partner':'Opponent'}
   $('#center').innerHTML=`<div class="pile"><div class="stock" aria-hidden="true"></div>${G.stock.length} left${G.stock.length<=8?' · bottom 8':''}</div>
     <div class="banner"><div class="st">${st}</div><div class="sub">${sub}</div></div>
@@ -776,19 +815,44 @@ function showHelp(){
   $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>How to play</h2>
    <p>Modern American Canasta, following the Canasta League of America rules. You and ${NAMES[2]} (across) are partners against ${NAMES[1]} and ${NAMES[3]}. First team to <b>${GOAL}</b> wins.</p>
    <h3>Cards</h3><p>Two decks plus four jokers (108 cards). 2s and jokers are wild. 3s are set out on the table as soon as you get them, and you draw a replacement. Everything else, 4 through Ace, is natural. Values: jokers 50, Aces and 2s 20, 8 through King 10, 4 through 7 5.</p>
-   <h3>Your turn</h3><p>Draw one card, or take the whole pack: use its top card right away with two natural cards of that rank from your hand (or add it to your team's meld of that rank, if it has four cards or fewer). Then meld if you like, and finish by discarding one card.</p>
-   <h3>Melds</h3><ul><li>Three to seven cards of one rank. Seven cards make a canasta.</li><li>At least two natural cards and no more than two wild cards. After your team's initial meld, a meld needs five natural cards before a wild card can go in.</li>
-   <li>7s never take wild cards. Aces can only take a wild card in the initial meld. A meld of all wild cards is allowed, but your team can't add wild cards anywhere else until it's finished.</li><li>When any canasta of a rank is finished, nobody can meld that rank again.</li></ul>
-   <h3>Initial meld</h3><p>Your team's first meld must be worth 125 points (155 once you have 3,000, 180 from 5,000) and include a clean triple: three natural cards of one rank, no wilds. A natural canasta from your hand opens with no minimum. Open while 9 or more cards are left in the draw pile and you get bonus cards next turn: 4 if your team opened first, 3 if second.</p>
+   <h3>Your turn</h3><p>Draw one card, or take the whole pack: show two natural cards of the top card's rank and meld them with it (if your team has a meld of that rank with three or four cards, they join it). Then meld if you like, and finish by discarding one card.</p>
+   <h3>Melds</h3><ul><li>Three to seven cards of one rank. Seven cards make a canasta.</li><li>At least two natural cards and no more than two wild cards. After your team's initial meld, a meld needs ${CR().wildBase} natural cards before a wild card can go in.</li>
+   ${SA()?'<li>7s never take wild cards. Aces can only take a wild card in the initial meld.</li>':''}<li>A meld of all wild cards is allowed, but your team can't add wild cards anywhere else until it's finished.</li><li>When a natural canasta of a rank closes, ${CR().deadForBoth?'nobody':'that team'} can meld that rank again.</li></ul>
+   <h3>Initial meld</h3><p>Your team's first meld must be worth 125 points (155 once you have 3,000, 180 from 5,000)${CR().open==='pure'?' and include a clean meld: three natural cards of one rank, or three wild cards':CR().open==='naturals3'?' and include a meld with three natural cards':''}. A 7-card natural or wild canasta from your hand opens with no minimum. Open while 9 or more cards are left in the draw pile and you get bonus cards next turn: 4 if your team opened first, 3 if second.</p>
    <h3>Discarding</h3><p>Never a 3. Wild cards only as your very last card. On an empty pile, avoid Sevens, Wilds, Aces and Dead cards.</p>
-   <h3>Going out</h3><p>Your team needs two canastas, and no unfinished pure Aces, 7s or wild card meld. Meld everything but one card and discard it.</p>
-   <h3>Scoring</h3><p>Mixed canasta 300, natural canasta 500, natural Aces or 7s 2,500, wild canasta 2,000 (all 2s 3,000, four jokers 2,500), going out 100, plus the value of your melded cards. With no canasta, melded cards count against you. 3s: with no canasta they cost you, with one they don't count, with two or more they score (100, 300, 500, 1,000 for one to four of a color). Cards left in your hands count against you. Unfinished 7s or pure Aces meld −2,500, unfinished wild meld −2,000, three or more Aces or 7s left in hand −1,500.</p>
-   <h3>Special hands</h3><p>Before your team melds, a 14-card hand right after drawing can end the hand: Pairs 2,500, Wild Pairs 2,000, Miami Pairs 2,500, Zip Code 2,500, Garbage 3,000, Blast Off 3,000, Triples 3,500, Quads 3,500, and the Dream Hands 8,500 (an instant win).</p>
-   <p class="log" style="color:#6b5a3b;text-align:left">Two small simplifications: 3s are always set out right away (so the Straight special hand can't come up), and if all you hold are Sevens, Wilds, Aces or Dead cards on an empty pile you may throw one.</p>
+   <h3>Going out</h3><p>Your team needs two canastas${CR().barGoOut?', and no unfinished pure Aces or 7s meld':''}. Meld everything but one card and discard it.</p>
+   <h3>Scoring</h3><p>Mixed canasta 300, natural canasta 500, natural Aces or 7s 2,500, wild canasta 2,000 (all 2s 3,000, four jokers 2,500), going out 100, plus the value of your melded cards. With no canasta, melded cards count against you. 3s: with no canasta they cost you, with one they don't count, with two or more they score (100, 300, 500, 1,000 for one to four of a color). Cards left in your hands count against you. Unfinished 7s or pure Aces meld −2,500, unfinished wild meld −2,000 (−2,500 with all four jokers), three or more Aces or 7s left in a player's hand −1,500.</p>
+   <h3>Special hands</h3><p>Before your team melds, a 14-card hand right after drawing can end the hand. ${CR().specials==='cla'?'Canasta League list: Straight 3,000, Pairs 2,500, Wild Pairs 2,000, Miami Pairs 2,500, Zip Code 2,500, Garbage 3,000, Blast Off 3,000, Triples 3,500, Quads 3,500, and the Dream Hands 8,500 (an instant win).':'Straight (A through K plus a joker) 3,000, Pairs (seven natural pairs) 2,500, Pairs with 2s (must include pairs of 7s and Aces) 2,000, Garbage (two fours of a kind and two threes of a kind, no wilds) 2,000.'}</p>
+   <p class="log" style="color:#6b5a3b;text-align:left">Table and house rules are under the gear button.</p>
    <div class="mrow"><button class="btn gold" id="mClose">Got it</button></div></div></div>`;
   $('#mClose').onclick=closeModal;$('#mClose').focus();
 }
 $('#bHelp').onclick=showHelp;
+function showRules(){
+  const R={...CR_DEF,...(settings.canastaRules||{})};
+  const seg=(k,label,desc,opts)=>`<div class="crow"><div><b>${label}</b><span>${desc}</span></div><div class="cseg" role="group" aria-label="${label}">${opts.map(([v,l])=>`<button class="${String(R[k])===String(v)?'on':''}" data-cr="${k}" data-v="${v}" aria-pressed="${String(R[k])===String(v)}">${l}</button>`).join('')}</div></div>`;
+  const tog=(k,label,desc)=>`<div class="crow"><div><b>${label}</b><span>${desc}</span></div><label class="ctog"><input type="checkbox" data-ct="${k}" ${R[k]?'checked':''}><i></i></label></div>`;
+  $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>Rules</h2><p class="setnote">Changes count from the next hand.</p>
+    <h3>Table rules</h3>
+    ${seg('wildBase','Natural cards before a wild','After your team\'s first meld, how many natural cards a meld needs before a wild card can go in.',[[2,'2'],[3,'3'],[5,'5']])}
+    ${seg('open','Initial meld must include','What your team\'s first meld needs besides the point count.',[['pure','A clean or wild meld'],['naturals3','3 natural cards'],['none','Nothing extra']])}
+    ${seg('specials','Special hands','Standard: Straight, Pairs, Pairs with 2s, Garbage. Canasta League: eleven hands including the Dream Hands.',[['basic','Standard'],['cla','Canasta League']])}
+    ${tog('packOnOpen','Take the pack when you open','Allow taking the discard pile on the turn your team makes its initial meld.')}
+    ${tog('deadForBoth','Closed ranks are dead for both teams','When off, a team can keep melding a rank the other team closed.')}
+    ${tog('lastThree','A 3 as the last card ends the hand','Drawing a 3 as the very last card ends the hand at once (it counts 5 against).')}
+    <h3>House rules</h3>
+    ${tog('sevensAces','Special 7s and Aces rules','On: 7s never take wild cards, Aces take them only in the first meld, natural Aces or 7s canastas score 2,500, and unfinished ones or three left in hand cost points. Off: 7s and Aces play like any other rank.')}
+    ${tog('barGoOut','No going out with an unfinished 7s or Aces meld','Your team can\'t go out while it has a pure 7s or Aces meld under seven cards.')}
+    ${tog('keepThree','Hold a 3 for a Straight','Keep one 3 in your hand until your team melds, so you can try for the Straight.')}
+    <div class="mrow"><button class="btn gold" id="mDone">Done</button></div></div></div>`;
+  const save=(k,v)=>{settings.canastaRules={...CR_DEF,...(settings.canastaRules||{}),[k]:v};
+    try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.canastaRules=settings.canastaRules;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}};
+  document.querySelectorAll('[data-cr]').forEach(b=>b.onclick=()=>{const k=b.dataset.cr,raw=b.dataset.v;save(k,/^\d+$/.test(raw)?+raw:raw);
+    document.querySelectorAll(`[data-cr="${k}"]`).forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
+  document.querySelectorAll('[data-ct]').forEach(e=>e.onchange=()=>save(e.dataset.ct,e.checked));
+  $('#mDone').onclick=closeModal;$('#mDone').focus();
+}
+$('#bSet').onclick=showRules;
 $('#bNew').onclick=()=>{
   $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>Start a new game?</h2><p>Both scores go back to 0 and a fresh hand is dealt.</p>
     <div class="mrow"><button class="btn gold" id="mYes">New game</button><button class="btn" id="mNo">Keep playing</button></div></div></div>`;

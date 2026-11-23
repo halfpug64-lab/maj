@@ -4,7 +4,8 @@
 //  - Bonus tiles are set aside as soon as they arrive and replaced from the back of the wall.
 //  - Chow only from the player on your left; pung and kong from anyone; a win beats a pung or kong, which beats a chow;
 //    if two players could win on the same discard, the one next in turn wins.
-//  - A winning hand is 4 sets and a pair (or Thirteen Orphans) worth at least 3 faan; faan are capped at 10.
+//  - A winning hand is 4 sets and a pair (or Thirteen Orphans, or Seven Pairs if turned on) worth the table minimum
+//    (3 faan by default); faan are capped (10 by default). Both are settings.
 //  - Points use the "half spicy" table. A discard win is paid by the discarder; a self-drawn win is paid by everyone
 //    at half the table each (1.5x in total).
 //  - The dealer keeps the deal after winning or a drawn hand; otherwise it passes to the right. The prevailing wind
@@ -13,8 +14,12 @@
 
 const HK_KINDS=[...['B','C','D'].flatMap(s=>[1,2,3,4,5,6,7,8,9].map(n=>s+n)),'E','S','W','N','R','G','0'];
 const HKI=Object.fromEntries(HK_KINDS.map((k,i)=>[k,i]));
-const HK_MIN=3,HK_MAX=10;
-const HK_PTS=[1,2,4,8,16,24,32,48,64,96,128];            // half spicy, 0 to 10 faan
+// Table rules (Settings > Chinese mahjong rules). Every faan counts toward the minimum, flowers included (New Style).
+const HK_DEF={minFaan:3,cap:10,table:'half',discPay:'all',repeat:'always',sevenPairs:false,noLastCalls:false};
+function hkR(){return {...HK_DEF,...((typeof settings!=='undefined'&&settings&&settings.hkRules)||{})}}
+let HK_MIN=3,HK_MAX=10;
+function hkApplyRules(){const r=hkR();HK_MIN=+r.minFaan;HK_MAX=+r.cap}
+const HK_HALF=[1,2,4,8,16,24,32,48,64,96,128,192,256,384];   // half spicy, 0 to 13 faan
 const HK_WINDK='ESWN',HK_WINDNAME=['East','South','West','North'];
 const HK_FLOWER=['Plum','Orchid','Chrysanthemum','Bamboo'],HK_SEASON=['Spring','Summer','Autumn','Winter'];
 const hkIsSuit=i=>i<27,hkIsTerm=i=>i<27&&(i%9===0||i%9===8),hkIsHonor=i=>i>=27,hkIsDragon=i=>i>=31,hkIsWind=i=>i>=27&&i<31;
@@ -22,6 +27,8 @@ let hkWind=0,hkRot=0;          // prevailing wind (0 East .. 3 North); dealer ch
 let hkLast={};                 // how the current player got their latest tile: {self, rep, claimed}
 let hkFirst=true;              // no one has claimed or discarded more than once around yet (heavenly / earthly hands)
 let hkKeep=false;              // the dealer keeps the deal next hand
+let hkRepeat=0;                // hands in a row the same East has kept the deal
+let hkMatchOver=false;         // the last hand of the North round has been played
 
 function hkBuildWall(){
   let id=0;const w=[];
@@ -80,8 +87,29 @@ function hkEval(seat,hand,ctx={}){
     const O=[0,8,9,17,18,26,27,28,29,30,31,32,33];
     if(O.every(i=>c[i]>=1)&&O.reduce((s,i)=>s+c[i],0)===14)consider(hkLimit(seat,'Thirteen Orphans',13,ctx));
   }
+  if(!melds.length&&hkR().sevenPairs&&c.filter(x=>x===2).length===7&&c.every(x=>x===0||x===2))consider(hkSevenPairs(seat,c,ctx));
   for(const d of hkDecomp(c,n))consider(hkScore(seat,d,c,ctx));
   return best;
+}
+// bonus-tile faan: none at all, your own flower and season, or a full set of four
+function hkFlowerItems(seat){
+  const it=[],fl=players[seat].flowers||[],sx=hkSeatWind(seat),fv=new Set(fl.map(t=>t.v));
+  if(!fl.length)it.push(['No flowers or seasons',1]);
+  if([0,1,2,3].every(v=>fv.has(v)))it.push(['All four flowers',2]);else if(fv.has(sx))it.push(['Own flower',1]);
+  if([4,5,6,7].every(v=>fv.has(v)))it.push(['All four seasons',2]);else if(fv.has(4+sx))it.push(['Own season',1]);
+  return it;
+}
+// Seven Pairs: always concealed, so it never takes the concealed-hand faan
+function hkSevenPairs(seat,c,ctx){
+  const ks=[];c.forEach((x,i)=>{if(x===2)ks.push(i)});
+  const suits=new Set(ks.filter(hkIsSuit).map(i=>Math.floor(i/9))),honors=ks.some(hkIsHonor);
+  if(!suits.size)return hkLimit(seat,'All honors',10,ctx);
+  if(ctx.heaven||ctx.earth)return hkLimit(seat,ctx.heaven?'Heavenly Hand':'Earthly Hand',0,ctx);
+  const it=[['Seven pairs',4]];
+  if(suits.size===1)it.push(honors?['Mixed one suit',3]:['All one suit',7]);
+  it.push(...hkFlowerItems(seat),...hkCond(seat,ctx,false));
+  const raw=it.reduce((s,x)=>s+x[1],0);
+  return {faan:Math.min(HK_MAX,raw),raw,items:it,limit:false};
 }
 function hkCond(seat,ctx,concealed){
   const it=[];
@@ -91,11 +119,12 @@ function hkCond(seat,ctx,concealed){
   if(concealed)it.push(['Concealed hand',1]);
   if(ctx.rob)it.push(['Robbing the kong',1]);
   if(ctx.last)it.push([ctx.self?'Last tile from the wall':'Last discard',1]);
-  if(ctx.rep)it.push(['Win on a replacement tile',1]);
+  if(ctx.rep>=2)it.push(['Win on a double-kong replacement',8]);else if(ctx.rep)it.push(['Win on a kong replacement',1]);
   return it;
 }
 function hkLimit(seat,name,val,ctx){
-  const items=[[name,val],...hkCond(seat,ctx,false).filter(x=>x[1]>=13)];
+  // limit hands score the hand and how it was won; winds, dragons and flowers add nothing
+  const items=[[name,val],...hkCond(seat,ctx,false)];
   const raw=items.reduce((s,x)=>s+x[1],0);
   return {faan:Math.min(HK_MAX,raw),raw,items,limit:true};
 }
@@ -136,23 +165,21 @@ function hkScore(seat,d,c,ctx){
   if(windP===3&&hkIsWind(pair))it.push(['Small Four Winds',6]);
   if(pungs.some(s=>s.i===sw))it.push(['Seat wind pung',1]);
   if(pungs.some(s=>s.i===pw))it.push(['Prevailing wind pung',1]);
-  const fl=p.flowers||[],sx=hkSeatWind(seat);
-  if(!fl.length)it.push(['No flowers or seasons',1]);
-  const fv=new Set(fl.map(t=>t.v));
-  if([0,1,2,3].every(v=>fv.has(v)))it.push(['All four flowers',2]);else if(fv.has(sx))it.push(['Own flower',1]);
-  if([4,5,6,7].every(v=>fv.has(v)))it.push(['All four seasons',2]);else if(fv.has(4+sx))it.push(['Own season',1]);
+  it.push(...hkFlowerItems(seat));
   it.push(...hkCond(seat,ctx,concealedHand));
   const raw=it.reduce((s,x)=>s+x[1],0);
   return {faan:Math.min(HK_MAX,raw),raw,items:it,limit:false};
 }
-const hkPoints=f=>HK_PTS[Math.min(HK_MAX,Math.max(0,f))];
+const hkPoints=f=>{f=Math.min(HK_MAX,Math.max(0,f));return hkR().table==='full'?Math.pow(2,f):HK_HALF[f]};
 
 // ---- dealing and turns ----
 function hkNewGame(){
   gid++;closeModal();Sound.init();undoStack=[];homeOpen=false;godNext={};godDraw={};godDrawFor=null;
   wall=hkBuildWall();discards=[];logs=[];logVer++;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];
-  if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false;hkWind=0;hkRot=0}
-  else if(!hkKeep){dealer=(dealer+1)%4;hkRot++;if(hkRot%4===0)hkWind=(hkWind+1)%4}
+  hkApplyRules();
+  if(hkMatchOver){hkMatchOver=false;pendingStart=true;scores=[0,0,0,0];shown=[0,0,0,0];hkKeep=false}
+  if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false;hkWind=0;hkRot=0;hkRepeat=0}
+  else if(!hkKeep){dealer=(dealer+1)%4;hkRot++;if(hkRot%4===0)hkWind=Math.min(3,hkWind+1)}
   hkKeep=false;
   dead=[false,false,false,false];building=null;turnSrc=null;hkLast={};hkFirst=true;
   players=[0,1,2,3].map(()=>({hand:[],exp:[],flowers:[]}));phase='shuffle';turn=0;step='discard';hkSaveProgress();
@@ -186,24 +213,24 @@ function hkStartTurn(i){
   if(phase!=='play')return;
   if(!wall.length){hkDrawGame();return}
   turnSrc=null;callState=null;
-  const p=players[i];let t=godPull(i)||wall.pop();let rep=false;
+  const p=players[i];let t=godPull(i)||wall.pop();
   while(t&&t.k==='F'){p.flowers.push(t);log(`${NAMES[i]} drew ${hkFlowerName(t)} and takes a replacement.`);if(i===0)toast(HK_FLOWER[t.v]||HK_SEASON[t.v-4]);
-    if(!wall.length){hkDrawGame();return}t=wall.shift();rep=true}
-  p.hand.push(t);if(i!==0)sortHand(p.hand);turn=i;step='discard';hkLast={self:true,rep};
+    if(!wall.length){hkDrawGame();return}t=wall.shift()}
+  p.hand.push(t);if(i!==0)sortHand(p.hand);turn=i;step='discard';hkLast={self:true,rep:0};
   if(i===0){newIds=new Set([t.id]);selected=null;log(`You drew ${tname(t.k)}.`);queueFly(t,rectOf('#wallStack'),0,460);render();Sound.tap()}
   else{render();later(()=>hkBotAct(i),SPEED)}
 }
 function hkReplacement(i){
-  const p=players[i];
+  const p=players[i];const chain=(hkLast.rep||0)+1;
   for(let g=0;g<12;g++){
     if(!wall.length){hkDrawGame();return false}
     const t=wall.shift();
     if(t.k==='F'){p.flowers.push(t);log(`${NAMES[i]} set aside ${hkFlowerName(t)}.`);continue}
-    p.hand.push(t);if(i!==0)sortHand(p.hand);else newIds=new Set([t.id]);hkLast={self:true,rep:true};return true;
+    p.hand.push(t);if(i!==0)sortHand(p.hand);else newIds=new Set([t.id]);hkLast={self:true,rep:chain};return true;
   }
   return false;
 }
-function hkCtxSelf(i){return {self:true,rep:!!hkLast.rep,last:!wall.length,heaven:hkFirst&&i===dealer&&!discards.length&&!!hkLast.deal}}
+function hkCtxSelf(i){return {self:true,rep:hkLast.rep||0,last:!wall.length,heaven:hkFirst&&i===dealer&&!discards.length&&!!hkLast.deal}}
 function hkSelfWin(i){const p=players[i];if(hkLast.claimed)return null;const r=hkEval(i,p.hand,hkCtxSelf(i));return r&&r.faan>=HK_MIN?r:null}
 function hkKongOptions(i){
   const p=players[i];if(hkLast.claimed||!wall.length)return[];
@@ -298,16 +325,16 @@ function hkResolve(i,t){
   if(phase!=='play')return;
   const order=[1,2,3].map(d=>(i+d)%4),pos=j=>order.indexOf(j);
   const ctxFor=j=>({win:HKI[t.k],last:!wall.length,earth:hkFirst&&i===dealer&&discards.length===1&&j!==dealer});
-  let botWin=null,botPung=null,botChow=null;
+  let botWin=null,botPung=null,botChow=null;const noCalls=hkR().noLastCalls&&!wall.length;
   if(!godPow('noWin'))for(const j of order){if(j===0)continue;const r=hkEval(j,[...players[j].hand,t],ctxFor(j));if(r&&r.faan>=HK_MIN){botWin={j};break}}
-  for(const j of order){if(j===0)continue;const cl=hkBotClaim(j,t,i);if(!cl)continue;
+  if(!noCalls)for(const j of order){if(j===0)continue;const cl=hkBotClaim(j,t,i);if(!cl)continue;
     if(cl.t==='chow'){if(!botChow)botChow={j,s:cl.s}}else if(!botPung)botPung={j,t:cl.t}}
   let o=null;
   if(i!==0){const p=players[0],c=hkCounts(p.hand),x=HKI[t.k];const r=hkEval(0,[...p.hand,t],ctxFor(0));
     o={win:r&&r.faan>=HK_MIN&&!(botWin&&pos(botWin.j)<pos(0))?r.faan:0,
        winShort:r&&r.faan<HK_MIN?r.faan:null,
-       pung:c[x]>=2&&!botWin,kong:c[x]>=3&&!botWin&&wall.length>0,
-       chows:(0===(i+1)%4&&!botWin&&!botPung)?hkChowSets(c,x):[]};
+       pung:c[x]>=2&&!botWin&&!noCalls,kong:c[x]>=3&&!botWin&&wall.length>0&&!noCalls,
+       chows:(0===(i+1)%4&&!botWin&&!botPung&&!noCalls)?hkChowSets(c,x):[]};
     if(!o.win&&o.winShort!=null&&!botWin)toast(`That ${tname(t.k)} would finish your hand, but only for ${o.winShort} faan (you need ${HK_MIN})`);
     if(!o.win&&!o.pung&&!o.kong&&!o.chows.length)o=null}
   const cs={hk:true,i,t,o,botWin,botPung,botChow};
@@ -343,7 +370,7 @@ function hkClaim(j,type,s,from){
   queueFly(t,fromT,0,480);hkFirst=false;
   log(`${NAMES[j]} called ${tname(t.k)} for a ${type}.`);toastAll(v=>`${nameV(j,v)}: ${type[0].toUpperCase()+type.slice(1)}!`);Sound.chime();
   turn=j;step='discard';selected=null;newIds=new Set();turnSrc=from;hkLast={claimed:true};
-  if(type==='kong'){if(!hkReplacement(j))return;hkLast={self:true,rep:true}}
+  if(type==='kong'&&!hkReplacement(j))return;
   render();if(j!==0)later(()=>hkBotAct(j),SPEED);
 }
 
@@ -353,29 +380,36 @@ function hkWin(j,from,ctx){
   phase='over';callState=null;sortHand(p.hand);
   const pts=hkPoints(r.faan),pay=[0,0,0,0];
   if(from==null){for(let q=0;q<4;q++)if(q!==j){pay[q]-=pts/2;pay[j]+=pts/2}}
+  else if(hkR().discPay==='half'){pay[j]+=pts;for(let q=0;q<4;q++)if(q!==j)pay[q]-=q===from?pts/2:pts/4}
   else{pay[from]-=pts;pay[j]+=pts}
   for(let q=0;q<4;q++)scores[q]+=pay[q];
-  hkKeep=j===dealer;hkSaveProgress();
+  hkDecideKeep(j===dealer);hkSaveProgress();
   log(`${NAMES[j]} won with ${r.faan} faan${r.raw>r.faan?' (capped)':''}.`);
   if(j===0){Sound.fanfare();confetti();toast('Mah Jongg!','big')}else{Sound.sad();toast(`${NAMES[j]}: Mah Jongg`)}
   render();later(()=>hkShowResult(j,from,r,pts,pay),1300);
 }
+// East keeps the deal after winning or a drawn hand, unless the table caps or turns off repeats
+function hkDecideKeep(want){const r=hkR().repeat;const ok=want&&(r==='always'||(r==='cap3'&&hkRepeat<3));
+  hkKeep=ok;hkRepeat=ok?hkRepeat+1:0;hkMatchOver=!ok&&hkWind===3&&hkRot%4===3}
+function hkEastNote(){return hkMatchOver?'':hkKeep?`${dealer===0?'You stay':NAMES[dealer]+' stays'} East.`:`East passes to ${NAMES[(dealer+1)%4]==='You'?'you':NAMES[(dealer+1)%4]}.`}
+function hkMatchHTML(){if(!hkMatchOver)return '';const order=[0,1,2,3].sort((a,b)=>scores[b]-scores[a]);
+  return `<div class="matchend"><h3>That's the match: all four rounds played</h3><ol>${order.map(q=>`<li>${NAMES[q]} <b>${scores[q]}</b></li>`).join('')}</ol></div>`}
 function hkDrawGame(){
-  phase='over';callState=null;hkKeep=true;hkSaveProgress();log('The wall is empty. Drawn hand: no one pays and East keeps the deal.');Sound.sad();render();
-  openModal(`<h2>Drawn hand</h2><p>The wall ran out before anyone won. No points change hands, and ${dealer===0?'you stay':NAMES[dealer]+' stays'} East for the next hand.</p>
-   <div class="mrow"><button class="btn btn-gold" onclick="newGame()">Next hand</button>${canUndo()?'<button class="btn btn-ghost" onclick="undoMove()">Undo</button>':''}<button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
+  phase='over';callState=null;hkDecideKeep(true);hkSaveProgress();log(`The wall is empty. Drawn hand: no one pays${hkKeep?' and East keeps the deal':''}.`);Sound.sad();render();
+  openModal(`<h2>Drawn hand</h2><p>The wall ran out before anyone won, so no points change hands. ${hkEastNote()}</p>${hkMatchHTML()}
+   <div class="mrow"><button class="btn btn-gold" onclick="newGame()">${hkMatchOver?'New match':'Next hand'}</button>${canUndo()?'<button class="btn btn-ghost" onclick="undoMove()">Undo</button>':''}<button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
 }
 function hkShowResult(j,from,r,pts,pay){
   const p=players[j];
   const tiles=[...p.exp.flatMap(e=>e.tiles),...p.hand];
   openModal(`<h2>${j===0?'You won!':NAMES[j]+' won'}</h2>
-   <p>${from==null?'Self-drawn, so everyone pays half each.':`Won on ${from===0?'your':NAMES[from]+"'s"} discard, so ${from===0?'you pay':NAMES[from]+' pays'} it all.`}
+   <p>${from==null?'Self-drawn, so everyone pays half each.':hkR().discPay==='half'?`Won on ${from===0?'your':NAMES[from]+"'s"} discard: ${from===0?'you pay':NAMES[from]+' pays'} half and the other two split the rest.`:`Won on ${from===0?'your':NAMES[from]+"'s"} discard, so ${from===0?'you pay':NAMES[from]+' pays'} it all.`}
     <b>${r.faan} faan</b>${r.raw>r.faan?` (${r.raw} capped at ${HK_MAX})`:''} = <b>${pts}</b> points.</p>
    <div class="faanlist">${r.items.filter(x=>x[1]>0).map(([n,f])=>`<span>${n}</span><b>${f}</b>`).join('')}</div>
    <div class="win-tiles">${tiles.map(t=>tileHTML(t,'md')).join('')}${(p.flowers||[]).map(t=>tileHTML(t,'md flowerbonus')).join('')}</div>
    <div class="pay">${NAMES.map((n,i)=>`<span>${n} <b class="${pay[i]>0?'plus':pay[i]<0?'minus':''}">${pay[i]>0?'+':''}${pay[i]}</b></span>`).join('')}</div>
-   <p class="setnote">${j===dealer?`${j===0?'You stay':NAMES[j]+' stays'} East.`:`East passes to ${NAMES[(dealer+1)%4]==='You'?'you':NAMES[(dealer+1)%4]}.`}</p>
-   <div class="mrow"><button class="btn btn-gold" onclick="newGame()">Next hand</button>${canUndo()?'<button class="btn btn-ghost" onclick="undoMove()">Undo</button>':''}<button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
+   <p class="setnote">${hkEastNote()}</p>${hkMatchHTML()}
+   <div class="mrow"><button class="btn btn-gold" onclick="newGame()">${hkMatchOver?'New match':'Next hand'}</button>${canUndo()?'<button class="btn btn-ghost" onclick="undoMove()">Undo</button>':''}<button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
 }
 
 // ---- your moves ----
@@ -397,7 +431,7 @@ function hkCoach(){
     return {sh,suggest:t,text:sh<=0?'Throw the suggested tile and you\'re ready.':`${sh} tile${sh>1?'s':''} from ready after a good discard.`};
   }
   const sh=hkShanten(c,m),w=sh===0?hkWaits(0):[];
-  return {sh,waits:w,text:sh===0?(w.some(x=>x.faan>=HK_MIN)?'Ready! You win on:':'Ready, but not with 3 faan yet:'):`${sh} tile${sh>1?'s':''} from ready.`};
+  return {sh,waits:w,text:sh===0?(w.some(x=>x.faan>=HK_MIN)?'Ready! You win on:':`Ready, but not with ${HK_MIN} faan yet:`):`${sh} tile${sh>1?'s':''} from ready.`};
 }
 function hkChooseDiscardFor(i){const lv=0;const p=players[i];const c=hkCounts(p.hand),m=p.exp.length,plan=hkPlan(i);let best=null,bs=Infinity;
   for(let x=0;x<34;x++){if(!c[x])continue;const s=hkDiscardScore(i,c,m,x,plan);if(s<bs){bs=s;best=x}}
@@ -457,9 +491,12 @@ function hkShowRules(){
    <p><b>Calling:</b> you can take the tile just thrown to make a pung or kong from anyone, or a chow only from the player on your left. Calling exposes that set. A win beats a pung or kong, and a pung beats a chow.</p>
    <p><b>Kongs:</b> four alike, declared on your turn (concealed) or by adding a drawn tile to your exposed pung. Either way you draw a replacement tile. If you add to a pung, anyone who wins on that tile can rob it.</p>
    <h3>Faan</h3>
-   <div class="faanlist">${[['All chows',1],['All pungs',3],['Mixed one suit (one suit plus honors)',3],['All one suit',7],['Mixed terminals and honors',1],['Each dragon pung',1],['Small Three Dragons (two pungs, pair of the third)',5],['Great Three Dragons',8],['Small Four Winds',6],['Seat wind pung',1],['Prevailing wind pung',1],['No flowers or seasons',1],['Own flower / own season',1],['All four flowers / seasons',2],['Self-drawn',1],['Concealed hand',1],['Robbing a kong, last tile, replacement tile','1 each'],['Limit hands: all honors, self triplets, all terminals, Nine Gates, Thirteen Orphans, Four Kongs, Great Four Winds, Heavenly / Earthly Hand',HK_MAX]].map(([n,f])=>`<span>${n}</span><b>${f}</b>`).join('')}</div>
+   <div class="faanlist">${[['All chows',1],['All pungs',3],['Mixed one suit (one suit plus honors)',3],['All one suit',7],['Mixed terminals and honors (plus 3 for all pungs)',1],['Seven pairs (if turned on)',4],['Each dragon pung',1],['Small Three Dragons (two pungs, pair of the third)',5],['Great Three Dragons',8],['Small Four Winds',6],['Seat wind pung',1],['Prevailing wind pung',1],['No flowers or seasons',1],['Own flower / own season',1],['All four flowers / seasons',2],['Self-drawn',1],['Concealed hand',1],['Robbing a kong, last tile or discard, kong replacement','1 each'],['Win on a double-kong replacement',8],['Limit hands: all honors, self triplets, all terminals, Nine Gates, Thirteen Orphans, Four Kongs, Great Four Winds, Heavenly / Earthly Hand',HK_MAX]].map(([n,f])=>`<span>${n}</span><b>${f}</b>`).join('')}</div>
+   <p class="setnote">Every faan counts toward the ${HK_MIN}-faan minimum, flowers included. Faan are capped at ${HK_MAX}.${hkR().sevenPairs?' Seven Pairs (4 faan) is on.':''}</p>
    <h3>Paying</h3>
-   <p>Faan turn into points: 3 = 8, 4 = 16, 5 = 24, 6 = 32, 7 = 48, 8 = 64, 9 = 96, 10 = 128. Win on a discard and the thrower pays it all. Draw it yourself and each other player pays half. East keeps the deal after winning or a drawn hand; otherwise it moves to the right. The prevailing wind changes after everyone has been East.</p>
+   <p>${hkR().table==='full'?'Full spicy: points double with every faan (3 = 8, 4 = 16, 5 = 32, 6 = 64…).':'Half spicy: 3 faan = 8, 4 = 16, 5 = 24, 6 = 32, 7 = 48, 8 = 64, 9 = 96, 10 = 128.'} ${hkR().discPay==='half'?'Win on a discard and the thrower pays half; the other two split the rest.':'Win on a discard and the thrower pays it all.'} Draw it yourself and each other player pays half the table value (1.5× in total).</p>
+   <h3>Rounds</h3>
+   <p>A match is four rounds: East, South, West and North. ${hkR().repeat==='never'?'The deal always passes to the right.':hkR().repeat==='cap3'?'East keeps the deal after winning or a drawn hand, up to 3 times in a row; otherwise it moves to the right.':'East keeps the deal after winning or a drawn hand; otherwise it moves to the right.'} The round wind changes after everyone has been East.${hkR().noLastCalls?' No pung, kong or chow on the last discard.':''}</p>
    <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Got it</button></div></div>`);
 }
 
@@ -467,7 +504,7 @@ function hkShowRules(){
 function hkSaveProgress(){
   if(!settings.save||MP())return;
   try{
-    localStorage.setItem('amj_progress_hk',JSON.stringify({scores,dealer,hkWind,hkRot,hkKeep}));
+    localStorage.setItem('amj_progress_hk',JSON.stringify({scores,dealer,hkWind,hkRot,hkKeep,hkRepeat,hkMatchOver}));
     if(phase==='over'){localStorage.removeItem('amj_game_hk');return}
     if(phase==='play'&&turn===0&&step==='discard'&&!callState)localStorage.setItem('amj_game_hk',JSON.stringify({wall,players,discards,dealer,turn,hkWind,hkRot,hkLast,hkFirst,turnSrc}));
   }catch(e){}
@@ -475,7 +512,7 @@ function hkSaveProgress(){
 function hkSavedGame(){if(!settings.save)return null;try{const g=JSON.parse(localStorage.getItem('amj_game_hk'));return g&&Array.isArray(g.players)?g:null}catch(e){return null}}
 function hkResume(){
   const g=hkSavedGame();if(!g)return false;
-  gid++;Sound.init();
+  gid++;Sound.init();hkApplyRules();
   ({wall,players,discards,dealer,turn,hkWind,hkRot,hkLast,hkFirst,turnSrc}=g);
   phase='play';step='discard';pendingStart=false;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];logs=[];logVer++;
   log('Picked up where you left off.');$('#splash').classList.add('hide');render();return true;

@@ -1336,6 +1336,7 @@ body.mp-client #btnGod{display:none}
   .scores{flex-wrap:nowrap}.chip>span:not(.bullet){display:none}.chip{padding:2px 7px 2px 2px;gap:4px}
   body.table-view .plate .meta{min-width:0}body.table-view .plate .pinfo{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pinfo .lvl{display:none}}
 body.table-view .seat-top .plate{flex-wrap:nowrap}body.table-view .plate .pname{white-space:nowrap}
+.matchend{background:rgba(0,0,0,.05);border-radius:12px;padding:10px 14px;margin:10px 0}.matchend h3{margin:0 0 6px;font-size:15px}.matchend ol{margin:0;padding-left:20px}
 .gamepick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:min(560px,100%);margin:0 0 16px}
 .gamepick button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;padding:9px 8px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--txt);font:700 14px/1.15 var(--body);cursor:pointer;transition:background .2s,color .2s}
 .gamepick button small{font:600 11px var(--body);color:var(--muted)}
@@ -2001,7 +2002,8 @@ function loadProgress(){
   if(!settings.save)return;
   try{const pr=JSON.parse(localStorage.getItem(GAME==='hk'?'amj_progress_hk':'amj_progress'));
     if(pr&&Array.isArray(pr.scores)&&pr.scores.length===4){scores=pr.scores;if(pr.dealer>=0){dealer=pr.dealer;pendingStart=false}
-      if(GAME==='hk'){hkWind=pr.hkWind||0;hkRot=pr.hkRot||0;hkKeep=!!pr.hkKeep}}}catch(e){}
+      if(GAME==='hk'){hkWind=pr.hkWind||0;hkRot=pr.hkRot||0;hkKeep=!!pr.hkKeep;hkRepeat=pr.hkRepeat||0;hkMatchOver=!!pr.hkMatchOver}}}catch(e){}
+  hkApplyRules();
 }
 loadProgress();
 let dead=[false,false,false,false];   // declared-dead hands (Part 12)
@@ -2949,7 +2951,7 @@ let undoStack=[],homeOpen=false;   // homeOpen: a solo game is paused behind the
 function takeSnap(){
   if(!settings.undo||MP())return;
   const cs=callState?(callState.hk?{...callState,t:null,tid:callState.t.id}:{i:callState.i,order:callState.order,botMJ:callState.botMJ&&{j:callState.botMJ.j},botExp:callState.botExp,offers:callState.offers}):null;
-  undoStack.push(JSON.stringify({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc,chStop,chSub,chVotes,scores,logs,cs,hk:{hkLast,hkFirst,hkWind,hkRot,hkKeep}}));
+  undoStack.push(JSON.stringify({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc,chStop,chSub,chVotes,scores,logs,cs,hk:{hkLast,hkFirst,hkWind,hkRot,hkKeep,hkRepeat,hkMatchOver}}));
   if(undoStack.length>60)undoStack.shift();
 }
 const canUndo=()=>settings.undo&&!MP()&&undoStack.length>0&&['charleston','play','over'].includes(phase);
@@ -2958,7 +2960,7 @@ function undoMove(){
   const g=JSON.parse(undoStack.pop());
   gid++;paused=false;pausedQ=[];closeModal();
   ({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc,chStop,chSub,chVotes,scores,logs}=g);
-  if(g.hk)({hkLast,hkFirst,hkWind,hkRot,hkKeep}=g.hk);
+  if(g.hk)({hkLast,hkFirst,hkWind,hkRot,hkKeep,hkRepeat=0,hkMatchOver=false}=g.hk);
   const byId=id=>[...discards,...players.flatMap(q=>q.hand)].find(x=>x.id===id);
   callState=g.cs?(g.cs.hk?{...g.cs,t:byId(g.cs.tid)}:{...g.cs,t:discards[discards.length-1],choices:{},o:g.cs.offers[0]||null}):null;
   building=null;sel=new Set();selected=null;newIds=new Set();flyQueue=[];shown=[...scores];
@@ -3086,6 +3088,16 @@ function showSettings(tab){
    <div id="hrList" class="hrlist${settings.house?'':' off'}" hidden>
      <p class="setnote">${settings.house?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'}</p>
      ${HR.map(([k,l,d])=>swRow('hr_'+k,l,d,settings.hr[k])).join('')}</div>
+   <div class="set-sec">Chinese mahjong rules</div>
+   <p class="setnote">Hong Kong table rules. Changes count from the next hand.</p>
+   ${(()=>{const R=hkR();const seg=(key,label,desc,opts)=>`<div class="setrow"><span class="st"><b>${label}</b><span class="d">${desc}</span></span><span class="seg" role="group" aria-label="${label}">${opts.map(([v,l])=>`<button class="${String(R[key])===String(v)?'on':''}" data-hkr="${key}" data-v="${v}" aria-pressed="${String(R[key])===String(v)}">${l}</button>`).join('')}</span></div>`;
+     return seg('minFaan','Minimum faan','Faan you need to declare a win. 3 is the usual Hong Kong minimum.',[[0,'0'],[1,'1'],[2,'2'],[3,'3']])
+      +seg('cap','Faan cap','The most faan a hand can score. The Hong Kong Mahjong Association caps at 10.',[[8,'8'],[10,'10'],[13,'13']])
+      +seg('table','Points table','Half spicy doubles every second faan after 4. Full spicy doubles every faan.',[['half','Half spicy'],['full','Full spicy']])
+      +seg('discPay','Discard wins','Who pays when someone wins on a discard.',[['all','Thrower pays all'],['half','Thrower pays half']])
+      +seg('repeat','East repeats','Whether East keeps the deal after winning or a drawn hand.',[['always','Always'],['cap3','Up to 3 times'],['never','Never']])
+      +swRow('hkr_sevenPairs','Seven Pairs','Allow a hand of seven different pairs, worth 4 faan.',!!R.sevenPairs)
+      +swRow('hkr_noLastCalls','No calls on the last discard','Once the wall is empty, the last discard can only be claimed to win.',!!R.noLastCalls)})()}
    <div class="set-sec">Party mode</div>
    ${GOD().on?`<div class="setrow col party"><span class="st"><b>Mahjong Admin is on</b><span class="d">Control who gets what, the draw pile, the discards and the bots. Works in solo games and when you host a room. It turns itself off when the page reloads.</span></span>
        <span class="mrow" style="margin:0;justify-content:flex-start"><button class="btn btn-gold" id="s_godopen">Open Mahjong Admin</button><button class="btn btn-ghost" id="s_godoff">Turn off party mode</button></span></div>`
@@ -3111,6 +3123,10 @@ function showSettings(tab){
   if($('#s_pgo')){$('#s_pgo').onclick=pgo;$('#s_pcode').onkeydown=e=>{if(e.key==='Enter')pgo()}}
   if($('#s_godopen'))$('#s_godopen').onclick=showGod;
   if($('#s_godoff'))$('#s_godoff').onclick=()=>{GOD().on=false;godNext={};saveSettings();syncGodBtn();render();const box=$('#modal .box'),y=box?box.scrollTop:0;showSettings('game');const b2=$('#modal .box');if(b2)b2.scrollTop=y;toast('Party mode is off')};
+  const hkSet=(k,v)=>{settings.hkRules={...hkR(),[k]:v};saveSettings();hkApplyRules();render()};
+  document.querySelectorAll('[data-hkr]').forEach(b=>b.onclick=()=>{const k=b.dataset.hkr,raw=b.dataset.v;hkSet(k,/^\d+$/.test(raw)?+raw:raw);
+    document.querySelectorAll(`[data-hkr="${k}"]`).forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
+  ['sevenPairs','noLastCalls'].forEach(k=>{const e=document.getElementById('hkr_'+k);if(e)e.onchange=()=>hkSet(k,e.checked)});
   $('#s_reset').onclick=()=>askConfirm({title:'Reset progress?',body:'All scores go back to 0, the saved game is deleted, and a fresh game is dealt with you at your starting seat. Your settings stay the same.',
     yes:'Reset progress',onYes:resetProgress});
   on('s_house',v=>{settings.house=v;const l=$('#hrList');l.classList.toggle('off',!v);l.querySelector('.setnote').textContent=v?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'});
@@ -3625,7 +3641,7 @@ $('#btnFull').onclick=()=>{try{document.fullscreenElement?document.exitFullscree
 // Home: solo games pause behind the home screen and Resume picks up right where you were.
 // ---- choosing a game on the home screen ----
 const GAMES={american:{title:'American Mah Jongg',sub:'Play your 2026 card against three computer players.'},
-  hk:{title:'Chinese Mahjong',beta:true,tag:'HONG KONG OLD STYLE',sub:'Hong Kong Old Style rules against three computer players. You need 3 faan to win.'},
+  hk:{title:'Chinese Mahjong',beta:true,tag:'HONG KONG OLD STYLE',sub:'Hong Kong rules against three computer players. You need 3 faan to win (you can change that in Settings).'},
   canasta:{title:'American Canasta',beta:true,tag:'MODERN AMERICAN RULES',sub:'You and a partner against two computer players, using the Canasta League of America rules. First team to 8,500 wins.'}};
 function canastaSaved(){try{const g=JSON.parse(localStorage.getItem('amj_canasta_hand'));return g&&Array.isArray(g.hands)&&!g.over?g:null}catch(e){return null}}
 const gameSaved=()=>GAME==='hk'?hkSavedGame():GAME==='canasta'?canastaSaved():savedGame();
@@ -3672,10 +3688,11 @@ function canastaHelp(){
   openModal(`<div class="help"><h2>American Canasta</h2>
    <p>Modern American Canasta, following the Canasta League of America rules. You and the player across are partners against the two on your sides. First team to <b>8,500</b> wins.</p>
    <h3>Cards</h3><p>Two decks plus four jokers. 2s and jokers are wild. 3s are set out on the table as soon as you get them, and you draw a replacement. Values: jokers 50, Aces and 2s 20, 8 through King 10, 4 through 7 5.</p>
-   <h3>Your turn</h3><p>Draw one card, or take the whole pack by using its top card right away with two natural cards of that rank (or adding it to your team's meld of that rank). Meld if you like, then discard one card.</p>
-   <h3>Melds</h3><p>Three to seven cards of one rank; seven make a canasta. At least two natural cards and no more than two wilds. After your team's first meld, a meld needs five natural cards before a wild goes in. 7s never take wilds; Aces only in the first meld.</p>
-   <h3>Opening</h3><p>Your team's first meld must be worth 125 points (155 from 3,000, 180 from 5,000) and include three natural cards of one rank. Open early and you get bonus cards.</p>
-   <h3>Going out</h3><p>Your team needs two canastas. Meld everything but one card and discard it. Natural canastas score 500, mixed 300, natural Aces or 7s 2,500, wild 2,000 to 3,000.</p>
+   <h3>Your turn</h3><p>Draw one card, or take the whole pack: show two natural cards matching the top card and meld them with it. Meld if you like, then discard one card.</p>
+   <h3>Melds</h3><p>Three to seven cards of one rank; seven make a canasta. At least two natural cards and no more than two wilds. After your team's first meld, a meld needs five natural cards before a wild goes in (a table setting). 7s never take wilds; Aces only in the first meld. A closed natural canasta makes its rank dead.</p>
+   <h3>Opening</h3><p>Your team's first meld must be worth 125 points (155 from 3,000, 180 from 5,000) and include a clean meld: three natural cards of one rank, or three wild cards. Open early and you get bonus cards.</p>
+   <h3>Going out</h3><p>Your team needs two canastas. Meld everything but one card and discard it. Natural canastas score 500, mixed 300, natural Aces or 7s 2,500, wild 2,000 to 3,000. Special hands (before your team melds): Straight 3,000, Pairs 2,500, Pairs with 2s 2,000, Garbage 2,000.</p>
+   <p class="setnote">Table and house rules are under the gear button in the game.</p>
    <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Got it</button></div></div>`)}
 document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>setGame(b.dataset.game));
 applyGameLabels();syncSplashButtons();
