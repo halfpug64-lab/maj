@@ -177,7 +177,7 @@ body.light .pillc{background:rgba(255,255,255,.6)}
 </head>
 <body>
 <header class="top">
-  <a class="btn icon" href="index.html" title="Home screen" aria-label="Home screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/></svg></a>
+  <a class="btn icon" href="index.html" id="bHome" title="Home screen" aria-label="Home screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/></svg></a>
   <h1>American Canasta <i class="beta">Beta</i></h1>
   <div class="sc" id="scores"></div>
   <button class="btn icon" id="bHelp" title="How to play" aria-label="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5V14"/><path d="M12 17.2h.01"/></svg></button>
@@ -195,7 +195,7 @@ body.light .pillc{background:rgba(255,255,255,.6)}
   <div class="seat" id="s3"></div>
   <section class="me" id="me" aria-label="Your hand"></section>
 </main>
-<div id="start" class="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+<div id="start" class="start" role="dialog" hidden aria-modal="true" aria-labelledby="startTitle">
   <div class="startbox">
     <div class="fanc" aria-hidden="true"></div>
     <h2 id="startTitle">American Canasta <i class="beta">Beta</i></h2>
@@ -806,11 +806,13 @@ function deal(){try{localStorage.removeItem('amj_canasta_hand')}catch(e){}$('#st
 function resumeHand(){const g=savedHand();if(!g){deal();return}gid++;G={...g,newIds:new Set(),dealFx:false,hint:null,seenCan:g.seenCan||[]};sel.clear();staged=[];logs=['Picked up where you left off.'];
   $('#start').hidden=true;render();if(G.turn!==0)later(()=>botTurn(G.turn),SPEED)}
 $('#bDeal').onclick=deal;$('#bStartHelp').onclick=showHelp;$('#bResume').onclick=resumeHand;
-const hasSaved=!!savedHand();
-if(hasSaved){$('#bResume').hidden=false;$('#bDeal').textContent='New hand';$('#bDeal').classList.remove('gold')}
-render();
-if(new URLSearchParams(location.search).get('deal')==='1'&&!hasSaved){history.replaceState(null,'','canasta.html');deal()}
-else{history.replaceState(null,'','canasta.html');(hasSaved?$('#bResume'):$('#bDeal')).focus()}
+// the home screen chooses: ?deal=1 starts a new hand, ?resume=1 picks the saved one back up.
+// Reloading mid-hand resumes it; opening this page with nothing in progress goes back to the home screen.
+const q=new URLSearchParams(location.search),hasSaved=!!savedHand();
+history.replaceState(null,'','canasta.html');
+if(q.get('deal')==='1')deal();
+else if(hasSaved)resumeHand();
+else{try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.game='canasta';localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}location.replace('index.html')}
 </script>
 </body>
 </html>

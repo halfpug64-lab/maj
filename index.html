@@ -1330,6 +1330,7 @@ body.mp-client #btnGod{display:none}
 @media(max-width:560px){#god .gk .tile.sm{--w:24px}#god .gpick .grow{gap:4px}}
 
 /* ================= Game picker and Hong Kong mahjong ================= */
+#modal .modal{z-index:90}
 .gamepick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:min(560px,100%);margin:0 0 16px}
 .gamepick button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;padding:9px 8px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--txt);font:700 14px/1.15 var(--body);cursor:pointer;transition:background .2s,color .2s}
 .gamepick button small{font:600 11px var(--body);color:var(--muted)}
@@ -1415,7 +1416,7 @@ body.mp-client #btnGod{display:none}
   <div class="splash-tabs" role="tablist" aria-label="Game mode"><button role="tab" id="tabSolo" class="on" aria-selected="true" aria-controls="splashSolo">Solo</button><button role="tab" id="tabMP" aria-selected="false" aria-controls="splashMP">Multiplayer</button></div>
   <div id="splashSolo" role="tabpanel">
     <p class="splash-sub">Play your 2026 card against three computer players.</p>
-    <div class="splash-btns"><button class="btn btn-gold" id="btnStart">Deal me in</button><button class="btn btn-ghost" id="btnResume" hidden>Resume game</button></div>
+    <div class="splash-btns"><button class="btn btn-gold" id="btnStart">Deal me in</button><button class="btn btn-ghost" id="btnResume" hidden>Resume game</button><button class="btn btn-ghost" id="btnHow">How to play</button></div>
   </div>
   <div id="splashMP" role="tabpanel" hidden><p class="splash-sub">Play with 1 to 3 friends. Bots fill any empty seats.</p><div id="splashMPForm"></div></div>
   <svg class="splash-skyline" viewBox="0 0 1200 46" preserveAspectRatio="none" aria-hidden="true">
@@ -3596,7 +3597,7 @@ function showLobby(){
 const ICON_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
 const ICON_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>';
 function renderSoundBtn(){const b=$('#btnSound');b.innerHTML=Sound.on?ICON_ON:ICON_OFF;const l=Sound.on?'Mute sound':'Turn sound on';b.title=l;b.setAttribute('aria-label',l)}
-function startFromSplash(){if(GAME==='canasta'){location.href='canasta.html?deal=1';return}if(NET.mode==='client')return;if(NET.mode==='host'&&room&&!room.started){showLobby();return}Sound.init();$('#splash').classList.add('hide');newGame()}
+function startFromSplash(){if(GAME==='canasta'){try{localStorage.removeItem('amj_canasta_hand')}catch(e){}location.href='canasta.html?deal=1';return}if(NET.mode==='client')return;if(NET.mode==='host'&&room&&!room.started){showLobby();return}Sound.init();$('#splash').classList.add('hide');newGame()}
 $('#btnSound').onclick=()=>{Sound.on=!Sound.on;try{localStorage.setItem('amj_sound',Sound.on?'on':'off')}catch(e){}renderSoundBtn();if(Sound.on){Sound.init();Sound.chime()}};
 $('#btnCard').onclick=()=>GAME==='hk'?hkShowRules():showCard('view');
 $('#btnHelp').onclick=()=>GAME==='hk'?hkShowRules():showHelp();
@@ -3621,8 +3622,13 @@ $('#btnFull').onclick=()=>{try{document.fullscreenElement?document.exitFullscree
 const GAMES={american:{title:'American Mah Jongg',sub:'Play your 2026 card against three computer players.'},
   hk:{title:'Chinese Mahjong',beta:true,tag:'HONG KONG OLD STYLE',sub:'Hong Kong Old Style rules against three computer players. You need 3 faan to win.'},
   canasta:{title:'American Canasta',beta:true,tag:'MODERN AMERICAN RULES',sub:'You and a partner against two computer players, using the Canasta League of America rules. First team to 8,500 wins.'}};
-const gameSaved=()=>GAME==='hk'?hkSavedGame():GAME==='canasta'?null:savedGame();
-function syncSplashButtons(){const live=homeOpen&&GAME!=='canasta',sv=!!gameSaved();$('#btnResume').hidden=!live&&!sv;$('#btnStart').textContent=live||sv?'New game':'Deal me in'}
+function canastaSaved(){try{const g=JSON.parse(localStorage.getItem('amj_canasta_hand'));return g&&Array.isArray(g.hands)&&!g.over?g:null}catch(e){return null}}
+const gameSaved=()=>GAME==='hk'?hkSavedGame():GAME==='canasta'?canastaSaved():savedGame();
+function syncSplashButtons(){const cn=GAME==='canasta',live=homeOpen&&!cn,sv=!!gameSaved();const rs=$('#btnResume'),st=$('#btnStart');
+  rs.hidden=!live&&!sv;st.textContent=live||sv?(cn?'New hand':'New game'):'Deal me in';rs.textContent=cn?'Resume hand':'Resume game';
+  // Canasta: a hand in progress makes Resume the main button, first in line
+  const main=cn&&sv;rs.classList.toggle('btn-gold',main);rs.classList.toggle('btn-ghost',!main);st.classList.toggle('btn-gold',!main);st.classList.toggle('btn-ghost',main);
+  if(main)rs.parentNode.insertBefore(rs,st);else st.parentNode.insertBefore(st,rs)}
 function applyGameLabels(){
   const g=GAMES[GAME];const h1=document.querySelector('.brand h1');if(h1)h1.innerHTML=g.title+(g.beta?' <i class="beta">Beta</i>':'');
   const st=document.querySelector('.splash-title');if(st)st.innerHTML=g.title+(g.beta?' <i class="beta">Beta</i>':'');
@@ -3655,7 +3661,17 @@ function goHome(){
 }
 $('#btnHome').onclick=goHome;
 $('#btnGod').onclick=showGod;syncGodBtn();
-$('#btnResume').onclick=()=>{if(homeOpen){homeOpen=false;$('#splash').classList.add('hide');unpauseGame();render()}else if(GAME==='hk'){if(!hkResume())startFromSplash()}else resumeGame()};
+$('#btnResume').onclick=()=>{if(GAME==='canasta'){location.href='canasta.html?resume=1';return}if(homeOpen){homeOpen=false;$('#splash').classList.add('hide');unpauseGame();render()}else if(GAME==='hk'){if(!hkResume())startFromSplash()}else resumeGame()};
+$('#btnHow').onclick=()=>GAME==='canasta'?canastaHelp():GAME==='hk'?hkShowRules():showHelp();
+function canastaHelp(){
+  openModal(`<div class="help"><h2>American Canasta</h2>
+   <p>Modern American Canasta, following the Canasta League of America rules. You and the player across are partners against the two on your sides. First team to <b>8,500</b> wins.</p>
+   <h3>Cards</h3><p>Two decks plus four jokers. 2s and jokers are wild. 3s are set out on the table as soon as you get them, and you draw a replacement. Values: jokers 50, Aces and 2s 20, 8 through King 10, 4 through 7 5.</p>
+   <h3>Your turn</h3><p>Draw one card, or take the whole pack by using its top card right away with two natural cards of that rank (or adding it to your team's meld of that rank). Meld if you like, then discard one card.</p>
+   <h3>Melds</h3><p>Three to seven cards of one rank; seven make a canasta. At least two natural cards and no more than two wilds. After your team's first meld, a meld needs five natural cards before a wild goes in. 7s never take wilds; Aces only in the first meld.</p>
+   <h3>Opening</h3><p>Your team's first meld must be worth 125 points (155 from 3,000, 180 from 5,000) and include three natural cards of one rank. Open early and you get bonus cards.</p>
+   <h3>Going out</h3><p>Your team needs two canastas. Meld everything but one card and discard it. Natural canastas score 500, mixed 300, natural Aces or 7s 2,500, wild 2,000 to 3,000.</p>
+   <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Got it</button></div></div>`)}
 document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>setGame(b.dataset.game));
 applyGameLabels();syncSplashButtons();
 addEventListener('keydown',e=>{if(e.key!=='Escape')return;if($('#modal').innerHTML)closeModal();else document.body.classList.remove('show-hands')});
