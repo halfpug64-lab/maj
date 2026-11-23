@@ -86,6 +86,19 @@ main{display:grid;grid-template-columns:minmax(64px,110px) 1fr minmax(64px,110px
 .card.jk .pip{font-size:calc(var(--cw)*.55);color:#a8781c}
 .card.wild::after{content:"";position:absolute;inset:2px;border-radius:calc(var(--cw)*.1);box-shadow:inset 0 0 0 2px rgba(168,120,28,.55)}
 .card.sm{--cw:clamp(30px,3.8vw,44px)}
+.start{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:24px 16px;text-align:center;
+  background:radial-gradient(900px 620px at 50% 38%,color-mix(in srgb,var(--felt) 96%,transparent),color-mix(in srgb,var(--felt-dk) 99%,#000))}
+.start[hidden]{display:none}
+.startbox{max-width:520px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.start h2{margin:6px 0 0;font:700 clamp(36px,8vw,62px)/1.05 var(--display);color:var(--accent)}
+.start h2 .beta{font-size:clamp(10px,1.8vw,14px);padding:4px 7px;top:-.7em}
+.start .tag{font-size:12px;letter-spacing:.32em;color:var(--muted);font-weight:700}
+.start p{color:var(--muted);margin:8px 0 14px;font-size:15px;max-width:42ch}
+.startbtns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.btn.big{font-size:17px;padding:13px 40px;min-height:50px}
+.start .back{color:var(--muted);font-size:14px;margin-top:8px}
+.fanc{position:relative;width:200px;height:120px}
+.fanc .card{position:absolute;left:50%;bottom:0;--cw:62px;transform-origin:50% 120%;margin-left:-31px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
 .box{background:linear-gradient(180deg,#fbf6e9,#f1e6cc);color:#2b2216;border-radius:20px;padding:22px;max-width:640px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.5)}
 .box h2{margin:0 0 10px;font:700 26px var(--display);color:#5a3d0c}.box h3{margin:16px 0 6px;font-size:15px}
@@ -133,6 +146,16 @@ main{display:grid;grid-template-columns:minmax(64px,110px) 1fr minmax(64px,110px
   <div class="seat" id="s3"></div>
   <section class="me" id="me" aria-label="Your hand"></section>
 </main>
+<div id="start" class="start" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+  <div class="startbox">
+    <div class="fanc" aria-hidden="true"></div>
+    <h2 id="startTitle">American Canasta <i class="beta">Beta</i></h2>
+    <div class="tag">MODERN AMERICAN RULES</div>
+    <p id="startSub">You and a partner against two computer players, using the Canasta League of America rules. First team to 8,500 wins.</p>
+    <div class="startbtns"><button class="btn gold big" id="bDeal">Deal me in</button><button class="btn" id="bStartHelp">How to play</button></div>
+    <a class="back" href="index.html">Back to mahjong</a>
+  </div>
+</div>
 <div id="modal"></div>
 <script>
 // ================= Modern American Canasta (Canasta League of America rules) =================
@@ -617,8 +640,18 @@ $('#bNew').onclick=()=>{
     <div class="mrow"><button class="btn gold" id="mYes">New game</button><button class="btn" id="mNo">Keep playing</button></div></div></div>`;
   $('#mYes').onclick=()=>{score=[0,0];dealer=3;saveScores();closeModal();newHand()};$('#mNo').onclick=closeModal;$('#mNo').focus()};
 addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
-newHand();
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){
+  const had=!!navigator.serviceWorker.controller;
+  addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had)return;if(!G||G.over)location.reload();else toast('An update is ready. It loads next time you open the game.')});
+}
+// start screen: coming from the home screen's Deal me in deals right away; any other way in shows Deal me in first
+{const f=$('.fanc');[{r:'A',s:'♥'},{r:'K',s:'♠'},{r:'JK',s:''},{r:'7',s:'♦'},{r:'2',s:'♣'}].forEach((c,x)=>f.insertAdjacentHTML('beforeend',cardHTML({...c,id:-1-x}).replace('class="card','style="transform:rotate('+((x-2)*14)+'deg)" class="card')));
+  if(score[0]||score[1])$('#startSub').textContent=`Game in progress: you ${score[0]} · them ${score[1]}. First team to 8,500 wins.`}
+function deal(){$('#start').hidden=true;newHand()}
+$('#bDeal').onclick=deal;$('#bStartHelp').onclick=showHelp;
+render();
+if(new URLSearchParams(location.search).get('deal')==='1'){history.replaceState(null,'','canasta.html');deal()}else $('#bDeal').focus();
 </script>
 </body>
 </html>

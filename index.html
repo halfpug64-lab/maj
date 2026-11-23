@@ -3646,8 +3646,12 @@ applyGameLabels();syncSplashButtons();
 addEventListener('keydown',e=>{if(e.key!=='Escape')return;if($('#modal').innerHTML)closeModal();else document.body.classList.remove('show-hands')});
 applySpeed();applyTheme();applyLayout();renderSoundBtn();
 // Installable app: save the game on the device so solo play works offline (needs https, or localhost for testing)
-if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'))
-  addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+// a new version reloads the page by itself when nothing is in progress; mid-game it waits for the next visit
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){
+  const had=!!navigator.serviceWorker.controller;
+  addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!had)return;if(phase==='idle'||phase==='over')location.reload();else toast('An update is ready. It loads next time you open the game.')});
+}
 render();
 </script>
 </body>
