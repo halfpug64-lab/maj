@@ -38,7 +38,7 @@
 html,body{margin:0}
 body{font-family:var(--body);color:var(--txt);min-height:100vh;overflow-x:hidden;
   background:radial-gradient(1400px 800px at 50% -10%,var(--sky-1) 0,var(--sky-2) 55%,var(--sky-3) 100%) fixed,var(--sky-3);
-  padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+  padding-left:0;padding-right:0}
 body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.05;
   background:repeating-linear-gradient(45deg,#fff 0 1px,transparent 1px 26px),repeating-linear-gradient(-45deg,#fff 0 1px,transparent 1px 26px)}
 button{font-family:inherit}
@@ -85,7 +85,7 @@ h1{font-family:var(--display);font-weight:400;font-size:22px;letter-spacing:1.5p
 
 /* ---------- layout ---------- */
 .layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;max-width:1380px;margin:0 auto;padding-block:18px 40px;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  padding-left:16px;padding-right:16px}
 @media(max-width:1020px){.layout{grid-template-columns:minmax(0,1fr)}}
 .table{display:flex;flex-direction:column;gap:14px;min-width:0}
 
@@ -1331,6 +1331,11 @@ body.mp-client #btnGod{display:none}
 
 /* ================= Game picker and Hong Kong mahjong ================= */
 #modal .modal{z-index:90}
+/* mid-size screens (iPhone Duo open, small tablets, landscape phones): scores stay on one line, name cards don't squash */
+@media(max-width:1180px){#btnNew{font-size:0;gap:0;padding:9px}#btnNew svg{width:18px;height:18px}.brand h1{font-size:clamp(18px,2.4vw,24px)}.bar-in{flex-wrap:nowrap}.tools{flex-shrink:0}.brand{min-width:0}.brand h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .scores{flex-wrap:nowrap}.chip>span:not(.bullet){display:none}.chip{padding:2px 7px 2px 2px;gap:4px}
+  body.table-view .plate .meta{min-width:0}body.table-view .plate .pinfo{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pinfo .lvl{display:none}}
+body.table-view .seat-top .plate{flex-wrap:nowrap}body.table-view .plate .pname{white-space:nowrap}
 .gamepick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:min(560px,100%);margin:0 0 16px}
 .gamepick button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;padding:9px 8px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--txt);font:700 14px/1.15 var(--body);cursor:pointer;transition:background .2s,color .2s}
 .gamepick button small{font:600 11px var(--body);color:var(--muted)}
