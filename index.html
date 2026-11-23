@@ -3012,7 +3012,8 @@ function themeCards(kind,list,cur){
     `<button class="tcard${cur===v?' on':''}" data-${kind}="${v}" aria-pressed="${cur===v}">${swatchHTML(kind,v)}<span class="tl">${l}</span></button>`).join('')}</div>`;
 }
 function themeNow(){const t=settings.bg;return settings.rack===t&&settings.tiles===(t==='default'?'regular':t)?t:''}
-function tilePreview(){return ['D5','B1','B5','C5','E','R','G','0'].map(k=>tileHTML(k,'md')).join('')+tileHTML({k:'F',v:1},'md')+tileHTML({k:'J',v:0},'md')+tileHTML({k:'J',v:1},'md')}
+// sample tiles for the theme picker: Jokers for American mahjong; Chinese mahjong has no Jokers, so a flower and a season instead
+function tilePreview(){return ['D5','B1','B5','C5','E','R','G','0'].map(k=>tileHTML(k,'md')).join('')+tileHTML({k:'F',v:1},'md')+(GAME==='hk'?tileHTML({k:'F',v:2},'md')+tileHTML({k:'F',v:3},'md'):tileHTML({k:'J',v:0},'md')+tileHTML({k:'J',v:1},'md'))}
 function askConfirm({title,body,yes,onYes}){
   const m=$('#modal .modal');if(!m)return;
   const d=document.createElement('div');d.className='confirm';d.setAttribute('role','alertdialog');d.setAttribute('aria-modal','true');
