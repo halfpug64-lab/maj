@@ -2,7 +2,7 @@
 // The page itself is fetched fresh whenever there's a connection, so updates always reach players;
 // the saved copy is only used offline. Tiles, fonts and scripts load from the saved copy and refresh in the background.
 // Bump VERSION when files are added or removed so old copies get cleared.
-const VERSION='v1';
+const VERSION='v2';
 const CACHE='amj-'+VERSION;
 const FILES=[
   './',
@@ -11,6 +11,8 @@ const FILES=[
   'icons/icon-512.png',
   'icons/maskable-512.png',
   'index.html',
+  'hk.js',
+  'canasta.html',
   'manifest.webmanifest',
   'tiles/arctic/0.webp',
   'tiles/arctic/B1.webp',

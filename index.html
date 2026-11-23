@@ -1329,6 +1329,24 @@ body.mp-client #btnGod{display:none}
 @media(max-width:560px){.namein{grid-template-columns:1fr}}
 @media(max-width:560px){#god .gk .tile.sm{--w:24px}#god .gpick .grow{gap:4px}}
 
+/* ================= Game picker and Hong Kong mahjong ================= */
+.gamepick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:min(560px,100%);margin:0 0 16px}
+.gamepick button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;padding:9px 8px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--txt);font:700 14px/1.15 var(--body);cursor:pointer;transition:background .2s,color .2s}
+.gamepick button small{font:600 11px var(--body);color:var(--muted)}
+.gamepick button.on{background:var(--gold);color:#2b1d02;border-color:var(--gold)}.gamepick button.on small{color:#5a4410}
+.gamepick button:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
+@media(max-width:420px){.gamepick button{font-size:12.5px;min-height:54px;padding:8px 5px}}
+.faanlist,.faanref{display:grid;grid-template-columns:1fr auto;gap:4px 14px;margin:8px 0 12px;font-size:14px}
+.faanlist b,.faanref b{text-align:right}
+.faanref{font-size:12.5px;color:var(--muted)}.faanref b{color:var(--txt)}
+.hkcoach p{margin:0 0 8px}.hkrow{display:flex;align-items:center;gap:8px;margin:6px 0 10px}
+.hkwaits{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px}.hkwaits>div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:700}
+.hkwaits>div.short{opacity:.5}
+.chowopt{display:inline-flex;gap:2px;margin-left:6px;vertical-align:middle}
+.hkbub{display:flex;align-items:center;gap:8px;cursor:default}.hkbt{display:inline-flex;align-items:center;gap:3px}
+.exp.flowers{opacity:.92}.exp.flowers .tile{filter:saturate(1.05)}
+.win-tiles .flowerbonus{margin-left:6px;opacity:.85}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -1377,6 +1395,11 @@ body.mp-client #btnGod{display:none}
   <div class="fan" id="fan"></div>
   <h2 class="splash-title">American Mah Jongg</h2>
   <div class="splash-tag">NEW YORK EDITION</div>
+  <div class="gamepick" role="radiogroup" aria-label="Game">
+    <button role="radio" data-game="american" aria-checked="true">American Mah Jongg<small>2026 card</small></button>
+    <button role="radio" data-game="hk" aria-checked="false">Chinese Mahjong<small>Hong Kong rules</small></button>
+    <button role="radio" data-game="canasta" aria-checked="false">American Canasta<small>Modern rules</small></button>
+  </div>
   <div class="splash-tabs" role="tablist" aria-label="Game mode"><button role="tab" id="tabSolo" class="on" aria-selected="true" aria-controls="splashSolo">Solo</button><button role="tab" id="tabMP" aria-selected="false" aria-controls="splashMP">Multiplayer</button></div>
   <div id="splashSolo" role="tabpanel">
     <p class="splash-sub">Play your 2026 card against three computer players.</p>
@@ -1389,6 +1412,7 @@ body.mp-client #btnGod{display:none}
   <svg class="splash-skyline paris-sky" viewBox="0 0 1200 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><path fill="#e2b04a" d="M0 120V92h60V120M60 120V84h46V120M106 120V96h70V120M176 120V80h40V120M216 120V90h64V120M280 120V86h52V120M332 120V94h58V120M390 120V78h44V120M434 120V88h66V120M500 120V96h56V120M556 120V82h48V120M604 120V90h62V120M666 120V74h50V120M716 120V92h58V120M774 120V84h44V120M818 120V94h70V120M888 120V80h46V120M934 120V90h60V120M994 120V86h54V120M1048 120V96h62V120M1110 120V82h48V120M1158 120V92h42V120M70 84l7-8l7 8ZM120 96l7-8l7 8ZM230 90l7-8l7 8ZM296 86l7-8l7 8ZM450 88l7-8l7 8ZM620 90l7-8l7 8ZM730 92l7-8l7 8ZM830 94l7-8l7 8ZM950 90l7-8l7 8ZM1060 96l7-8l7 8Z"/><path fill="#e2b04a" d="M600 4l3 0 1 14 4 2v18h-2l5 26h-3l10 34h-4l14 22h-17c-2-10-6-16-11-16s-9 6-11 16h-17l14-22h-4l10-34h-3l5-26h-2V20l4-2Z"/></svg>
 </div>
 
+<script src="hk.js"></script>
 <script>
 // ================= Tile art (NYC set) =================
 const SUITS=['B','C','D'];
@@ -1927,9 +1951,9 @@ function applyTheme(){
   const ed={nyc:'NEW YORK EDITION',paris:'ÉDITION DE PARIS',ocean:'OCEAN EDITION',celestial:'CELESTIAL EDITION',forest:'ENCHANTED FOREST EDITION',desert:'DESERT NIGHT EDITION',arctic:'ARCTIC EDITION',garden:'GARDEN EDITION',volcano:'VOLCANO EDITION',candy:'CANDY LAND EDITION',easy:'EASY TO READ EDITION'}[settings.bg]||'';
   document.querySelectorAll('.brand small,.splash-tag').forEach(e=>e.textContent=ed);
   document.title={nyc:'American Mah Jongg · NYC',paris:'American Mah Jongg · Paris',ocean:'American Mah Jongg · Ocean',celestial:'American Mah Jongg · Celestial',forest:'American Mah Jongg · Forest',desert:'American Mah Jongg · Desert Night',arctic:'American Mah Jongg · Arctic',garden:'American Mah Jongg · Garden',volcano:'American Mah Jongg · Volcano',easy:'American Mah Jongg · Easy to read',candy:'American Mah Jongg · Candy Land'}[settings.bg]||'American Mah Jongg';
-  const em=document.getElementById('emblem');if(em)em.innerHTML=tileHTML({k:'F',v:3})+tileHTML('J');
-  applyNames();
-  const fan=document.getElementById('fan');if(fan)fan.innerHTML=[{k:'F',v:3},'R','J','G',{k:'F',v:0}].map((t,x)=>`<div class="fan-slot" style="--r:${(x-2)*13}deg;--d:${x*90}ms">${tileHTML(t)}</div>`).join('');
+  const em=document.getElementById('emblem');if(em)em.innerHTML=tileHTML({k:'F',v:3})+tileHTML(typeof GAME!=='undefined'&&GAME==='hk'?'E':'J');
+  applyNames();if(typeof applyGameLabels==='function'&&typeof GAME!=='undefined')applyGameLabels();
+  const fan=document.getElementById('fan');if(fan)fan.innerHTML=[{k:'F',v:3},'R',typeof GAME!=='undefined'&&GAME==='hk'?'E':'J','G',{k:'F',v:0}].map((t,x)=>`<div class="fan-slot" style="--r:${(x-2)*13}deg;--d:${x*90}ms">${tileHTML(t)}</div>`).join('');
 }
 function applyLayout(){document.body.classList.toggle('scroll-layout',settings.layout==='scroll');document.body.classList.toggle('table-view',settings.layout==='table')}
 function saveSettings(){try{localStorage.setItem('amj_settings',JSON.stringify(settings))}catch(e){}}
@@ -1946,9 +1970,17 @@ let scores=[0,0,0,0];
 let dealer=-1,pendingStart=true;
 let wallBreak=0,wallBuild=false;   // the four walls: 76 stacks of 2; draws start at the break and go around the square
 let building=null;   // exposure you're placing yourself: {t, from, tiles, botMJ, botExp}   // pendingStart: the next new game seats you at your chosen starting wind
-if(!settings.save){try{localStorage.removeItem('amj_progress');localStorage.removeItem('amj_game')}catch(e){}}   // off: nothing carries over
-if(settings.save){try{const pr=JSON.parse(localStorage.getItem('amj_progress'));
-  if(pr&&Array.isArray(pr.scores)&&pr.scores.length===4){scores=pr.scores;if(pr.dealer>=0){dealer=pr.dealer;pendingStart=false}}}catch(e){}}
+if(!settings.save){try{['amj_progress','amj_game','amj_progress_hk','amj_game_hk'].forEach(k=>localStorage.removeItem(k))}catch(e){}}   // off: nothing carries over
+// which game is on the table: 'american' or 'hk' (Hong Kong). Each keeps its own scores, East and saved game.
+let GAME=settings.game==='hk'?'hk':'american';
+function loadProgress(){
+  scores=[0,0,0,0];dealer=-1;pendingStart=true;
+  if(!settings.save)return;
+  try{const pr=JSON.parse(localStorage.getItem(GAME==='hk'?'amj_progress_hk':'amj_progress'));
+    if(pr&&Array.isArray(pr.scores)&&pr.scores.length===4){scores=pr.scores;if(pr.dealer>=0){dealer=pr.dealer;pendingStart=false}
+      if(GAME==='hk'){hkWind=pr.hkWind||0;hkRot=pr.hkRot||0;hkKeep=!!pr.hkKeep}}}catch(e){}
+}
+loadProgress();
 let dead=[false,false,false,false];   // declared-dead hands (Part 12)
 let turnSrc=null;                   // seat whose discard the current player claimed this turn, or null if drawn                    // first game: you are East; each new game East moves to the right
 const windOf=i=>WIND[(i-(dealer<0?(4-settings.startWind)%4:dealer)+4)%4];
@@ -1973,6 +2005,7 @@ function toast(m,kind=''){document.querySelectorAll('.toast').forEach(t=>t.remov
   d.innerHTML=`<span>${m}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1700)}
 
 function newGame(){
+  if(GAME==='hk'){hkNewGame();return}
   godNext={};godDraw={};godDrawFor=null;gid++;closeModal();Sound.init();undoStack=[];homeOpen=false;
   wall=buildWall();discards=[];logs=[];logVer++;sel=new Set();selected=null;callState=null;newIds=new Set();flyQueue=[];
   if(pendingStart){dealer=(4-settings.startWind)%4;pendingStart=false}else dealer=(dealer+1)%4;
@@ -2279,6 +2312,7 @@ function humanOptions(k,seat=0){
   return o;
 }
 function resolveCalls(i,t){
+  if(GAME==='hk'){hkResolve(i,t);return}
   if(phase!=='play')return;
   const order=[1,2,3].map(d=>(i+d)%4),pos=j=>order.indexOf(j);
   let botMJ=null,botExp=null;const offers={};
@@ -2301,6 +2335,7 @@ function resolveCalls(i,t){
   finishCalls(cs);
 }
 function answerCall(seat,c){             // 'mj', 'pass', 'build' or a group size
+  if(GAME==='hk'){if(seat===0)hkAnswer(c);return}
   const cs=callState;if(!cs||!cs.offers[seat]||seat in cs.choices)return;const o=cs.offers[seat];
   if(c==='mj'&&!o.mj)return;if(typeof c==='number'&&!o.exp.includes(c))return;if(c==='build'&&(seat!==0||MP()||!o.exp.length))return;
   if(c!=='mj'&&c!=='pass'&&c!=='build'&&typeof c!=='number')return;
@@ -2469,13 +2504,14 @@ function whyText(r){
 }
 
 // ================= Render =================
-function expHTML(p,size){return p.exp.length?`<div class="exps">${p.exp.map(e=>`<div class="exp">${e.tiles.map(t=>tileHTML(t,size,true)).join('')}</div>`).join('')}</div>`:''}
+function expHTML(p,size){const fl=p.flowers&&p.flowers.length?`<div class="exp flowers" title="Flowers and seasons">${p.flowers.map(t=>tileHTML(t,size)).join('')}</div>`:'';
+  return p.exp.length||fl?`<div class="exps">${p.exp.map(e=>`<div class="exp">${e.tiles.map((t,x)=>e.conc&&(x===0||x===3)?`<div class="tile ${size} back-tile" title="Concealed kong"></div>`:tileHTML(t,size,true)).join('')}</div>`).join('')}${fl}</div>`:''}
 const seatTag=i=>NET.mode==='client'?(NET.tags&&NET.tags[i]||''):(HUMAN[i]?(i===0&&MP()?'Host':'Player'):(MP()?'Bot · ':'')+LEVELS[botLevel(i)]);
 function renderSeat(i){
   const p=players[i],el=$('#seat'+i);const active=turn===i&&phase==='play';
   el.className=`seat seat-${SEATPOS[i]}${active?' turn':''}${active&&step==='discard'&&!callState?' thinking':''}`;
   const body=phase==='over'||godPow('reveal')?`<div class="reveal">${p.hand.map(t=>tileHTML(t,'xs')).join('')}</div>`:`<div class="backs">${p.hand.map(()=>'<i class="back"></i>').join('')}</div>`;
-  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${dealer===i?'<span class="eastchip">E</span> ':''}${windOf(i)} · ${p.hand.length} tiles<span class="lvl"> · ${seatTag(i)}</span>${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="orack-wrap"><div class="orack">${body}${p.exp.length?expHTML(p,'xs'):'<div class="exps ledge-empty"></div>'}</div></div>`;
+  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${dealer===i?'<span class="eastchip">E</span> ':''}${windOf(i)} · ${p.hand.length} tiles<span class="lvl"> · ${seatTag(i)}</span>${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="orack-wrap"><div class="orack">${body}${p.exp.length||(p.flowers&&p.flowers.length)?expHTML(p,'xs'):'<div class="exps ledge-empty"></div>'}</div></div>`;
 }
 function renderScores(){
   if(scoreAnim)return;
@@ -2497,7 +2533,9 @@ function render(){
   renderScores();
   [1,2,3].forEach(renderSeat);
   let status='',sub='',dir=null;const st=phase==='charleston'?chStep():null;
-  if(phase==='idle'){status='Pull up a chair';sub='Hit Deal me in to start.'}
+  const hkS=GAME==='hk'?hkStatus():null;
+  if(hkS){status=hkS.status;sub=hkS.sub;dir=hkS.dir}
+  else if(phase==='idle'){status='Pull up a chair';sub='Hit Deal me in to start.'}
   else if(phase==='shuffle'){status='Washing the tiles';sub='All 152 tiles go face down and get mixed before the deal.'}
   else if(phase==='charleston'){
     if(st==='decide'){status='First Charleston done';sub='Keep going with a second Charleston (left, across, right), or stop here.'}
@@ -2534,7 +2572,8 @@ function render(){
     nd.onscroll=()=>{discUp=nd.scrollTop+nd.clientHeight<nd.scrollHeight-12}}}
 
   const p=players[0];let acts='';
-  if(phase==='idle')acts=NET.mode==='client'?'<div class="waitnote"><span class="spin"></span>Waiting for the host to start</div>':(NET.mode==='host'&&room&&!room.started?'<button class="btn btn-gold" id="bStart2">Room and players</button>':'<button class="btn btn-gold" id="bStart2">Deal me in</button>');
+  if(hkS)acts=hkS.acts;
+  else if(phase==='idle')acts=NET.mode==='client'?'<div class="waitnote"><span class="spin"></span>Waiting for the host to start</div>':(NET.mode==='host'&&room&&!room.started?'<button class="btn btn-gold" id="bStart2">Room and players</button>':'<button class="btn btn-gold" id="bStart2">Deal me in</button>');
   else if(phase==='charleston'){
     if(dealer===0&&passIdx===0&&isWin(p.hand,p.exp))acts='<button class="btn btn-red" id="bMJ">Mah Jongg! (Heavenly Hand)</button>';
     else if(iPassed)acts=`<div class="waitnote"><span class="spin"></span>${sub}</div>`;
@@ -2556,7 +2595,7 @@ function render(){
   const yourTurn=turn===0&&phase==='play'&&step==='discard'&&!callState;
   const me=$('#me');
   me.className='me'+(yourTurn?' turn':'');
-  me.innerHTML=`<div class="me-head"><div class="avatar">${bulletHTML(0)}</div><div class="meta"><div class="pname">Your rack</div><div class="pinfo">${dealer===0?'<span class="eastchip">E</span> ':''}${windOf(0)} · ${p.hand.length} in hand</div></div>${yourTurn?'<span class="turnpill">YOUR TURN</span>':''}${dead[0]?'<span class="turnpill" style="background:#e5484d;color:#fff;box-shadow:none">DEAD HAND</span>':''}
+  me.innerHTML=`<div class="me-head"><div class="avatar">${bulletHTML(0)}</div><div class="meta"><div class="pname">Your rack</div><div class="pinfo">${dealer===0?'<span class="eastchip">E</span> ':''}${windOf(0)}${GAME==='hk'?' · '+HK_WINDNAME[hkWind]+' round':''} · ${p.hand.length} in hand</div></div>${yourTurn?'<span class="turnpill">YOUR TURN</span>':''}${dead[0]?'<span class="turnpill" style="background:#e5484d;color:#fff;box-shadow:none">DEAD HAND</span>':''}
      ${settings.layout==='table'?bubblesHTML():''}<div class="sortbtns"><button class="btn btn-ghost sm hands-btn" id="bHands">Hands</button><button class="btn btn-ghost sm" id="bSortS"><span class="sl">Sort by </span>suit</button><button class="btn btn-ghost sm" id="bSortN"><span class="sl">Sort by </span>number</button></div></div>
     ${settings.layout==='table'?'':bubblesHTML()}${expHTML(p,'md')}${buildHTML()}
     <div class="rack" id="rack">${p.hand.map(t=>tileHTML(t,(sel.has(t.id)||selected===t.id?'sel ':'')+(newIds.has(t.id)?'new ':'')+(dealAnim?'deal ':'')+(building&&canAdd(t)?'can':''),true)).join('')}</div>
@@ -2566,8 +2605,8 @@ function render(){
   bindRack();
   const bind=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
   bind('bPass',doPass);bind('bGo',()=>chDecide(true));bind('bStop',()=>chDecide(false));bind('bSortS',()=>sortMine('suit'));bind('bSortN',()=>sortMine('num'));
-  bind('bDis',humanDiscard);bindBubbles();bind('bHands',()=>document.body.classList.add('show-hands'));bind('bCancel',cancelBuild);document.querySelectorAll('.pending .tile[data-id]').forEach(e=>e.onclick=()=>unbuildTap(+e.dataset.id));bind('bSwap',humanSwap);bind('bMJ',humanMJ);bind('bNext',newGame);bind('bStart2',startFromSplash);bind('bUndo',undoMove);
-  document.querySelectorAll('[data-call]').forEach(b=>b.onclick=()=>{const v=b.dataset.call;if(!callState)return;const c=(v==='mj'||v==='pass'||v==='build')?v:+v;
+  bind('bDis',humanDiscard);bindBubbles();bind('bHands',()=>document.body.classList.add('show-hands'));bind('bCancel',cancelBuild);document.querySelectorAll('.pending .tile[data-id]').forEach(e=>e.onclick=()=>unbuildTap(+e.dataset.id));bind('bSwap',humanSwap);bind('bMJ',humanMJ);bind('bNext',newGame);bind('bStart2',startFromSplash);bind('bUndo',undoMove);bind('bHkWin',hkHumanWin);document.querySelectorAll('[data-hkkong]').forEach(b=>b.onclick=()=>hkHumanKong(+b.dataset.hkkong));
+  document.querySelectorAll('[data-call]').forEach(b=>b.onclick=()=>{const v=b.dataset.call;if(!callState)return;const c=GAME==='hk'||v==='mj'||v==='pass'||v==='build'?v:+v;
     if(NET.mode==='client'){netSend({t:'act',a:'call',c});callState.o=null;render()}else answerCall(0,c)});
   renderStars();renderHints();renderLog();flushFly();saveProgress();
   if(NET.mode==='host')netQueueState();
@@ -2634,7 +2673,7 @@ function wallPos(k){const s=Math.floor(k/19),i=k%19;
 function wallsHTML(center){
   const s1=left=>left===1?' one':'';
   const count=`<div class="wallcount"><span><b>${wall.length}</b> in the wall</span><span><b>${discards.length}</b> thrown</span></div>`;
-  if(true)return `${center}<div class="wallmeter"><div class="wallstack" id="wallStack"><i class="back"></i><i class="back"></i><i class="back"></i></div><span>Wall <b>${wall.length}</b></span><div class="bar"><i style="width:${(wall.length/152*100).toFixed(1)}%"></i></div><span><b>${discards.length}</b> thrown</span></div>`;
+  if(true)return `${center}<div class="wallmeter"><div class="wallstack" id="wallStack"><i class="back"></i><i class="back"></i><i class="back"></i></div><span>Wall <b>${wall.length}</b></span><div class="bar"><i style="width:${(wall.length/(GAME==='hk'?144:152)*100).toFixed(1)}%"></i></div><span><b>${discards.length}</b> thrown</span></div>`;
   const drawn=152-wall.length,next=Math.floor(drawn/2)*2;let tiles='';
   for(let k=0;k<76;k++){const order=((2*k-wallBreak)%152+152)%152;const left=Math.max(0,Math.min(2,order+2-drawn));if(!left)continue;
     const p=wallPos(k),isNext=wall.length>0&&order===next;
@@ -2657,6 +2696,7 @@ function patternTilesHTML(cp,tiles,exps){
   return body+(held?`<div class="held">${held} Joker${held>1?'s':''} not placed. Tap a faded tile to place ${held>1?'them':'it'}.</div>`:'');
 }
 function renderHints(){
+  if(GAME==='hk'){hkRenderSide();return}
   const head=`<div class="ph"><h3>Best hands</h3><label class="switch" for="hintToggle"><input type="checkbox" id="hintToggle" ${showHints?'checked':''}><span class="track"><span class="knob"></span></span><span>${showHints?'On':'Off'}</span></label></div>`;
   let body;
   if(!hintsAllowed()){$('#hints').innerHTML=`<div class="ph"><h3>Best hands</h3></div><div class="muted-note">${NET.mode==='host'?'You turned off suggested hands for this room.':'The host turned off suggested hands for this room.'} Starred hands still work.</div>`;return}
@@ -2684,6 +2724,7 @@ function bestFor(h,an,seen,liveJ){
   return best;
 }
 function bubblesHTML(){
+  if(GAME==='hk')return hkBubbleHTML();
   if(phase==='idle'||phase==='shuffle')return (settings.topBubble&&showHints&&hintsAllowed())||HANDS.some(isStar)?'<div class="bubbles placeholder"><div class="bubble" style="visibility:hidden"><button class="bhead" tabindex="-1"><span class="bk">Top</span><span class="hpat">&nbsp;</span><span class="pill">&nbsp;</span></button></div></div>':'';
   const p=players[0];const an=analyze(p.hand,p.exp);const seen=seenCounts();const liveJ=Math.max(0,8-(seen.J||0));
   const items=HANDS.filter(isStar).map(h=>({h,kind:'star'}));
@@ -2709,6 +2750,7 @@ function hintHTML(r,p,size,best){
 function bindStars(sel){document.querySelectorAll(sel+' [data-star]').forEach(b=>b.onclick=()=>{if(toggleStar(HANDS[+b.dataset.star]))render()});
   document.querySelectorAll(sel+' [data-jg],'+sel+' [data-jr]').forEach(e=>{const go=()=>{const put=!!e.dataset.jg;const [a,g]=(e.dataset.jg||e.dataset.jr).split(':').map(Number);put?moveJoker(a,g):freeJoker(a,g)};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go()}}})}
 function renderStars(){
+  if(GAME==='hk')return;
   const list=HANDS.filter(isStar);
   let body;
   if(!list.length)body='<div class="muted-note">Open The Card and tap ★ on up to 3 hands. They show up here so you can track them while you play.</div>';
@@ -2819,7 +2861,7 @@ function godHTML(){
   const myTurn=phase==='play'&&turn===0&&step==='discard'&&!callState;const p0=players[0];const tiles0=p0.hand.length+p0.exp.reduce((x,e)=>x+e.n,0);
   const pick=`<div class="gpick">
      <div class="ghead">${godDrawFor!=null?`${godDrawFor===0?'Your':NAMES[godDrawFor]+"'s"} next draw will be:`:selT?`Change the ${tname(selT.k)} in ${where} to:`:'Give yourself a tile <span>(it replaces your least useful tile, or tap any tile below to change that one)</span>'}</div>
-     <div class="grow">${KINDS.map(k=>{const n=ed||(godDrawFor!=null&&godOn())?godAvail(k):0;return `<button class="gk" data-k="${k}" ${n?'':'disabled'} title="${tname(k)}">${tileHTML(k,'sm')}<b class="gcnt">${n}</b></button>`}).join('')}</div>
+     <div class="grow">${(GAME==='hk'?KINDS.filter(k=>k!=='J'):KINDS).map(k=>{const n=ed||(godDrawFor!=null&&godOn())?godAvail(k):0;return `<button class="gk" data-k="${k}" ${n?'':'disabled'} title="${tname(k)}">${tileHTML(k,'sm')}<b class="gcnt">${n}</b></button>`}).join('')}</div>
      ${godDrawFor!=null?'<div class="mrow gacts"><button class="btn btn-ghost sm" id="gUnsel">Cancel</button></div>':''}
      ${selT?`<div class="mrow gacts">${at.area==='h'&&!HUMAN[at.seat]&&phase==='play'?`<button class="btn btn-ghost sm" id="gThrow">Make ${NAMES[at.seat]} throw this next</button>`:''}${at.area==='w'?'<button class="btn btn-ghost sm" id="gDrawNext">Make this the next draw</button>':''}<button class="btn btn-ghost sm" id="gUnsel">Cancel</button></div>`:''}
    </div>`;
@@ -2833,8 +2875,8 @@ function godHTML(){
    ${why?`<p class="gwarn">${why}</p>`:''}
    ${pick}
    <div class="mrow gquick">
-     <button class="btn btn-gold sm" id="gReady" ${ed?'':'disabled'}>${myTurn&&tiles0===14?'Make my hand Mah Jongg':'Put me one tile away'}</button>
-     <button class="btn btn-ghost sm" id="gJoker" ${ed?'':'disabled'}>Give me a Joker</button>
+     ${GAME==='hk'?'':`<button class="btn btn-gold sm" id="gReady" ${ed?'':'disabled'}>${myTurn&&tiles0===14?'Make my hand Mah Jongg':'Put me one tile away'}</button>
+     <button class="btn btn-ghost sm" id="gJoker" ${ed?'':'disabled'}>Give me a Joker</button>`}
      <button class="btn btn-ghost sm" id="gShuffle" ${ed?'':'disabled'}>Shuffle the draw pile</button>
    </div>
    ${phase==='idle'||phase==='shuffle'?'':[0,1,2,3].map(rack).join('')}
@@ -2844,8 +2886,8 @@ function godHTML(){
    ${swRow('g_reveal','Show everyone\'s tiles','Flip the other racks face up on the table.',!!G.reveal)}
    ${swRow('g_nocall','Bots never call','Computer players never call a discard.',!!G.noCall)}
    ${swRow('g_nowin','Bots never win','Computer players never declare Mah Jongg.',!!G.noWin)}
-   ${swRow('g_rigready','Deal me a hand one tile away','Every new deal starts you one tile from Mah Jongg.',!!G.rigReady)}
-   <div class="setrow"><span class="st"><b>Jokers in my deal</b><span class="d">How many Jokers you're dealt every new game.</span></span>
+   ${GAME==='hk'?'':swRow('g_rigready','Deal me a hand one tile away','Every new deal starts you one tile from Mah Jongg.',!!G.rigReady)}
+   <div class="setrow"${GAME==='hk'?' hidden':''}><span class="st"><b>Jokers in my deal</b><span class="d">How many Jokers you're dealt every new game.</span></span>
      <span class="seg" role="group" aria-label="Jokers in my deal">${[0,1,2,3,4,5,6,7,8].map(n=>`<button class="${(G.rigJ||0)===n?'on':''}" data-rigj="${n}" aria-pressed="${(G.rigJ||0)===n}">${n}</button>`).join('')}</span></div>
    <div class="setrow"><span class="st"><b>Scores</b><span class="d">You ${scores[0]} · ${NAMES.slice(1).map((n,i)=>n+' '+scores[i+1]).join(' · ')}</span></span>
      <span class="mrow" style="margin:0"><button class="btn btn-ghost sm" id="gPts">+100 for me</button><button class="btn btn-ghost sm" id="gPtsReset">Reset scores</button></span></div>
@@ -2882,8 +2924,8 @@ function bindGod(){
 let undoStack=[],homeOpen=false;   // homeOpen: a solo game is paused behind the home screen
 function takeSnap(){
   if(!settings.undo||MP())return;
-  const cs=callState?{i:callState.i,order:callState.order,botMJ:callState.botMJ&&{j:callState.botMJ.j},botExp:callState.botExp,offers:callState.offers}:null;
-  undoStack.push(JSON.stringify({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc,chStop,chSub,chVotes,scores,logs,cs}));
+  const cs=callState?(callState.hk?{...callState,t:null,tid:callState.t.id}:{i:callState.i,order:callState.order,botMJ:callState.botMJ&&{j:callState.botMJ.j},botExp:callState.botExp,offers:callState.offers}):null;
+  undoStack.push(JSON.stringify({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc,chStop,chSub,chVotes,scores,logs,cs,hk:{hkLast,hkFirst,hkWind,hkRot,hkKeep}}));
   if(undoStack.length>60)undoStack.shift();
 }
 const canUndo=()=>settings.undo&&!MP()&&undoStack.length>0&&['charleston','play','over'].includes(phase);
@@ -2892,7 +2934,9 @@ function undoMove(){
   const g=JSON.parse(undoStack.pop());
   gid++;paused=false;pausedQ=[];closeModal();
   ({wall,players,discards,phase,turn,step,passIdx,dealer,dead,turnSrc,chStop,chSub,chVotes,scores,logs}=g);
-  callState=g.cs?{...g.cs,t:discards[discards.length-1],choices:{},o:g.cs.offers[0]||null}:null;
+  if(g.hk)({hkLast,hkFirst,hkWind,hkRot,hkKeep}=g.hk);
+  const byId=id=>[...discards,...players.flatMap(q=>q.hand)].find(x=>x.id===id);
+  callState=g.cs?(g.cs.hk?{...g.cs,t:byId(g.cs.tid)}:{...g.cs,t:discards[discards.length-1],choices:{},o:g.cs.offers[0]||null}):null;
   building=null;sel=new Set();selected=null;newIds=new Set();flyQueue=[];shown=[...scores];
   log('Undo: took back your last move.');toast('Move undone');Sound.tap();render();
 }
@@ -2901,6 +2945,7 @@ const undoBtn=()=>canUndo()?'<button class="btn btn-ghost" id="bUndo" title="Tak
 // ================= Saved progress =================
 // Only saved at moments that wait on you (Charleston, or your turn), so a resumed game never skips a bot's move.
 function saveProgress(){
+  if(GAME==='hk'){hkSaveProgress();return}
   if(!settings.save||MP())return;
   try{
     localStorage.setItem('amj_progress',JSON.stringify({scores,dealer}));
@@ -3309,6 +3354,7 @@ function refreshNames(){NAMES=['You',...SEATNAME.slice(1)];AV=[0,1,2,3].map(a=>a
 
 // ---- hosting ----
 async function createRoom(px){
+  if(GAME!=='american'){setGame('american');toast('Multiplayer rooms play American Mah Jongg')}
   mpMsg(px,'Creating your room…');
   try{await loadPeerLib()}catch(e){mpMsg(px,"Couldn't load the multiplayer file (vendor/peerjs.min.js). Refresh the page and try again.",true);return}
   const code=genCode();let peer;
@@ -3376,6 +3422,7 @@ function startRoomGame(){
 
 // ---- joining ----
 async function joinRoom(px,code){
+  if(GAME!=='american'){setGame('american');toast('Multiplayer rooms play American Mah Jongg')}
   code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(code.length<4){mpMsg(px,'Type the room code your friend gave you.',true);return}
   mpMsg(px,'Joining…');
@@ -3533,8 +3580,8 @@ const ICON_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 function renderSoundBtn(){const b=$('#btnSound');b.innerHTML=Sound.on?ICON_ON:ICON_OFF;const l=Sound.on?'Mute sound':'Turn sound on';b.title=l;b.setAttribute('aria-label',l)}
 function startFromSplash(){if(NET.mode==='client')return;if(NET.mode==='host'&&room&&!room.started){showLobby();return}Sound.init();$('#splash').classList.add('hide');newGame()}
 $('#btnSound').onclick=()=>{Sound.on=!Sound.on;try{localStorage.setItem('amj_sound',Sound.on?'on':'off')}catch(e){}renderSoundBtn();if(Sound.on){Sound.init();Sound.chime()}};
-$('#btnCard').onclick=()=>showCard('view');
-$('#btnHelp').onclick=showHelp;
+$('#btnCard').onclick=()=>GAME==='hk'?hkShowRules():showCard('view');
+$('#btnHelp').onclick=()=>GAME==='hk'?hkShowRules():showHelp();
 $('#btnNew').onclick=askNew;
 $('#btnStart').onclick=startFromSplash;
 $('#btnSettings').onclick=showSettings;
@@ -3548,22 +3595,51 @@ const closeHands=()=>document.body.classList.remove('show-hands');
 $('#bHandsClose').onclick=closeHands;
 addEventListener('pointerdown',e=>{if(!document.body.classList.contains('show-hands'))return;const t=e.target;if(t.closest('.side')||t.closest('#btnHands')||t.closest('#bHands')||t.closest('#modal'))return;closeHands()},true);
 $('#btnHands').onclick=()=>document.body.classList.toggle('show-hands');
-$('#bHandsCard').onclick=()=>{closeHands();showCard('view')};
+$('#bHandsCard').onclick=()=>{closeHands();GAME==='hk'?hkShowRules():showCard('view')};
 if(!document.fullscreenEnabled)$('#btnFull').hidden=true;
 $('#btnFull').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(e){}};
 // Home: solo games pause behind the home screen and Resume picks up right where you were.
+// ---- choosing a game on the home screen ----
+const GAMES={american:{title:'American Mah Jongg',sub:'Play your 2026 card against three computer players.'},
+  hk:{title:'Chinese Mahjong',tag:'HONG KONG OLD STYLE',sub:'Hong Kong Old Style rules against three computer players. You need 3 faan to win.'}};
+const gameSaved=()=>GAME==='hk'?hkSavedGame():savedGame();
+function syncSplashButtons(){const live=homeOpen,sv=!!gameSaved();$('#btnResume').hidden=!live&&!sv;$('#btnStart').textContent=live||sv?'New game':'Deal me in'}
+function applyGameLabels(){
+  const g=GAMES[GAME];const h1=document.querySelector('.brand h1');if(h1)h1.textContent=g.title;
+  const st=document.querySelector('.splash-title');if(st)st.textContent=g.title;
+  const sb=document.querySelector('#splashSolo .splash-sub');if(sb)sb.textContent=g.sub;
+  if(g.tag)document.querySelectorAll('.brand small,.splash-tag').forEach(e=>e.textContent=g.tag);
+  document.querySelectorAll('[data-game]').forEach(b=>{const o=b.dataset.game===GAME;b.classList.toggle('on',o);b.setAttribute('aria-checked',o)});
+  const mp=document.getElementById('tabMP');if(mp){mp.hidden=GAME==='hk';if(GAME==='hk'&&mp.classList.contains('on'))document.getElementById('tabSolo').click()}
+  document.body.classList.toggle('game-hk',GAME==='hk');
+  const cl=document.querySelector('#btnCard .lbl');if(cl)cl.textContent=GAME==='hk'?'Scoring':'The Card';
+  const hb=document.getElementById('bHandsCard');if(hb)hb.textContent=GAME==='hk'?'Scoring':'The Card';
+  const sh=document.querySelector('.sheet-bar b');if(sh)sh.textContent=GAME==='hk'?'Coach':'Your hands';
+  if(GAME==='hk')document.title='Chinese Mahjong · Hong Kong';
+}
+function setGame(g){
+  if(g==='canasta'){location.href='canasta.html';return}
+  if(g===GAME||MP())return;
+  try{saveProgress()}catch(e){}
+  GAME=g;settings.game=g;saveSettings();
+  gid++;paused=false;pausedQ=[];homeOpen=false;undoStack=[];callState=null;building=null;sel=new Set();selected=null;
+  loadProgress();shown=[...scores];
+  wall=[];discards=[];players=[0,1,2,3].map(()=>({hand:[],exp:[],flowers:[]}));phase='idle';logs=[];logVer++;
+  applyTheme();applyGameLabels();syncSplashButtons();render();Sound.tap&&Sound.tap();
+}
 function goHome(){
   if(MP()){openModal(`<h2>Go to the home screen?</h2><p>${NET.mode==='host'?'This closes the room and everyone goes back to their own solo game.':'You leave the room and a bot plays your seat.'}</p><div class="mrow"><button class="btn btn-gold" onclick="leaveRoom()">${NET.mode==='host'?'Close room':'Leave room'}</button><button class="btn btn-ghost" onclick="closeModal()">Stay</button></div>`);return}
   closeModal();closeHands();
   const live=['charleston','play','over','shuffle'].includes(phase);
   if(live){pauseGame();homeOpen=true}
-  $('#btnResume').hidden=!live&&!savedGame();$('#btnStart').textContent=live||savedGame()?'New game':'Deal me in';
+  syncSplashButtons();
   $('#splash').classList.remove('hide');
 }
 $('#btnHome').onclick=goHome;
 $('#btnGod').onclick=showGod;syncGodBtn();
-$('#btnResume').onclick=()=>{if(homeOpen){homeOpen=false;$('#splash').classList.add('hide');unpauseGame();render()}else resumeGame()};
-if(savedGame()){$('#btnResume').hidden=false;$('#btnStart').textContent='New game'}
+$('#btnResume').onclick=()=>{if(homeOpen){homeOpen=false;$('#splash').classList.add('hide');unpauseGame();render()}else if(GAME==='hk'){if(!hkResume())startFromSplash()}else resumeGame()};
+document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>setGame(b.dataset.game));
+applyGameLabels();syncSplashButtons();
 addEventListener('keydown',e=>{if(e.key!=='Escape')return;if($('#modal').innerHTML)closeModal();else document.body.classList.remove('show-hands')});
 applySpeed();applyTheme();applyLayout();renderSoundBtn();
 // Installable app: save the game on the device so solo play works offline (needs https, or localhost for testing)
