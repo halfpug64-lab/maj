@@ -634,7 +634,7 @@ function botDiscard(i){
 }
 
 // lay down the 3 you were holding and draw a replacement
-function layHeldThree(){if(!myTurn())return;const h=G.hands[0],t=h.find(isThree);if(!t)return;
+function layHeldThree(){if(!myTurn())return;const h=G.hands[0],t=selCards().find(isThree)||h.find(isThree);if(!t)return;
   fly(t,src(0,t.id));h.splice(h.indexOf(t),1);G.threes[0].push(t);
   if(G.stock.length){const sr=stockRect();const c=G.stock.pop();h.push(c);G.newIds=new Set([c.id]);fly(c,sr,{delay:200});
     if(isThree(c)&&h.filter(isThree).length>1)layThrees(0)}
@@ -842,7 +842,8 @@ function render(){
   if(myTurn()&&sel.size)acts+=`<button class="btn sm" id="aClear" title="Unselect all your cards">Clear selection (${sel.size})</button>`;
   if(myTurn()&&G.phase==='play'&&G.opened[0]&&!(G.asked&&G.asked[0])&&canFinish(0))acts+=`<button class="btn" id="aAsk" title="You can ask once per hand">${NAMES[2]}, may I go out?</button>`;
   if(myTurn()&&G.mustOut&&G.mustOut[0])acts+=`<span class="mustout">${NAMES[2]} said yes: go out this turn</span>`;
-  if(myTurn()&&!G.opened[0]&&h.some(isThree))acts+=`<button class="btn sm" id="aLay3" title="You're holding a 3 for a Straight">Lay down your 3</button>`;
+  // like Swap for Joker in mahjong: select your 3 and the button appears
+  if(myTurn()&&!G.opened[0]&&selCards().some(isThree))acts+=`<button class="btn gold" id="aLay3" title="Set the 3 out on the table and draw a replacement">Lay down 3</button>`;
   if(myTurn())acts+=`<button class="btn sm" id="aHint" title="What should I do?">💡 Hint</button>`;
   const stagedIds=new Set(staged.flatMap(g=>g.cards.map(c=>c.id)));
   const shown=h.filter(c=>!stagedIds.has(c.id));
