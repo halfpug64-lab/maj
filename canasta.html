@@ -545,7 +545,7 @@ function scoreTeam(t,outSeat,special){
   }
   for(const m of G.melds[t])if(m.cards.length<7){
     if(m.r==='W')add('Unfinished wild card meld',m.cards.filter(c=>c.r==='JK').length===4?-2500:-2000);
-    else if(SA()&&m.r==='7')add('Unfinished 7s meld',-2500);else if(SA()&&m.r==='A'&&!wildCount(m))add('Unfinished Aces meld',-2500)}
+    else if(SA()&&m.r==='7')add('Unfinished 7s meld',-2500);else if(SA()&&m.r==='A'&&!wildCount(m))add('Unfinished Aces meld (no wild cards)',-2500)}
   if(C!==1)for(const red of [true,false]){const n=G.threes[t].filter(c=>isRed(c)===red).length;if(n)add(`${n} ${red?'red':'black'} 3${n>1?'s':''}`,(C===0?-1:1)*THREE_PTS[Math.min(4,n)])}
   const mv=G.melds[t].reduce((s,m)=>s+meldPts(m.cards),0);add('Melded cards',C>=1?mv:-mv);
   const hand=teamHand(t);add('Cards left in hand',-hand.filter(c=>!isThree(c)).reduce((s,c)=>s+val(c),0));
@@ -841,7 +841,7 @@ function showRules(){
     ${tog('deadForBoth','Closed ranks are dead for both teams','When off, a team can keep melding a rank the other team closed.')}
     ${tog('lastThree','A 3 as the last card ends the hand','Drawing a 3 as the very last card ends the hand at once (it counts 5 against).')}
     <h3>House rules</h3>
-    ${tog('sevensAces','Special 7s and Aces rules','On: 7s never take wild cards, Aces take them only in the first meld, natural Aces or 7s canastas score 2,500, and unfinished ones or three left in hand cost points. Off: 7s and Aces play like any other rank.')}
+    ${tog('sevensAces','Special 7s and Aces rules','On: 7s never take wild cards, Aces take them only in the first meld, natural Aces or 7s canastas score 2,500, an unfinished 7s meld or an unfinished Aces meld with no wild cards costs 2,500 (an Aces meld with a wild card is an ordinary mixed meld: no penalty), and holding three or more 7s or Aces at the end costs 1,500. Off: 7s and Aces play like any other rank.')}
     ${tog('barGoOut','No going out with an unfinished 7s or Aces meld','Your team can\'t go out while it has a pure 7s or Aces meld under seven cards.')}
     ${tog('keepThree','Hold a 3 for a Straight','Keep one 3 in your hand until your team melds, so you can try for the Straight.')}
     <div class="mrow"><button class="btn gold" id="mDone">Done</button></div></div></div>`;
