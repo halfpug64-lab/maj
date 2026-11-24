@@ -81,6 +81,7 @@ main{display:grid;grid-template-columns:minmax(64px,110px) 1fr minmax(64px,110px
 .hand .card{margin-left:var(--ov,4px);cursor:pointer;transition:transform .12s}
 .hand .card:first-child{margin-left:0}
 .hand .card.sel{transform:translateY(-12px);box-shadow:0 0 0 3px var(--accent),0 6px 12px rgba(0,0,0,.35)}
+.hand .card{touch-action:none}.hand .card.dragging{z-index:20;transition:none;cursor:grabbing;box-shadow:0 0 0 3px var(--accent),0 14px 24px rgba(0,0,0,.5)}
 .hand .card.new{box-shadow:0 0 0 2px #fff,0 0 12px var(--accent)}
 .acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
 .card{position:relative;isolation:isolate;overflow:hidden;flex:0 0 auto;width:var(--cw);height:calc(var(--cw)*1.4);border-radius:calc(var(--cw)*.12);background:linear-gradient(170deg,#fff,var(--paper));color:var(--ink);border:1px solid #cfc6b0;box-shadow:0 2px 4px rgba(0,0,0,.3);user-select:none}
@@ -339,7 +340,8 @@ function newDeck(){let id=0;const d=[];
   for(let k=0;k<2;k++){for(const s of SUITS)for(const r of [...RANKS,'2','3'])d.push({id:id++,r,s});d.push({id:id++,r:'JK',s:''},{id:id++,r:'JK',s:''})}
   for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
 const minMeld=t=>score[t]>=5000?180:score[t]>=3000?155:125;
-const sortHand=h=>h.sort((a,b)=>ORDER.indexOf(a.r)-ORDER.indexOf(b.r)||SUITS.indexOf(a.s)-SUITS.indexOf(b.s)||a.id-b.id);
+// once you drag a card, your hand keeps your order (new cards go on the right) until you tap Sort
+const sortHand=h=>(typeof G==='object'&&G&&G.manual&&h===G.hands[0])?h:h.sort((a,b)=>ORDER.indexOf(a.r)-ORDER.indexOf(b.r)||SUITS.indexOf(a.s)-SUITS.indexOf(b.s)||a.id-b.id);
 
 function newHand(){
   gid++;dealer=(dealer+1)%4;sel.clear();staged=[];logs=[];
@@ -447,16 +449,42 @@ function openingInfo(t,melds){
 }
 function openNeed(t){const o=CR().open;return `${minMeld(t)} points${o==='pure'?' with a clean meld (three natural cards of one rank, or three wild cards)':o==='naturals3'?' with a meld of three natural cards':''}`}
 // best opening a hand can make on its own (used by the bots and the Suggest button)
-// computer players: a 7s meld (or Aces with no wild) is only worth starting with five naturals, since it can't take wilds
-// to finish and an unfinished one costs 2,500 and blocks going out
-const riskyStart=(t,r,n,wild=false)=>SA()&&!teamMeld(t,r)&&(r==='7'||(r==='A'&&!wild))&&n<5;
+// ---- computer players: is a 7s meld (or Aces with no wild) worth starting? ----
+// It can't take wild cards, so it only finishes with natural cards. Work out the chance our team collects the rest
+// before the hand ends, then weigh +2,500 for finishing against -2,500 for leaving it short, plus being shut out of
+// going out (worse once we already have two canastas) and the -1,500 for sitting on three or more at the end.
+// have: copies we'd have in the meld; fromPile: copies that come off the discard pile with it (so they aren't "seen")
+function finishChance(i,r,have,fromPile=0){
+  const t=team(i),need=7-have;if(need<=0)return 1;
+  const seen=G.pile.filter(c=>c.r===r).length-fromPile+G.melds[1-t].reduce((s,m)=>s+m.cards.filter(c=>c.r===r).length,0);
+  const left=8-have-seen;if(left<need)return 0;
+  // unseen cards: the stock plus the other three hands; ours to come: partner's hand plus about half the stock (our draws)
+  const pa=(i+2)%4,others=[1,2,3].map(k=>(i+k)%4);
+  const pool=G.stock.length+others.reduce((s,k)=>s+G.hands[k].length+G.talon[k].length,0);
+  // hands often end before the stock runs out, sooner once a team can go out
+  const lasts=canGoOut(0)||canGoOut(1)?.35:.65;
+  const ours=G.hands[pa].length+G.talon[pa].length+G.stock.length/2*lasts;
+  const p=Math.min(.95,pool?ours/pool:0);
+  // chance of at least `need` of the `left` unseen copies coming our way (binomial)
+  let q=0;const C=(n,k)=>{let v=1;for(let j=1;j<=k;j++)v=v*(n-k+j)/j;return v};
+  for(let k=need;k<=left;k++)q+=C(left,k)*Math.pow(p,k)*Math.pow(1-p,left-k);
+  return q;
+}
+function worthStarting(i,r,have,fromPile=0){
+  const t=team(i);const P=finishChance(i,r,have,fromPile);
+  const block=CR().barGoOut?(canastas(t).length>=2?1500:400):0;   // can't go out until it's done
+  const hold=have>=3?750:0;   // not starting means holding them (or feeding them to the other team)
+  return P*2500-(1-P)*(2500+block)>-hold;
+}
+// risky: a pure 7s/Aces meld we'd be starting, and the odds say it isn't worth it
+const riskyStart=(i,r,have,fromPile=0)=>SA()&&!teamMeld(team(i),r)&&(r==='7'||r==='A')&&!worthStarting(i,r,have,fromPile);
 function findOpening(i,keep){
   const t=team(i),h=G.hands[i].filter(c=>!isThree(c));
   const by={};for(const c of h)if(isNat(c))(by[c.r]=by[c.r]||[]).push(c);
   const wilds=h.filter(isWild).sort((a,b)=>val(b)-val(a));
   const ms=[];const used=new Set();
   const ranks=Object.keys(by).filter(r=>!isDead(r,t)).sort((a,b)=>by[b].length*val(by[b][0])-by[a].length*val(by[a][0]));
-  for(const r of ranks){const cs=by[r];if(cs.length<3)continue;if(i!==0&&riskyStart(t,r,cs.length))continue;ms.push({cards:cs.slice(0,7)});cs.slice(0,7).forEach(c=>used.add(c.id))}
+  for(const r of ranks){const cs=by[r];if(cs.length<3)continue;if(i!==0&&riskyStart(i,r,cs.length))continue;ms.push({cards:cs.slice(0,7)});cs.slice(0,7).forEach(c=>used.add(c.id))}
   if(!ms.length)return null;
   let info=openingInfo(t,ms);
   let wi=0;
@@ -657,7 +685,7 @@ function botTurn(i){
   // take the pack when it helps
   let took=false;
   if(G.pile.length){
-    const tp=G.pile[G.pile.length-1],risky=tp&&riskyStart(t,tp.r,1+h.filter(c=>c.r===tp.r).length);
+    const tp=G.pile[G.pile.length-1],pc=tp?G.pile.filter(c=>c.r===tp.r).length:0,risky=tp&&riskyStart(i,tp.r,pc+h.filter(c=>c.r===tp.r).length,pc);
     if(G.opened[t]){const o=packOption(i);if(o.how&&G.pile.length>=2&&!risky){took=!takePack(i,[])}}
     else{const op=findOpening(i,0);if(op){const used=op.flatMap(m=>m.cards.map(c=>c.id));const o=packOption(i,used,op);if(o.how&&!takePack(i,op))took=true}}
   }
@@ -668,6 +696,10 @@ function botTurn(i){
   if(!G.opened[t]){const op=findOpening(i,G.stock.length>8?1:2);if(op&&!layMelds(i,op)){}}
   const finish=()=>{if(G.opened[t])botMeld(i);render();later(()=>botDiscard(i),SPEED*.6)};
   if(i===2&&G.opened[t]&&!G.asked[2]&&canFinish(2)&&partnerShouldAsk()){G.asked[2]=true;askYou(finish);return}
+  // the other team's players ask each other once a hand before going out
+  if(i!==2&&G.opened[t]&&!G.asked[i]&&canFinish(i)){const pa=(i+2)%4;G.asked[i]=true;render();say(i,`${NAMES[pa]}, may I go out?`);log(`${NAMES[i]} asked ${NAMES[pa]} to go out.`);
+    later(()=>{if(G.over)return;const yes=partnerSaysYes(pa);if(yes)G.mustOut[i]=true;else G.noOut[i]=true;say(pa,yes?'Yes, go out!':'Not yet!');
+      log(`${NAMES[pa]} said ${yes?'yes':'no'}.`);later(finish,SPEED*.9)},SPEED*1.1);return}
   finish();
 }
 function botMeld(i){
@@ -679,7 +711,7 @@ function botMeld(i){
       const take=cs.slice(0,7-m.cards.length);if(!meldAdd(i,m,take.map(c=>c.id))){did=true}}
     // new clean melds (7s and Aces only with four or more)
     const by={};for(const c of h)if(isNat(c))(by[c.r]=by[c.r]||[]).push(c);
-    for(const r in by){const cs=by[r];if(cs.length<3||riskyStart(t,r,cs.length))continue;if(teamMeld(t,r)||isDead(r,t))continue;
+    for(const r in by){const cs=by[r];if(cs.length<3||riskyStart(i,r,cs.length))continue;if(teamMeld(t,r)||isDead(r,t))continue;
       if(!meldNew(i,cs.slice(0,7).map(c=>c.id)))did=true}
     // wild cards finish canastas: a meld with five or more naturals and room
     const wilds=h.filter(isWild);
@@ -726,10 +758,12 @@ function canFinish(i){
   }catch(e){return false}finally{G=real;FX=fx;Sound.on=snd;SIM=false}
 }
 // your partner's answer: yes unless they're holding a lot of points (or 7s and Aces that would cost a penalty)
-function partnerSaysYes(){
-  const h=G.hands[2];const pts=h.reduce((s,c)=>s+(isThree(c)?5:val(c)),0);
+// a partner's answer to "may I go out?": yes unless they'd be stuck with a lot of points (or 7s and Aces that cost a penalty),
+// or yes anyway when the other team could go out soon
+function partnerSaysYes(seat=2){
+  const h=G.hands[seat];const pts=h.reduce((s,c)=>s+(isThree(c)?5:val(c)),0);
   const pen=SA()&&['A','7'].some(r=>h.filter(c=>c.r===r).length>=3);
-  return canastas(1).length>=2||(!pen&&pts<=100);
+  return canastas(1-team(seat)).length>=2||(!pen&&pts<=100);
 }
 function askPartner(){
   if(!myTurn()||G.phase!=='play'||G.asked[0])return;G.asked[0]=true;
@@ -756,6 +790,7 @@ function rankDiscards(i){
   if(!cands.length)cands=h.filter(c=>!isThree(c));
   const cnt=r=>h.filter(c=>c.r===r).length;
   const rate=c=>{let s=cnt(c.r)*3;const ours=teamMeld(t,c.r);if(ours&&ours.cards.length<7)s+=5;if(SA()&&(c.r==='7'||c.r==='A'))s+=2;
+    if(SA()&&(c.r==='7'||c.r==='A')&&!ours&&cnt(c.r)>=3&&riskyStart(i,c.r,cnt(c.r)))s-=cnt(c.r)*3+4;   // holding three or more costs 1,500: shed them
     if(isDead(c.r))s-=8;const theirs=teamMeld(opp,c.r);if(theirs&&theirs.cards.length>=5)s-=6;if(theirs&&theirs.cards.length<5)s+=6;
     s+=val(c)/20+(i===0?0:Math.random()*.5);return s};
   return cands.sort((a,b)=>rate(a)-rate(b));
@@ -839,6 +874,16 @@ function doDiscard(){if(!myTurn()||G.phase!=='play')return;const cs=selCards();i
 function doSpecial(){if(!myTurn()||G.phase!=='play'||G.opened[0])return;const sp=specialHand(G.hands[0]);if(sp)endHand(null,'special',{...sp,t:0,seat:0})}
 function doEnd(){if(!myTurn()||G.stock.length)return;endHand(null,'stock')}
 
+function dropCard(id,x,y,el){
+  const h=G.hands[0],from=h.findIndex(c=>c.id===id);if(from<0){render();return}
+  let best=null,bd=Infinity;
+  document.querySelectorAll('#hand .card').forEach(o=>{if(o===el)return;const r=o.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+    const d=Math.hypot(x-cx,(y-cy)*1.5);if(d<bd){bd=d;best={id:+o.dataset.id,after:x>cx}}});
+  const [c]=h.splice(from,1);
+  if(best){let to=h.findIndex(q=>q.id===best.id);if(best.after)to++;h.splice(to,0,c)}else h.splice(from,0,c);
+  G.manual=true;Sound.tap();render()}
+function resortHand(){G.manual=false;sortHand(G.hands[0]);Sound.tap();render()}
+
 // ================= Motion =================
 // Each move queues flights; after the table is drawn, a copy of each card flies from where it was to where it landed.
 let FX=[];
@@ -910,7 +955,9 @@ function zoneHTML(t){
   return `<h3><span class="team ${me?'us':'them'}">${me?`You & ${NAMES[2]}`:`${NAMES[1]} & ${NAMES[3]}`}</span><b>${score[t]}</b><span class="pillc">${o?`${canastas(t).length} canasta${canastas(t).length===1?'':'s'}`:`needs ${minMeld(t)} to open`}</span>${th}</h3>
    <div class="melds">${G.melds[t].map((m,x)=>meldHTML(m,x,me,t)).join('')}${me&&staged.length?(()=>{const n=openingInfo(0,staged);return staged.map((g,x)=>`<button class="meld staged" data-stg="${x}" title="Tap with cards picked to add them; tap with nothing picked to take this back" aria-label="Waiting for your opening: ${g.cards.length} cards">${g.cards.map(k=>cardHTML(k,'sm')).join('')}<span class="cnt">${meldPts(g.cards)}</span></button>`).join('')+`<div class="opentray"><span><b>${n.pts}</b> of ${n.need}${n.pts>=n.need&&!n.clean?' · needs a clean meld':''}</span>${n.ok&&G.phase==='play'?'<button class="btn gold sm" id="aOpen" title="Lay down all the waiting groups as your team&#39;s first meld">Finish opening</button>':''}<button class="btn sm" id="aUnstage">Cancel</button></div>`})():''}${!G.melds[t].length&&!(me&&staged.length)?'<span class="log">No melds yet</span>':''}</div>`;
 }
+let handHold=false,renderPending=false;   // no redraws while you're dragging a card
 function render(){
+  if(handHold){renderPending=true;return}
   $('#scores').innerHTML=`<span class="chip">Us <b>${score[0]}</b></span><span class="chip">Them <b>${score[1]}</b></span>`;
   if(!G){return}
   for(const s of [1,2,3]){const e=$('#s'+s);e.className='seat'+(G.turn===s&&!G.over?' turn':'');
@@ -937,10 +984,10 @@ function render(){
   }else if(myTurn()&&G.phase==='play'){
     if(!G.opened[0])
       acts=`${sp?`<button class="btn red" id="aSpecial">Lay down ${sp.name} (${sp.pts})</button>`:''}<button class="btn" id="aMeld" title="Put the selected cards down. Before your team opens they wait on the table; press Finish opening once they reach ${minMeld(0)}." ${sel.size?'':'disabled'}>Meld</button>${showSuggest()&&!staged.length?`<button class="btn sm" id="aSuggest" title="Find an opening meld in your hand">Suggest opening</button>`:''}<button class="btn gold" id="aDiscard" title="Throw the selected card on the discard pile and end your turn" ${sel.size===1?'':'disabled'}>Discard</button>`;
-    else acts=`<button class="btn" id="aMeld" title="Lay down the selected cards, or add them to your meld of that rank" ${sel.size?'':'disabled'}>Meld</button><button class="btn gold" id="aDiscard" title="Throw the selected card on the discard pile and end your turn" ${sel.size===1?'':'disabled'}>${h.length===1?'Discard and go out':'Discard'}</button>`;
+    else acts=`<button class="btn" id="aMeld" title="Lay down the selected cards, or add them to your meld of that rank" ${sel.size?'':'disabled'}>Meld</button><button class="btn gold" id="aDiscard" title="Throw the selected card on the discard pile and end your turn" ${sel.size===1?'':'disabled'}>${h.length===1&&canGoOut(0)&&G.pendingTalon!==0&&!(G.noOut&&G.noOut[0])?'Discard and go out':'Discard'}</button>`;
   }else if(G.over)acts='<button class="btn gold" id="aNext">Next hand</button>';
   if(myTurn()&&sel.size>1)acts+=`<button class="btn sm" id="aDesel" title="Unselect all your cards">Deselect all</button>`;
-  if(myTurn()&&G.phase==='play'&&G.opened[0]&&!(G.asked&&G.asked[0])&&canFinish(0))acts+=`<button class="btn" id="aAsk" title="You can ask once per hand">${NAMES[2]}, may I go out?</button>`;
+  if(myTurn()&&G.phase==='play'&&G.opened[0]&&canGoOut(0)&&G.pendingTalon!==0&&!(G.asked&&G.asked[0]))acts+=`<button class="btn" id="aAsk" title="You can ask once per hand">${NAMES[2]}, may I go out?</button>`;
   if(myTurn()&&G.mustOut&&G.mustOut[0])acts+=`<span class="mustout">${NAMES[2]} said yes: go out this turn</span>`;
   // like Swap for Joker in mahjong: select your 3 and the button appears
   if(myTurn()&&!G.opened[0]&&selCards().some(isThree))acts+=`<button class="btn gold" id="aLay3" title="Set the 3 out on the table and draw a replacement">Lay down 3</button>`;
@@ -949,13 +996,22 @@ function render(){
   const shown=h.filter(c=>!stagedIds.has(c.id));
   const sc=selCards(),pv=sc.filter(c=>!isThree(c)).reduce((a,c)=>a+val(c),0);
   const bub=showPts()&&sc.length?`<button class="ptsbub" id="aClear" title="Tap to unselect" aria-label="${sc.length} picked, ${pv} points. Tap to unselect."><b>${pv}</b> pts<span>${sc.length} card${sc.length===1?'':'s'}${staged.length&&!G.opened[0]?' · opening '+(openingInfo(0,staged).pts+pv):''}</span><i aria-hidden="true">✕</i></button>`:'';
-  me.innerHTML=`<div class="mehead"><span class="nm">Your hand</span><span class="info">${h.length} cards${G.talon[0].length?' · '+G.talon[0].length+' bonus cards next turn':''} · ${G.stock.length} in the draw pile</span>${bub}</div>
+  me.innerHTML=`<div class="mehead"><span class="nm">Your hand</span><span class="info">${h.length} cards${G.talon[0].length?' · '+G.talon[0].length+' bonus cards next turn':''} · ${G.stock.length} in the draw pile</span>${G.manual?'<button class="btn sm" id="aSort" title="Put your cards back in order">Sort</button>':''}${bub}</div>
     <div class="hand" id="hand">${shown.map(c=>cardHTML(c,(sel.has(c.id)?'sel ':'')+(G.newIds.has(c.id)?'new':''))).join('')}</div>
     <div class="acts">${acts}</div>`;
   // squeeze the hand so it fits
   const hd=$('#hand');const cw=hd.querySelector('.card')?.getBoundingClientRect().width||50;const n=shown.length;const avail=hd.clientWidth-8;
   hd.style.setProperty('--ov',n>1&&n*cw+(n-1)*4>avail?`${Math.max(-cw*.72,(avail-n*cw)/(n-1))}px`:'4px');
-  hd.querySelectorAll('.card').forEach(e=>{e.tabIndex=0;e.setAttribute('role','button');const go=()=>{if(!myTurn())return;const id=+e.dataset.id;sel.has(id)?sel.delete(id):sel.add(id);Sound.tap();render()};e.onclick=go;e.onkeydown=k=>{if(k.key==='Enter'||k.key===' '){k.preventDefault();go()}}});
+  hd.querySelectorAll('.card').forEach(e=>{e.tabIndex=0;e.setAttribute('role','button');const go=()=>{if(!myTurn())return;const id=+e.dataset.id;sel.has(id)?sel.delete(id):sel.add(id);Sound.tap();render()};
+    e.onkeydown=k=>{if(k.key==='Enter'||k.key===' '){k.preventDefault();go()}};
+    // tap to pick; drag to move it somewhere else in your hand (any time, even on other players' turns)
+    e.onpointerdown=ev=>{if(ev.button>0)return;ev.preventDefault();handHold=true;const sx=ev.clientX,sy=ev.clientY;let drag=false;
+      try{e.setPointerCapture(ev.pointerId)}catch(_){}
+      e.onpointermove=m=>{const dx=m.clientX-sx,dy=m.clientY-sy;if(!drag&&Math.hypot(dx,dy)>8){drag=true;e.classList.add('dragging')}
+        if(drag)e.style.transform=`translate(${dx}px,${dy}px) scale(1.06)`};
+      e.onpointerup=e.onpointercancel=u=>{e.onpointermove=e.onpointerup=e.onpointercancel=null;handHold=false;
+        if(drag)dropCard(+e.dataset.id,u.clientX,u.clientY,e);else if(u.type==='pointerup')go();
+        if(renderPending){renderPending=false;render()}}}});
   document.querySelectorAll('[data-add]').forEach(e=>e.onclick=()=>addTo(+e.dataset.add));
   const b=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
   // the deal: every card flies out from the deck
@@ -968,7 +1024,7 @@ function render(){
     toast(`${t===0?'Your team':'They'} made a canasta! ${canastaValue(m)[1]} · ${canastaValue(m)[0]}`)}
   const ban=$('#center .banner .st');if(ban&&ban.textContent!==lastBanner){lastBanner=ban.textContent;ban.parentElement.classList.add('swap')}
   if(G.hint!=null){const e=document.querySelector(`#hand [data-id="${G.hint}"]`);if(e)e.classList.add('hint')}
-  b('aDraw',doDraw);b('aPack',doPack);b('aHint',doHint);b('aAsk',askPartner);b('aLay3',layHeldThree);b('aUnstage',unstage);b('aSuggest',doSuggest);b('aMeld',doMeld);b('aDiscard',doDiscard);b('aSpecial',doSpecial);b('aEnd',doEnd);b('aNext',newHand);b('aOpen',doOpen);b('aClear',()=>{sel.clear();render()});b('aDesel',()=>{sel.clear();render()});document.querySelectorAll('[data-stg]').forEach(e=>e.onclick=()=>stagedTap(+e.dataset.stg));
+  b('aDraw',doDraw);b('aPack',doPack);b('aHint',doHint);b('aAsk',askPartner);b('aLay3',layHeldThree);b('aUnstage',unstage);b('aSuggest',doSuggest);b('aMeld',doMeld);b('aDiscard',doDiscard);b('aSpecial',doSpecial);b('aEnd',doEnd);b('aNext',newHand);b('aOpen',doOpen);b('aSort',resortHand);b('aClear',()=>{sel.clear();render()});b('aDesel',()=>{sel.clear();render()});document.querySelectorAll('[data-stg]').forEach(e=>e.onclick=()=>stagedTap(+e.dataset.stg));
 }
 let lastBanner='';let lastW=innerWidth,lastH=innerHeight;addEventListener('resize',()=>{const tv=document.body.classList.contains('tv');if(G&&(Math.abs(innerWidth-lastW)>8||(tv&&Math.abs(innerHeight-lastH)>40))){lastW=innerWidth;lastH=innerHeight;render()}});
 
