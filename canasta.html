@@ -201,6 +201,40 @@ body.light .pillc{background:rgba(255,255,255,.6)}
 @media(max-width:640px){.top{gap:6px}.top h1{font-size:16px;white-space:normal;line-height:1.1}.top .sc{flex-direction:column;gap:3px;align-items:flex-end}#bNew{padding:6px 9px;font-size:12px}
   main{grid-template-columns:52px 1fr 52px;padding:8px;gap:8px}.seat{padding:6px 4px}.seat .nm{font-size:12px}.top{padding:8px 10px}.top .sc .chip{font-size:12px;padding:3px 8px}
   :root{--cw:clamp(34px,10.5vw,46px)}.zone{padding:6px}.btn{padding:8px 12px}}
+
+/* Table view: the whole game fits the screen, no page scrolling. Cards size to the screen height; melds scroll inside their own area if they run long. */
+body.tv{height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+body.tv .top{position:relative;flex:none}
+body.tv main{flex:1;min-height:0;width:100%;max-width:1500px;grid-template-rows:auto minmax(0,1fr) auto;padding:8px 12px;gap:8px;--cw:clamp(34px,min(5.6vw,8.4vh),66px)}
+body.tv #s2{padding:4px 10px}body.tv #s2 .backs i{height:calc(var(--cw)*.45);width:calc(var(--cw)*.32)}
+body.tv #s1,body.tv #s3{justify-content:center}
+body.tv .mid{display:grid;grid-template-rows:minmax(0,1fr) auto auto minmax(0,1fr);gap:6px;min-height:0}
+body.tv .zone{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-top:6px}
+body.tv .zone h3{position:sticky;top:-6px;z-index:6;margin:-6px -10px 4px;padding:6px 10px 4px;background:color-mix(in srgb,var(--felt-dk) 85%,transparent)}
+body.tv .zone .card.sm,body.tv .meld.closed .cpile{--cw:clamp(24px,min(3.4vw,5.2vh),42px)}
+body.tv .melds{gap:6px 8px;padding-top:6px}
+body.tv .zone h3 .threes .card{--cw:clamp(20px,3.6vh,32px)}body.tv .zone h3{min-height:0}
+body.tv .center{padding:0;gap:clamp(10px,3vw,34px)}
+body.tv .stock,body.tv .emptypile,body.tv .center .card{--cw:clamp(30px,6.4vh,54px)}
+body.tv .banner .st{font-size:clamp(14px,2.4vh,20px)}body.tv .banner .sub{font-size:12px}
+body.tv .log{min-height:0;font-size:11.5px}body.tv .log div:not(:first-child){display:none}
+body.tv .me{padding:6px 10px 8px}body.tv .mehead{margin-bottom:0}
+body.tv .hand{padding-top:13px;min-height:calc(var(--cw)*1.4 + 16px)}body.tv .acts{margin-top:6px}
+@media(max-width:640px){
+  body.tv main{padding:6px;gap:6px;--cw:clamp(30px,min(10.5vw,6.4vh),46px)}
+  body.tv .me{position:static;margin:0;border-radius:14px;padding:6px}
+  body.tv .zone .card.sm,body.tv .meld.closed .cpile{--cw:clamp(22px,4.6vh,34px)}
+  body.tv .stock,body.tv .emptypile,body.tv .center .card{--cw:clamp(28px,5.2vh,38px)}
+  body.tv .banner .sub{display:none}
+  body.tv .seat{padding:4px;gap:0;min-height:0}body.tv .seat .nm{font-size:12px}body.tv .seat .info{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  body.tv #s2 .pt{display:none}
+  body.tv .zone{padding:4px 6px 6px}body.tv .zone h3{margin:-4px -6px 2px;padding:4px 6px 2px;top:-4px}
+  body.tv .zone h3 .threes .card{--cw:20px}
+  body.tv .zone .card.sm,body.tv .meld.closed .cpile{--cw:clamp(22px,4vh,30px)}
+  body.tv .melds{gap:4px 6px;padding-top:8px}
+  body.tv .meld.closed{padding:2px 4px 4px}body.tv .ribbon{font-size:9.5px;padding:3px 5px}
+  body.tv .center{gap:8px}body.tv .pile{font-size:11px;gap:2px}
+}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -260,6 +294,8 @@ function CR(){return {...CR_DEF,...(G&&G.rules?G.rules:((typeof settings==='obje
 const showSuggest=()=>settings.cnSuggest===true,showHint=()=>settings.cnHint===true,showPts=()=>settings.cnPoints!==false;   // helpers (Settings): Suggest and Hint start off, the points bubble on
 const SA=()=>CR().sevensAces;   // the special 7s and Aces rules (on unless the table switches them off)
 let settings={};try{settings=JSON.parse(localStorage.getItem('amj_settings'))||{}}catch(e){}
+// Table view (Settings > Layout): everything fits the screen
+function applyLayout(){document.body.classList.toggle('tv',settings.cnLayout==='table');try{if(G)render()}catch(e){}}
 // rules saved before v2 had the going-out rule off by default and a "hold a 3" switch: bring them up to date once
 if(settings.canastaRules&&settings.canastaRules.v!==2){const r=settings.canastaRules;r.v=2;r.barGoOut=true;delete r.keepThree;
   try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.canastaRules=r;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}}
@@ -860,7 +896,7 @@ function render(){
   $('#scores').innerHTML=`<span class="chip">Us <b>${score[0]}</b></span><span class="chip">Them <b>${score[1]}</b></span>`;
   if(!G){return}
   for(const s of [1,2,3]){const e=$('#s'+s);e.className='seat'+(G.turn===s&&!G.over?' turn':'');
-    e.innerHTML=`<div><div class="nm">${NAMES[s]}</div><div class="info">${s===2?'Your partner · ':''}${G.hands[s].length} cards${G.talon[s].length?' + '+G.talon[s].length+' bonus':''}</div></div>${backs(G.hands[s].length,s!==2)}`}
+    e.innerHTML=`<div><div class="nm">${NAMES[s]}</div><div class="info">${s===2?'<span class="pt">Your partner · </span>':''}${G.hands[s].length} cards${G.talon[s].length?' + '+G.talon[s].length+' bonus':''}</div></div>${backs(G.hands[s].length,s!==2)}`}
   $('#themZone').innerHTML=zoneHTML(1);$('#usZone').innerHTML=zoneHTML(0);
   const top=G.pile[G.pile.length-1];
   let st,sub='';
@@ -916,7 +952,7 @@ function render(){
   if(G.hint!=null){const e=document.querySelector(`#hand [data-id="${G.hint}"]`);if(e)e.classList.add('hint')}
   b('aDraw',doDraw);b('aPack',doPack);b('aHint',doHint);b('aAsk',askPartner);b('aLay3',layHeldThree);b('aUnstage',unstage);b('aSuggest',doSuggest);b('aMeld',doMeld);b('aDiscard',doDiscard);b('aSpecial',doSpecial);b('aEnd',doEnd);b('aNext',newHand);b('aClear',()=>{sel.clear();render()});b('aDesel',()=>{sel.clear();render()});document.querySelectorAll('[data-stg]').forEach(e=>e.onclick=()=>stagedTap(+e.dataset.stg));
 }
-let lastBanner='';let lastW=innerWidth;addEventListener('resize',()=>{if(G&&Math.abs(innerWidth-lastW)>8){lastW=innerWidth;render()}});
+let lastBanner='';let lastW=innerWidth,lastH=innerHeight;addEventListener('resize',()=>{const tv=document.body.classList.contains('tv');if(G&&(Math.abs(innerWidth-lastW)>8||(tv&&Math.abs(innerHeight-lastH)>40))){lastW=innerWidth;lastH=innerHeight;render()}});
 
 function showHelp(){
   $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>How to play</h2>
@@ -942,6 +978,7 @@ function showRules(){
   const sp=settings.botSpeed||'normal';
   $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>Settings</h2>
     <div class="crow"><div><b>Speed</b><span>How quickly the computer players take their turns. Changes apply right away (the mahjong games use the same setting).</span></div><div class="cseg" role="group" aria-label="Speed">${[['slow','Slow'],['normal','Default'],['fast','Fast'],['instant','Instant']].map(([v,l])=>`<button class="${sp===v?'on':''}" data-speed="${v}" aria-pressed="${sp===v}">${l}</button>`).join('')}</div></div>
+    <div class="crow"><div><b>Layout</b><span>Table fits the whole game on your screen so you never scroll. Scrolling gives the cards more room.</span></div><div class="cseg" role="group" aria-label="Layout">${[['scroll','Scrolling'],['table','Table']].map(([v,l])=>`<button class="${(settings.cnLayout||'scroll')===v?'on':''}" data-lay="${v}" aria-pressed="${(settings.cnLayout||'scroll')===v}">${l}</button>`).join('')}</div></div>
     <h3>Helpers</h3>
     <div class="crow"><div><b>Points bubble</b><span>Shows what the cards you've picked are worth, adding up as you pick more.</span></div><label class="ctog"><input type="checkbox" data-hp="cnPoints" ${showPts()?'checked':''}><i></i></label></div>
     <div class="crow"><div><b>Suggest opening button</b><span>Finds a first meld in your hand and puts it down for you.</span></div><label class="ctog"><input type="checkbox" data-hp="cnSuggest" ${showSuggest()?'checked':''}><i></i></label></div>
@@ -964,6 +1001,9 @@ function showRules(){
   document.querySelectorAll('[data-ct]').forEach(e=>e.onchange=()=>save(e.dataset.ct,e.checked));
   document.querySelectorAll('[data-hp]').forEach(e=>e.onchange=()=>{settings[e.dataset.hp]=e.checked;
     try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st[e.dataset.hp]=e.checked;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(x){}if(G)render()});
+  document.querySelectorAll('[data-lay]').forEach(b=>b.onclick=()=>{settings.cnLayout=b.dataset.lay;
+    try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.cnLayout=settings.cnLayout;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}
+    applyLayout();document.querySelectorAll('[data-lay]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
   document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{settings.botSpeed=b.dataset.speed;SPEED=SPEEDS[settings.botSpeed]||760;
     try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.botSpeed=settings.botSpeed;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}
     document.querySelectorAll('[data-speed]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
@@ -989,6 +1029,7 @@ function resumeHand(){const g=savedHand();if(!g){deal();return}gid++;G={...g,new
 $('#bDeal').onclick=deal;$('#bStartHelp').onclick=showHelp;$('#bResume').onclick=resumeHand;
 // the home screen chooses: ?deal=1 starts a new hand, ?resume=1 picks the saved one back up.
 // Reloading mid-hand resumes it; opening this page with nothing in progress goes back to the home screen.
+applyLayout();
 const q=new URLSearchParams(location.search),hasSaved=!!savedHand();
 history.replaceState(null,'','canasta.html');
 if(q.get('deal')==='1')deal();
