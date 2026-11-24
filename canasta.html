@@ -408,10 +408,13 @@ function toast(m){document.querySelectorAll('.toast').forEach(t=>t.remove());con
 // a player may hold one 3 for a Straight until their team melds (you: the house rule; computer players: when close to one)
 function keepsThree(i){if(G.opened[team(i)])return false;if(i===0)return true;return new Set(G.hands[i].filter(c=>!isThree(c)).map(c=>c.r)).size>=10}
 function layThrees(i){
-  const h=G.hands[i];let n=0;const keep=keepsThree(i);
-  for(let g=0;g<30;g++){const ts=h.filter(isThree);if(!ts.length||(keep&&ts.length===1))break;const t=ts[0];fly(t,src(i,t.id));h.splice(h.indexOf(t),1);G.threes[team(i)].push(t);n++;
-    if(!G.stock.length){G.lastThree=i;return n}const sr=stockRect();const c=G.stock.pop();h.push(c);if(i===0){G.newIds.add(c.id);fly(c,sr,{delay:200})}else fly(null,sr,{toSeat:i,delay:200})}
+  const h=G.hands[i];let n=0;const keep=keepsThree(i);const laid=[],got=[];
+  for(let g=0;g<30;g++){const ts=h.filter(isThree);if(!ts.length||(keep&&ts.length===1))break;const t=ts[0];fly(t,src(i,t.id));h.splice(h.indexOf(t),1);G.threes[team(i)].push(t);n++;laid.push(t);
+    if(!G.stock.length){G.lastThree=i;return n}const sr=stockRect();const c=G.stock.pop();h.push(c);if(i===0){G.newIds.add(c.id);got.push(c);fly(c,sr,{delay:200})}else fly(null,sr,{toSeat:i,delay:200})}
   if(n){sortHand(h);log(`${NAMES[i]} laid out ${n} three${n>1?'s':''} and drew ${n>1?'replacements':'a replacement'}.`)}
+  // say what happened to your cards: 3s go on the table by themselves (you can only keep one before your team opens)
+  if(i===0&&laid.length&&!SIM){const why=G.opened[team(i)]?'Your team has opened, so your ':'Your ';const last=got.filter(c=>!isThree(c));
+    setTimeout(()=>toast(`${why}${laid.map(cname).join(' and ')} went on the table with your 3s. ${last.length?`You drew ${last.map(cname).join(' and ')} to replace ${laid.length>1?'them':'it'} (it's glowing in your hand).`:'The draw pile is empty, so no replacement.'}`),350)}
   return n;
 }
 function saveHand(){try{if(settings.save!==false&&G&&!G.over)localStorage.setItem('amj_canasta_hand',JSON.stringify({...G,newIds:[],hint:null,dealFx:false}))}catch(e){}}
