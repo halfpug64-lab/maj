@@ -334,15 +334,16 @@ const team=i=>i%2;   // seats 0 and 2 (you and your partner) are team 0
 const THREE_PTS=[0,100,300,500,1000];
 const GOAL=8500;
 // Table and house rules (the gear button). A hand keeps the rules it was dealt with; changes count from the next hand.
-const CR_DEF={v:2,open:'pure',wildBase:5,specials:'basic',packOnOpen:true,lastThree:true,deadForBoth:true,barGoOut:true,sevensAces:true};
+const CR_DEF={v:3,open:'pure',wildBase:3,specials:'basic',packOnOpen:true,lastThree:true,deadForBoth:true,barGoOut:true,sevensAces:true};
 function CR(){return {...CR_DEF,...(G&&G.rules?G.rules:((typeof settings==='object'&&settings.canastaRules)||{}))}}
 const showSuggest=()=>settings.cnSuggest===true,showHint=()=>settings.cnHint===true,showPts=()=>settings.cnPoints!==false;   // helpers (Settings): Suggest and Hint start off, the points bubble on
 const SA=()=>CR().sevensAces;   // the special 7s and Aces rules (on unless the table switches them off)
 let settings={};try{settings=JSON.parse(localStorage.getItem('amj_settings'))||{}}catch(e){}
 // Table view (Settings > Layout): everything fits the screen
 function applyLayout(){document.body.classList.toggle('tv',(settings.cnLayout||'table')==='table');try{if(G)render()}catch(e){}}
-// rules saved before v2 had the going-out rule off by default and a "hold a 3" switch: bring them up to date once
-if(settings.canastaRules&&settings.canastaRules.v!==2){const r=settings.canastaRules;r.v=2;r.barGoOut=true;delete r.keepThree;
+// bring saved rules up to date once: before v2 the going-out rule was off by default and there was a "hold a 3" switch;
+// before v3 the default was 5 natural cards before a wild (now 3)
+if(settings.canastaRules&&settings.canastaRules.v!==3){const r=settings.canastaRules;if(r.v!==2){r.barGoOut=true;delete r.keepThree}if(r.wildBase===5)r.wildBase=3;r.v=3;
   try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.canastaRules=r;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}}
 // shares the mahjong games' speed choice, but a Canasta turn has more steps, so each choice is slower here
 const SPEEDS={slow:2100,normal:1350,fast:650,instant:120};let SPEED=SPEEDS[settings.botSpeed]||1350;
