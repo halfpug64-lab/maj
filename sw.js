@@ -2,7 +2,7 @@
 // The page itself is fetched fresh whenever there's a connection, so updates always reach players;
 // the saved copy is only used offline. Tiles, fonts and scripts load from the saved copy and refresh in the background.
 // Bump VERSION when files are added or removed so old copies get cleared.
-const VERSION='v6';
+const VERSION='v7';
 const CACHE='amj-'+VERSION;
 const FILES=[
   './',

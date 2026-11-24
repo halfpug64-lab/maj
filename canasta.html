@@ -108,11 +108,8 @@ main{display:grid;grid-template-columns:minmax(64px,110px) 1fr minmax(64px,110px
 .card .ix b,.card .ix2 b{font:800 calc(var(--cw)*.23)/1 var(--body);letter-spacing:-.03em}
 .card .ix b.ten,.card .ix2 b.ten{font-size:calc(var(--cw)*.19);letter-spacing:-.09em;margin-left:-.09em}
 .card .ix i,.card .ix2 i{font-style:normal;font-size:calc(var(--cw)*.19);margin-top:calc(var(--cw)*.01)}
-.card .pips{position:absolute;left:37%;right:37%;top:18%;bottom:18%}
-.card .pips i{position:absolute;font-style:normal;font-size:calc(var(--cw)*.19);line-height:1;transform:translate(-50%,-50%)}
-.card .pips i.dn{transform:translate(-50%,-50%) rotate(180deg)}
-.card .one{display:none}
 .card .ace{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(var(--cw)*.56);line-height:1}
+.card .ace.num{font-size:calc(var(--cw)*.46)}
 .card .face{position:absolute;left:24%;right:24%;top:12%;bottom:12%;border:1.5px solid currentColor;border-radius:calc(var(--cw)*.06);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2%;
   background:linear-gradient(170deg,color-mix(in srgb,currentColor 10%,#fff),color-mix(in srgb,#ecc66d 22%,#fff))}
 .card .face b{font:700 calc(var(--cw)*.38)/1 var(--display)}
@@ -123,9 +120,8 @@ main{display:grid;grid-template-columns:minmax(64px,110px) 1fr minmax(64px,110px
 .card.jk .ctr .jhat{width:calc(var(--cw)*.62);height:calc(var(--cw)*.62)}.card.sm.jk .ctr .jhat{width:calc(var(--cw)*.5);height:calc(var(--cw)*.5)}
 .card.jk .ctr b{color:#d9a93a;font-size:calc(var(--cw)*.55);text-shadow:0 1px 0 #7a5815}.card.jk .ctr i{font:800 calc(var(--cw)*.15)/1 var(--body);font-style:normal;letter-spacing:.06em;margin-top:2px}
 .card .pip{display:none}
-.card.sm .ix2,.card.sm .ctr i,.card.sm .pips{display:none}
+.card.sm .ix2,.card.sm .ctr i{display:none}
 .card.sm .ix b{font-size:calc(var(--cw)*.27)}.card.sm .ix b.ten{font-size:calc(var(--cw)*.23)}.card.sm .ix i{font-size:calc(var(--cw)*.23)}
-.card.sm .one{display:flex;position:absolute;left:30%;right:6%;top:36%;bottom:8%;align-items:center;justify-content:center;font-size:calc(var(--cw)*.46);line-height:1}
 .card.sm .ace{left:30%;top:36%;right:6%;bottom:8%;inset:auto;position:absolute;width:auto;font-size:calc(var(--cw)*.46)}
 .card.sm .face{left:30%;right:7%;top:34%;bottom:7%;border:0;background:none}.card.sm .face .crown,.card.sm .face i{display:none}.card.sm .face b{font-size:calc(var(--cw)*.36)}
 .card.hint{box-shadow:0 0 0 3px #4fd1a5,0 0 16px #4fd1a5;animation:hintpulse 1s ease-in-out infinite}
@@ -827,19 +823,14 @@ function countUp(el,to){if(!el)return;if(REDUCED){el.textContent=to;return}const
 function cardHTML(c,cls=''){
   // a real Joker: JOKER spelled down the corners and a jester's hat in the middle
   if(c.r==='JK')return `<div class="card jk wild ${cls}" data-id="${c.id}" title="Joker"><span class="ix jx">J<br>O<br>K<br>E<br>R</span><span class="ctr"><svg class="jhat" viewBox="0 0 40 40" aria-hidden="true"><path d="M5 31 9 9l7 13 4-17 4 17 7-13 4 22z" fill="#c8102e"/><path d="M16 22 20 5l4 17z" fill="#1f5fbf"/><path d="M5 31 9 9l7 13z" fill="#1f8a4c"/><rect x="4" y="29" width="32" height="6" rx="2" fill="#d9a93a"/><circle cx="9" cy="8" r="3" fill="#f2c94c"/><circle cx="20" cy="4.5" r="3" fill="#f2c94c"/><circle cx="31" cy="8" r="3" fill="#f2c94c"/><circle cx="12" cy="32" r="1.4" fill="#7a5815"/><circle cx="20" cy="32" r="1.4" fill="#7a5815"/><circle cx="28" cy="32" r="1.4" fill="#7a5815"/></svg></span><span class="ix ix2 jx">J<br>O<br>K<br>E<br>R</span></div>`;
-  // laid out like a real deck: corner labels, pips in their usual rows, framed court cards
-  const s=c.s+'\uFE0E',court=['J','Q','K'].includes(c.r),n=c.r==='A'?1:+c.r;
+  // a plain card: corner labels, one big suit in the middle, framed court cards
+  const s=c.s+'\uFE0E',court=['J','Q','K'].includes(c.r),n=c.r==='A'?1:2;
   const ix=x=>`<span class="ix${x}"><b${c.r==='10'?' class="ten"':''}>${c.r}</b><i>${s}</i></span>`;
   let mid;
   if(court)mid=`<span class="face">${c.r!=='J'?CROWN:''}<b>${c.r}</b><i>${s}</i></span>`;
-  else if(n===1)mid=`<span class="ace">${s}</span>`;
-  else mid=`<span class="pips">${PIPS[n].map(([x,y])=>`<i style="left:${x}%;top:${y}%"${y>50?' class="dn"':''}>${s}</i>`).join('')}</span><span class="one">${s}</span>`;
+  else mid=`<span class="ace${n===1?'':' num'}">${s}</span>`;
   return `<div class="card ${isRed(c)?'r':''} ${isWild(c)?'wild':''} ${cls}" data-id="${c.id}" title="${c.r}${c.s}">${ix('')}${mid}${ix(' ix2')}</div>`;
 }
-// where the pips sit on 2 to 10 (percent of the middle area)
-const PIPS=(()=>{const L=0,R=100,C=50;const six=[[L,0],[R,0],[L,50],[R,50],[L,100],[R,100]],four=[[L,0],[R,0],[L,100],[R,100]];
-  return {2:[[C,0],[C,100]],3:[[C,0],[C,50],[C,100]],4:four,5:[...four,[C,50]],6:six,7:[...six,[C,25]],8:[...six,[C,25],[C,75]],
-    9:[[L,0],[R,0],[L,33.3],[R,33.3],[L,66.7],[R,66.7],[L,100],[R,100],[C,50]],10:[[L,0],[R,0],[L,33.3],[R,33.3],[L,66.7],[R,66.7],[L,100],[R,100],[C,16.7],[C,83.3]]}})();
 const CROWN='<svg class="crown" viewBox="0 0 24 12" aria-hidden="true"><path d="M2 11 1 2l6 4 5-6 5 6 6-4-1 9z" fill="#d9a93a" stroke="#7a5815" stroke-width=".8"/></svg>';
 function canastaValue(m){const w=wildCount(m),j=m.cards.filter(c=>c.r==='JK').length;
   if(m.r==='W')return j===0?[3000,'Canasta of 2s']:j===4?[2500,'Joker canasta']:[2000,'Wild canasta'];
