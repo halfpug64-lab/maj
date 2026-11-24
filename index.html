@@ -515,8 +515,11 @@ body.table-view .felt{grid-template-columns:minmax(150px,240px) minmax(0,1fr) mi
 .faanbub .fnum{font:800 20px/1 var(--display,inherit);color:var(--gold,#ecc66d);min-width:1ch;text-align:center}
 .faanbub.ok{border-color:rgba(120,210,140,.6)}.faanbub.ok .fnum{color:#8fe0a0}
 .faanbub .flab{font-size:12px;opacity:.8;white-space:nowrap}.faanbub .fneed{font-size:11px;opacity:.6;white-space:nowrap}
-.faanbub .flist{color:var(--txt);display:grid;grid-template-columns:1fr auto;gap:3px 14px;padding:4px 12px 9px;font-size:13px}
-.faanbub .flist b{text-align:right}.faanbub .flist em{grid-column:1/-1;font-size:11px;opacity:.65;margin-top:4px;font-style:normal}
+.faanbub .flist{color:var(--txt);padding:2px 12px 10px;font-size:13px;max-width:440px}
+.faanbub .frow{display:flex;gap:12px;align-items:flex-start;padding:4px 0;border-top:1px solid rgba(236,198,109,.12)}.faanbub .frow span{flex:1;min-width:0}
+.faanbub .frow small{display:block;font-size:11.5px;line-height:1.35;opacity:.7;margin-top:1px}.faanbub .frow b{min-width:2ch;text-align:right;color:var(--gold,#ecc66d)}
+.faanbub .frow.idea b{color:#8fe0a0}.faanbub .fsub{margin:8px 0 2px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.65}
+.faanbub .flist em{display:block;font-size:11px;opacity:.65;margin-top:4px;font-style:normal}
 .bubble{border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(236,198,109,.35);overflow:hidden;max-width:100%}
 .bubble.fresh{animation:rise .3s}
 .bubble.open{background:rgba(0,0,0,.4)}
@@ -1363,7 +1366,8 @@ body.table-view .seat-top .plate{flex-wrap:nowrap}body.table-view .plate .pname{
 .faanlist,.faanref{display:grid;grid-template-columns:1fr auto;gap:4px 14px;margin:8px 0 12px;font-size:14px}
 .faanlist b,.faanref b{text-align:right}
 .faanlist{grid-template-columns:max-content max-content;justify-content:start;column-gap:20px}
-.faanref{font-size:12.5px;color:var(--muted)}.faanref b{color:var(--txt)}
+.faanref{font-size:13px;color:var(--txt);gap:9px 14px;align-items:start}.faanref b{color:var(--txt)}
+.faanref span small{display:block;font-size:11.5px;line-height:1.35;color:var(--muted);margin-top:2px}
 .hkcoach p{margin:0 0 8px}.hkrow{display:flex;align-items:center;gap:8px;margin:6px 0 10px}
 .hkwaits{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 10px}.hkwaits>div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:700}
 .hkwaits>div.short{opacity:.5}

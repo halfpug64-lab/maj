@@ -486,13 +486,54 @@ function hkFaanNow(){
   if(p.exp.every(e=>e.conc))it.push(['Concealed so far',1]);
   return {faan:Math.min(HK_MAX,it.reduce((a,x)=>a+x[1],0)),items:it,kind:'sofar'};
 }
+// what each line in the faan bubble means
+function hkFaanDesc(n){
+  const seat=windOf(0),num=['East','South','West','North'].indexOf(seat)+1;
+  const d={
+    'Dragon pung':'You have a pung of Red, Green or White dragons.','Dragon pungs':'One faan for each pung of dragons you have.',
+    'Seat wind pung':`A pung of your seat's wind (${seat}).`,'Prevailing wind pung':`A pung of this round's wind (${HK_WINDNAME[hkWind]}).`,
+    'Mixed one suit so far':'All your suit tiles are one suit, plus winds or dragons. Keep it that way and you get 3.',
+    'All one suit so far':'Every tile is one suit with no winds or dragons. Keep it that way and you get 7.',
+    'No flowers or seasons':'You have no flowers or seasons. Drawing one takes this away.',
+    'Own flower':`You have flower ${num}, the one for your seat (${seat}).`,'Own season':`You have season ${num}, the one for your seat (${seat}).`,
+    'All four flowers':'You have all four flowers.','All four seasons':'You have all four seasons.',
+    'Concealed so far':'You haven\'t claimed a discard yet. Claiming one (pung, chow or kong) loses this.',
+    'Concealed hand':'You didn\'t claim any discards.','Self-drawn':'You drew the winning tile yourself.',
+    'Last tile from the wall':'You won on the last tile of the wall.','Last discard':'You won on the last discard of the hand.',
+    'Robbing the kong':'You won on a tile someone added to make a kong.','Win on a kong replacement':'You won on the tile drawn after a kong.',
+    'Win on a double-kong replacement':'You won on the replacement tile after two kongs in a row.',
+    'Small Three Dragons':'Pungs of two dragons and a pair of the third.','Great Three Dragons':'Pungs of all three dragons.',
+  };
+  if(d[n])return d[n];const row=hkScoringRows().find(r=>r[0]===n);return row?row[2]:'';
+}
+// what your tiles could still add (only ideas the tiles you hold make realistic)
+function hkFaanIdeas(){
+  const p=players[0],c=hkCounts(p.hand),out=[];
+  const has=x=>p.exp.some(e=>e.type!=='chow'&&HKI[e.k]===x);
+  for(const x of [31,32,33])if(c[x]===2&&!has(x))out.push([`A third ${['Red','Green','White'][x-31]} dragon`,'+1','You have a pair. A pung of any dragon is worth 1.']);
+  const sw=27+hkSeatWind(0),pw=27+hkWind;
+  for(const x of [...new Set([sw,pw])])if(c[x]===2&&!has(x))out.push([`A third ${HK_WINDNAME[x-27]} wind`,sw===pw?'+2':'+1',x===sw&&x===pw?'Your seat wind and the round wind: worth 2 as a pung.':x===sw?'Your seat\'s wind: worth 1 as a pung.':'This round\'s wind: worth 1 as a pung.']);
+  const all=[...p.hand,...p.exp.flatMap(e=>e.tiles)].filter(t=>t.k!=='F').map(t=>HKI[t.k]);
+  const sc=[0,0,0];let hon=0;for(const x of all){if(x<27)sc[Math.floor(x/9)]++;else hon++}
+  const main=sc.indexOf(Math.max(...sc)),off=sc.reduce((a,v,k)=>k===main?a:a+v,0);
+  const lockedOff=p.exp.some(e=>HKI[e.k]<27&&Math.floor(HKI[e.k]/9)!==main);
+  const SUIT=['Bamboos','Characters','Dots'][main]||'one suit';
+  if(off>0&&off<=4&&!lockedOff)out.push(['Mixed one suit','+3',`Get rid of your ${off} tile${off>1?'s':''} outside ${SUIT}, and keep winds and dragons if you like.`]);
+  if(off>0&&off<=3&&hon<=2&&!lockedOff)out.push(['All one suit','+7',`Only ${SUIT}: also drop your ${hon?hon+' wind and dragon tile'+(hon>1?'s':''):'other tiles'}.`]);
+  const pairs=c.filter(v=>v>=2).length;
+  if(!p.exp.some(e=>e.type==='chow')&&pairs>=3)out.push(['All pungs','+3',`No runs: turn your pairs into pungs. You have ${pairs} pairs or pungs.`]);
+  out.push(['Self-drawn','+1','Win on a tile you draw yourself instead of a discard.']);
+  return out.slice(0,5);
+}
 function hkFaanHTML(){
   if(settings.hkFaan===false)return '';
   const f=hkFaanNow();if(!f)return '';
   const ok=f.faan>=HK_MIN,label=f.kind==='win'?'Your hand':f.kind==='ready'?'Ready, best win':'So far';
   const note=f.kind==='ready'?`on ${tileHTML(f.k,'xs')}`:f.kind==='win'?(ok?'<span class="pill done">Enough to win</span>':`<span class="pill">need ${HK_MIN}</span>`):`<span class="fneed">need ${HK_MIN}</span>`;
   return `<div class="bubble faanbub${ok?' ok':''}"><button class="bhead" onclick="hkFaanOpen=!hkFaanOpen;render()" aria-expanded="${hkFaanOpen}" title="Tap to see what counts"><span class="bk">Faan</span><b class="fnum">${f.faan}</b><span class="flab">${label}</span>${note}</button>
-    ${hkFaanOpen?`<div class="flist">${f.items.length?f.items.map(([n,v])=>`<span>${n}</span><b>${v}</b>`).join(''):'<span>Nothing yet: dragon or wind pungs, flowers and one-suit hands add faan.</span>'}${f.kind==='sofar'?'<em>Ways of winning (self-drawn, last tile, and so on) and the shape of the finished hand (all chows, all pungs) add more when you win.</em>':''}</div>`:''}</div>`;
+    ${hkFaanOpen?`<div class="flist">${f.kind==='ready'?`<p class="fsub">Your best win: ${tileHTML(f.k,'xs')} for ${f.faan} faan.</p>`:f.kind==='win'?'<p class="fsub">Your hand right now:</p>':'<p class="fsub">What you already have:</p>'}
+      ${f.items.length?f.items.map(([n,v])=>`<div class="frow"><span>${n}<small>${hkFaanDesc(n)}</small></span><b>${v}</b></div>`).join(''):'<div class="frow"><span>Nothing yet<small>Dragon or wind pungs, flowers and one-suit hands add faan.</small></span><b>0</b></div>'}
+      ${f.kind!=='win'?`<p class="fsub">Could still add:</p>${hkFaanIdeas().map(([n,v,d])=>`<div class="frow idea"><span>${n}<small>${d}</small></span><b>${v}</b></div>`).join('')}<em>You need ${HK_MIN} faan to win. How you win (self-drawn, last tile and so on) is counted when you win.</em>`:''}</div>`:''}</div>`;
 }
 function hkBubbleHTML(){
   if(phase!=='play')return '';
@@ -501,10 +542,36 @@ function hkBubbleHTML(){
   const pill=co.win?'<span class="pill done">Mah Jongg!</span>':co.sh===0||co.ready?'<span class="pill done">Ready</span>':`<span class="pill">${co.sh} from ready</span>`;
   return `<div class="bubbles">${fb}<div class="bubble"><div class="bhead hkbub"><span class="bk">Coach</span>${pill}<span class="hkbt">${co.suggest?'Throw '+tileHTML(co.suggest,'xs'):co.waits&&co.waits.length?co.waits.map(w=>tileHTML(w.k,'xs')).join(''):''}</span></div></div></div>`;
 }
+// the Scoring panel: each way to score, what it's worth, and what it means (matches how hkScore counts them)
+function hkScoringRows(){
+  const lim=HK_MAX>=13?'10–13':String(HK_MAX);
+  const rows=[
+    ['All chows',1,'All four sets are runs (chows) of one suit, like 3-4-5 of Dots.'],
+    ['All pungs',3,'All four sets are pungs or kongs (three or four of the same tile). No runs.'],
+    ['Mixed one suit',3,'Every tile is from one suit (Dots, Bamboos or Characters) plus winds and dragons.'],
+    ['All one suit',7,'Every tile is from one suit, with no winds or dragons at all.'],
+    ['Dragon pung (each)',1,'A pung or kong of Red, Green or White dragons. Each one counts.'],
+    ['Seat or prevailing wind pung',1,'A pung of your own seat\'s wind, or of this round\'s wind. If it\'s both, it counts twice.'],
+    ['Small / Great Three Dragons','5 / 8','Small: pungs of two dragons and a pair of the third. Great: pungs of all three. These replace the 1 per dragon pung.'],
+    ['Small Four Winds',6,'Pungs of three winds and a pair of the fourth. (Pungs of all four winds is a limit hand.)'],
+    ['Mixed terminals and honors',1,'Every set is a pung of 1s, 9s, winds or dragons, with tiles from at least one suit. You also get the 3 for All pungs.'],
+    ['Self-drawn',1,'You win on a tile you drew yourself, not on someone\'s discard. Everyone pays you.'],
+    ['Concealed hand',1,'You didn\'t claim any discards before winning. Kongs you made from your own tiles still count as concealed.'],
+    ['No flowers',1,'You got no flowers or seasons at all this hand.'],
+    ['Own flower or season',1,`The flower or season with your seat\'s number: East 1, South 2, West 3, North 4. You\'re ${windOf(0)}.`],
+    ['All four flowers or seasons',2,'All four flowers, or all four seasons. Replaces the 1 for your own one.'],
+    ['Win on a kong replacement',1,'You win with the extra tile you draw after making a kong. Two kongs in a row: 8.'],
+    ['Robbing a kong',1,'You win by taking the tile someone adds to their pung to make a kong.'],
+    ['Last tile',1,'You win on the very last tile from the wall, or on the discard right after it.'],
+  ];
+  if(hkR().sevenPairs)rows.push(['Seven Pairs',4,'Seven different pairs, all from your own tiles.']);
+  rows.push(['Limit hands',lim,`Rare hands that score the top amount on their own${HK_MAX<13?` (capped at ${HK_MAX})`:''}: Thirteen Orphans, All honors, Self triplets (four pungs all from your own tiles), All terminals (only 1s and 9s), Nine Gates, Great Four Winds, Four kongs, and winning on the deal (Heavenly or Earthly hand).`]);
+  return rows;
+}
 function hkRenderSide(){
   const p=players[0];
   $('#stars').innerHTML=`<div class="ph"><h3>Scoring</h3><span class="sub">${HK_MIN} faan to win · max ${HK_MAX}</span></div>
-   <div class="faanref">${[['All chows',1],['All pungs',3],['Mixed one suit',3],['All one suit',7],['Dragon pung (each)',1],['Seat or prevailing wind pung',1],['Small / Great Three Dragons','5 / 8'],['Small Four Winds',6],['Self-drawn',1],['Concealed hand',1],['No flowers',1],['Own flower or season',1],['Limit hands','10']].map(([n,f])=>`<span>${n}</span><b>${f}</b>`).join('')}</div>`;
+   <div class="faanref">${hkScoringRows().map(([n,f,d])=>`<span>${n}<small>${d}</small></span><b>${f}</b>`).join('')}</div>`;
   let body;
   if(!hkCoachOn())body='<div class="muted-note">The coach is off. Turn it on to see how close you are and what to throw.</div>';
   else if(phase!=='play')body='<div class="muted-note">Tips show up once the tiles are dealt.</div>';

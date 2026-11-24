@@ -324,7 +324,8 @@ function applyLayout(){document.body.classList.toggle('tv',(settings.cnLayout||'
 // rules saved before v2 had the going-out rule off by default and a "hold a 3" switch: bring them up to date once
 if(settings.canastaRules&&settings.canastaRules.v!==2){const r=settings.canastaRules;r.v=2;r.barGoOut=true;delete r.keepThree;
   try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.canastaRules=r;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}}
-const SPEEDS={slow:1300,normal:760,fast:380,instant:120};let SPEED=SPEEDS[settings.botSpeed]||760;   // shared with the mahjong games' Bot speed
+// shares the mahjong games' speed choice, but a Canasta turn has more steps, so each choice is slower here
+const SPEEDS={slow:2100,normal:1350,fast:650,instant:120};let SPEED=SPEEDS[settings.botSpeed]||1350;
 const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ---- look: colors and names follow the mahjong theme ----
@@ -740,7 +741,7 @@ function botTurn(i){
   if(i!==2&&G.opened[t]&&!G.asked[i]&&canFinish(i)){const pa=(i+2)%4;G.asked[i]=true;render();say(i,`${NAMES[pa]}, may I go out?`);log(`${NAMES[i]} asked ${NAMES[pa]} to go out.`);
     later(()=>{if(G.over)return;const yes=partnerSaysYes(pa);if(yes)G.mustOut[i]=true;else G.noOut[i]=true;say(pa,yes?'Yes, go out!':'Not yet!');
       log(`${NAMES[pa]} said ${yes?'yes':'no'}.`);later(finish,SPEED*.9)},SPEED*1.1);return}
-  finish();
+  later(finish,SPEED*.45);
 }
 function botMeld(i){
   const t=team(i),h=G.hands[i];const before=G.melds[t].reduce((s,m)=>s+m.cards.length,0),cBefore=canastas(t).length;
@@ -1165,7 +1166,7 @@ function showRules(){
   document.querySelectorAll('[data-lay]').forEach(b=>b.onclick=()=>{settings.cnLayout=b.dataset.lay;
     try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.cnLayout=settings.cnLayout;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}
     applyLayout();document.querySelectorAll('[data-lay]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
-  document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{settings.botSpeed=b.dataset.speed;SPEED=SPEEDS[settings.botSpeed]||760;
+  document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{settings.botSpeed=b.dataset.speed;SPEED=SPEEDS[settings.botSpeed]||1350;
     try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.botSpeed=settings.botSpeed;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}
     document.querySelectorAll('[data-speed]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
   $('#mDone').onclick=closeModal;$('#mDone').focus();
