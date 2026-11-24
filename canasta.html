@@ -368,7 +368,7 @@ function saveHand(){try{if(settings.save!==false&&G&&!G.over)localStorage.setIte
 function savedHand(){try{const g=JSON.parse(localStorage.getItem('amj_canasta_hand'));return g&&Array.isArray(g.hands)&&g.hands.length===4&&!g.over?g:null}catch(e){return null}}
 function startTurn(){
   if(G.over)return;const i=G.turn;G.mustOut=G.mustOut||{};G.noOut=G.noOut||{};G.asked=G.asked||{};delete G.mustOut[i];delete G.noOut[i];
-  if(G.talon[i].length){const tl=G.talon[i];G.hands[i].push(...tl);if(i===0)tl.forEach(c=>G.newIds.add(c.id));G.talon[i]=[];sortHand(G.hands[i])}
+  if(G.talon[i].length){const tl=G.talon[i];G.hands[i].push(...tl);if(i===0){tl.forEach(c=>G.newIds.add(c.id));if(!SIM)toast(`Your ${tl.length} bonus cards for making your team's first meld are in your hand (the glowing ones). Now take your normal draw.`)}G.talon[i]=[];sortHand(G.hands[i])}
   layThrees(i);
   G.phase='draw';G.justPicked=false;G.emptyAtTurn=!G.pile.length;
   render();
@@ -521,7 +521,7 @@ function discardCard(i,id){
   const fr=src(i,id);h.splice(h.indexOf(c),1);G.pile.push(c);G.newIds=new Set();fly(c,fr,{dur:380});Sound.flick();
   log(`${NAMES[i]} discarded ${c.r==='JK'?'a joker':c.r+c.s}.`);
   // talon: bonus cards for the player who just made their team's initial meld
-  if(G.pendingTalon===i){G.pendingTalon=null;if(G.stock.length>8){const n=G.firstOpen===t&&!G.opened[1-t]?4:3;const sr=stockRect();G.talon[i]=G.stock.splice(-n);for(let k=0;k<n;k++)fly(null,sr,{toSeat:i,back:true,delay:150+k*90});say(i,`${n} bonus cards`);log(`${NAMES[i]==='You'?'You get':NAMES[i]+' gets'} ${n} bonus cards next turn.`)}}
+  if(G.pendingTalon===i){G.pendingTalon=null;if(G.stock.length>8){const n=G.firstOpen===t&&!G.opened[1-t]?4:3;const sr=stockRect();G.talon[i]=G.stock.splice(-n);for(let k=0;k<n;k++)fly(null,sr,{toSeat:i,back:true,delay:150+k*90});say(i,`${n} bonus cards`);if(i===0&&!SIM)toast(`You made your team's first meld, so you get ${n} bonus cards. They go into your hand at the start of your next turn.`);log(`${NAMES[i]==='You'?'You get':NAMES[i]+' gets'} ${n} bonus cards next turn.`)}}
   if(out){endHand(i,'out');return ''}
   Sound.tap();
   G.turn=(i+1)%4;startTurn();return '';
