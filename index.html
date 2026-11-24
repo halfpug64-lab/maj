@@ -2563,7 +2563,7 @@ function animateScores(){
   requestAnimationFrame(stepFn);
 }
 const ARROW_ROT={right:0,across:-90,left:180};
-let rackHold=false,renderPending=false,discUp=false;
+let rackHold=false,renderPending=false,discUp=false,discSeen=0;
 function render(){
   if(rackHold){renderPending=true;return}
   renderScores();
@@ -2598,13 +2598,15 @@ function render(){
     ?wallsHTML(`<div class="wash">${Array.from({length:30},(_,x)=>`<i class="back" style="--x1:${rnd(-38,38)}cqw;--y1:${rnd(-36,36)}cqh;--r1:${rnd(-200,200)}deg;--x2:${rnd(-42,42)}cqw;--y2:${rnd(-38,38)}cqh;--r2:${rnd(-200,200)}deg;--d:${x*14}ms"></i>`).join('')}</div>`)
     :wallsHTML(`<div class="discards${discards.length>72?' denser':discards.length>40?' dense':''}">${discards.length?discards.map((t,i)=>`<span class="dw" style="rotate:${((t.id*37)%7-3)*.6}deg">${tileHTML(t,'sm'+(i===last?' last':''),true)}</span>`).join(''):'<div class="empty">Discards land here</div>'}</div>`);
   const od=document.querySelector('#center .discards');const keepTop=od?od.scrollTop:0;
+  // a new discard always scrolls into view, even if you had scrolled up to look at older ones
+  if(discards.length>discSeen)discUp=false;discSeen=discards.length;
   const bannerHTML=`<div class="banner${changed?' swap':''}">${dirHTML}<div class="status">${status}</div><div class="sub">${sub}</div></div>`;
   const inside=false;
   $('#center').innerHTML=inside?middle.replace('<div class="wallin">','<div class="wallin">'+bannerHTML):bannerHTML+middle;
   {const nd=document.querySelector('#center .discards');if(nd){
     // follow the newest discard unless you've scrolled up to look at older ones
     const toEnd=()=>{if(!discUp)nd.scrollTop=nd.scrollHeight};
-    if(discUp)nd.scrollTop=keepTop;else{toEnd();requestAnimationFrame(toEnd);setTimeout(toEnd,500)}
+    if(discUp)nd.scrollTop=keepTop;else{toEnd();requestAnimationFrame(toEnd);setTimeout(toEnd,500);setTimeout(toEnd,1100)}
     nd.onscroll=()=>{discUp=nd.scrollTop+nd.clientHeight<nd.scrollHeight-12}}}
 
   const p=players[0];let acts='';
