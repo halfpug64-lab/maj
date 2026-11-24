@@ -3079,15 +3079,15 @@ function showSettings(tab){
    <div class="setrow"><span class="st"><b>Bot speed</b><span class="d">How quickly the other players take their turns. Changes apply right away.</span></span>
      <span class="seg" role="group" aria-label="Bot speed">${[['slow','Slow'],['normal','Default'],['fast','Fast'],['instant','Instant']].map(([v,l])=>`<button class="${settings.botSpeed===v?'on':''}" data-speed="${v}" aria-pressed="${settings.botSpeed===v}">${l}</button>`).join('')}</span></div>
    ${'' && swRow('s_walls','Show walls','Build the four walls around the discards like a real table, and draw tiles from them. When off, a simple counter shows how many tiles are left.',settings.walls)}
-   ${swRow('s_topbub','Top suggestion bubble','Keep the top suggested hand in a bubble above your rack, next to your starred hands. Works in every screen layout.',settings.topBubble)}
-   ${swRow('s_undo','Undo button','Shows an Undo button that takes back your last move: a discard, a call, a Joker swap, a Charleston pass or vote, or Mah Jongg. Everything the other players did after it is taken back too. Press it again to go further back. Solo games only.',settings.undo)}
+   ${GAME==='hk'?'':swRow('s_topbub','Top suggestion bubble','Keep the top suggested hand in a bubble above your rack, next to your starred hands. Works in every screen layout.',settings.topBubble)}
+   ${swRow('s_undo','Undo button',GAME==='hk'?'Shows an Undo button that takes back your last move: a discard, a call, a kong or Mah Jongg.':'Shows an Undo button that takes back your last move: a discard, a call, a Joker swap, a Charleston pass or vote, or Mah Jongg. Everything the other players did after it is taken back too. Press it again to go further back. Solo games only.',settings.undo)}
    ${swRow('s_dbl','Double-tap to discard','Tap a selected tile again to throw it. When off, tapping it again just deselects it.',settings.dblDiscard)}
    ${swRow('s_sound','Sound effects','Tile clicks, calls and the Mah Jongg fanfare.',Sound.on)}
-   ${swRow('s_hints','Best hands panel','Suggests which hands on the card your tiles fit.',showHints)}
+   ${GAME==='hk'?'':swRow('s_hints','Best hands panel','Suggests which hands on the card your tiles fit.',showHints)}
    <div class="setrow"><span class="st"><b>Starting seat</b><span class="d">Your seat in the first game. After that, East moves one seat to the right every game. Takes effect on the next new game.</span></span>
      <span class="seg" role="group" aria-label="Starting seat">${WIND.map((w,i)=>`<button class="${settings.startWind===i?'on':''}" data-wind="${i}" aria-pressed="${settings.startWind===i}">${w}</button>`).join('')}</span></div>
-   <div class="setrow"><span class="st"><b>Making exposures</b><span class="d">Quick pick: choose PUNG, KONG and so on when you call. Build your own: press CALL, add the tiles yourself, and the group locks in when you discard.</span></span>
-     <span class="seg" role="group" aria-label="Making exposures">${[['quick','Quick pick'],['build','Build your own']].map(([v,l])=>`<button class="${settings.expMode===v?'on':''}" data-exp="${v}" aria-pressed="${settings.expMode===v}">${l}</button>`).join('')}</span></div>
+   ${GAME==='hk'?'':`<div class="setrow"><span class="st"><b>Making exposures</b><span class="d">Quick pick: choose PUNG, KONG and so on when you call. Build your own: press CALL, add the tiles yourself, and the group locks in when you discard.</span></span>
+     <span class="seg" role="group" aria-label="Making exposures">${[['quick','Quick pick'],['build','Build your own']].map(([v,l])=>`<button class="${settings.expMode===v?'on':''}" data-exp="${v}" aria-pressed="${settings.expMode===v}">${l}</button>`).join('')}</span></div>`}
    <div class="setrow col"><span class="st"><b>Bot difficulty</b><span class="d">Easy bots make loose throws and rarely call. Hard bots chase the most realistic hand, count live tiles and avoid feeding a player with 2 or more exposures. Applies right away.</span></span>
      ${diffSlider('s_diff',settings.diff)}<span class="d" id="diffNote">${[1,2,3].some(i=>botLevel(i)!==settings.diff)?'Bots are set individually below.':''}</span></div>
    <button class="morebtn" id="s_botmore" aria-expanded="false" aria-controls="botList">More <span class="chev">▾</span></button>
@@ -3095,14 +3095,14 @@ function showSettings(tab){
      <p class="setnote">Set each bot on its own. Moving the main slider resets all three.</p>
      ${[1,2,3].map(i=>`<div class="setrow col"><span class="st"><b class="botname">${bulletHTML(i)} ${NAMES[i]}</b></span>${diffSlider('s_bot'+i,botLevel(i),i)}</div>`).join('')}</div>
    ${swRow('s_save','Save progress','Keep scores, the East rotation and an unfinished game between visits. On by default. When off, nothing is saved, so a reload starts fresh with no scores and no game to resume.',settings.save)}
-   <div class="set-sec">House rules</div>
+   ${GAME==='hk'?'':`   <div class="set-sec">House rules</div>
    ${swRow('s_house','Use house rules','When off, the game uses only the standard rules.',settings.house)}
    <button class="morebtn" id="s_more" aria-expanded="false" aria-controls="hrList">More <span class="chev">▾</span></button>
    <div id="hrList" class="hrlist${settings.house?'':' off'}" hidden>
      <p class="setnote">${settings.house?'Pick which house rules to play with.':'Turn on Use house rules for these to count.'}</p>
-     ${HR.map(([k,l,d])=>swRow('hr_'+k,l,d,settings.hr[k])).join('')}</div>
-   <div class="set-sec">Chinese mahjong rules</div>
-   <p class="setnote">Hong Kong table rules. Changes count from the next hand.</p>
+     ${HR.map(([k,l,d])=>swRow('hr_'+k,l,d,settings.hr[k])).join('')}</div>`}
+   ${GAME==='hk'?`   <div class="set-sec">House rules</div>
+   <p class="setnote">Hong Kong mahjong table rules. Changes count from the next hand.</p>
    ${(()=>{const R=hkR();const seg=(key,label,desc,opts)=>`<div class="setrow"><span class="st"><b>${label}</b><span class="d">${desc}</span></span><span class="seg" role="group" aria-label="${label}">${opts.map(([v,l])=>`<button class="${String(R[key])===String(v)?'on':''}" data-hkr="${key}" data-v="${v}" aria-pressed="${String(R[key])===String(v)}">${l}</button>`).join('')}</span></div>`;
      return seg('minFaan','Minimum faan','Faan you need to declare a win. 3 is the usual Hong Kong minimum.',[[0,'0'],[1,'1'],[2,'2'],[3,'3']])
       +seg('cap','Faan cap','The most faan a hand can score. The Hong Kong Mahjong Association caps at 10.',[[8,'8'],[10,'10'],[13,'13']])
@@ -3112,7 +3112,7 @@ function showSettings(tab){
       +swRow('hkr_sevenPairs','Seven Pairs','Allow a hand of seven different pairs, worth 4 faan.',!!R.sevenPairs)
       +swRow('hkr_noLastCalls','No calls on the last discard','Once the wall is empty, the last discard can only be claimed to win.',!!R.noLastCalls)
       +swRow('s_hkCoach','Coach','Tells you how many tiles you are from ready and suggests a tile to throw.',settings.hkCoach===true)
-      +swRow('s_hkFaan','Faan counter','A bubble by your rack that shows how much faan your hand has right now.',settings.hkFaan!==false)})()}
+      +swRow('s_hkFaan','Faan counter','A bubble by your rack that shows how much faan your hand has right now.',settings.hkFaan!==false)})()}`:''}
    <div class="set-sec">Party mode</div>
    ${GOD().on?`<div class="setrow col party"><span class="st"><b>Mahjong Admin is on</b><span class="d">Control who gets what, the draw pile, the discards and the bots. Works in solo games and when you host a room. It turns itself off when the page reloads.</span></span>
        <span class="mrow" style="margin:0;justify-content:flex-start"><button class="btn btn-gold" id="s_godopen">Open Mahjong Admin</button><button class="btn btn-ghost" id="s_godoff">Turn off party mode</button></span></div>`
@@ -3173,7 +3173,7 @@ function showSettings(tab){
     [1,2,3].forEach(i=>{const b=$('#s_bot'+i);b.value=settings.diff;paintSlider(b)});diffNote();saveSettings();render()};
   [1,2,3].forEach(i=>{$('#s_bot'+i).oninput=e=>{settings.botDiff={...settings.botDiff,[i]:+e.target.value};paintSlider(e.target);diffNote();saveSettings();render()}});
   $('#s_botmore').onclick=()=>{const l=$('#botList'),b=$('#s_botmore');l.hidden=!l.hidden;b.setAttribute('aria-expanded',!l.hidden);b.classList.toggle('open',!l.hidden);b.firstChild.textContent=l.hidden?'More ':'Less '};
-  $('#s_more').onclick=()=>{const l=$('#hrList'),b=$('#s_more');l.hidden=!l.hidden;b.setAttribute('aria-expanded',!l.hidden);b.classList.toggle('open',!l.hidden);b.firstChild.textContent=l.hidden?'More ':'Less '};
+  if($('#s_more'))$('#s_more').onclick=()=>{const l=$('#hrList'),b=$('#s_more');l.hidden=!l.hidden;b.setAttribute('aria-expanded',!l.hidden);b.classList.toggle('open',!l.hidden);b.firstChild.textContent=l.hidden?'More ':'Less '};
 }
 
 let settingsFromLobby=false;
