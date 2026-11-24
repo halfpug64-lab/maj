@@ -1975,7 +1975,7 @@ let chSub={},chVotes={},chStop=-1,callTok=0;   // Charleston submissions and vot
 const CALL_MS=12000;                            // multiplayer: time each player gets to call a discard
 let sel=new Set(),selected=null,callState=null,newIds=new Set(),logs=[],logVer=0,shownLogVer=-1,dealAnim=false,lastStatus='';
 // Settings are always saved on this device. Progress (scores, East rotation, an unfinished game) only when "Save progress" is on.
-const SET_DEFAULT={v:2,themeNames:true,botNames:['','',''],undo:false,rack:'',badges:true,mpHints:true,mpProceed:false,botSpeed:'normal',walls:true,bg:'default',tiles:'regular',layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:1,botDiff:{},house:false,
+const SET_DEFAULT={v:2,themeNames:true,botNames:['','',''],undo:false,rack:'',badges:true,mpHints:true,mpProceed:false,botSpeed:'normal',walls:true,bg:'default',tiles:'regular',layout:'table',topBubble:true,dblDiscard:false,startWind:0,save:true,expMode:'quick',diff:2,botDiff:{},house:false,
   hr:{threeExp:true,wallPoints:false,deadNoPay:false,noBlind:false,noCourtesy:false,alwaysSecond:false}};
 let settings=JSON.parse(JSON.stringify(SET_DEFAULT));
 try{const sv=JSON.parse(localStorage.getItem('amj_settings'));if(sv){settings={...settings,...sv,hr:{...SET_DEFAULT.hr,...(sv.hr||{})}};
@@ -2003,12 +2003,16 @@ function applyLayout(){document.body.classList.toggle('scroll-layout',settings.l
 function saveSettings(){try{localStorage.setItem('amj_settings',JSON.stringify(settings))}catch(e){}}
 // Rules for rooms you host are kept apart from your solo settings (Settings > Multiplayer tab).
 if(!settings.room||typeof settings.room!=='object')settings.room={hints:settings.mpHints!==false,proceed:!!settings.mpProceed,house:!!settings.house,hr:{...settings.hr},diff:settings.diff,botSpeed:settings.botSpeed};
-settings.room={hints:true,proceed:false,house:false,diff:1,botSpeed:'normal',...settings.room,hr:{...SET_DEFAULT.hr,...(settings.room.hr||{})}};
+settings.room={hints:true,proceed:false,house:false,diff:2,botSpeed:'normal',...settings.room,hr:{...SET_DEFAULT.hr,...(settings.room.hr||{})}};
 const RM=()=>settings.room;
 const rulesNow=()=>NET.mode==='client'?(NET.rules||{}):NET.mode==='host'?RM():settings;
 const houseOn=k=>{const r=rulesNow();return !!(r.house&&r.hr&&r.hr[k])};
-const LEVELS=['Easy','Default','Hard'];
-const botLevel=i=>{if(NET.mode==='host')return RM().diff;const v=settings.botDiff&&settings.botDiff[i];return v===0||v===1||v===2?v:settings.diff};
+const LEVELS=['Beginner','Easy','Default','Hard'];
+// difficulty used to be 3 steps (Easy, Default, Hard); keep everyone's choice the same strength on the new 4-step scale
+if(settings.diffV!==2){const up=v=>v===0?0:v===1?2:v===2?3:v;if(typeof settings.diff==='number')settings.diff=up(settings.diff);
+  if(settings.botDiff&&typeof settings.botDiff==='object')for(const k in settings.botDiff)settings.botDiff[k]=up(settings.botDiff[k]);
+  if(settings.room&&typeof settings.room.diff==='number')settings.room.diff=up(settings.room.diff);settings.diffV=2;try{localStorage.setItem('amj_settings',JSON.stringify(settings))}catch(e){}}
+const botLevel=i=>{if(NET.mode==='host')return RM().diff;const v=settings.botDiff&&settings.botDiff[i];return [0,1,2,3].includes(v)?v:(settings.diff??2)};
 const isBlind=st=>!!(st&&st.blind&&!houseOn('noBlind'));
 let scores=[0,0,0,0];
 let dealer=-1,pendingStart=true;
@@ -2107,17 +2111,18 @@ function hardScores(p,i){
   return sc;
 }
 function chooseDiscard(p){
-  const i=players.indexOf(p),lv=i>0?botLevel(i):1;
-  if(lv===0&&Math.random()<.35){const pool=p.hand.filter(t=>t.k!=='J');if(pool.length)return pool[Math.floor(Math.random()*pool.length)]}
-  const sc=lv===2?hardScores(p,i):tileScores(p);let best=null,bs=Infinity;
+  const i=players.indexOf(p),lv=i>0?botLevel(i):2;
+  // Beginner throws a lot of loose tiles; Easy only now and then
+  if((lv===0&&Math.random()<.35)||(lv===1&&Math.random()<.1)){const pool=p.hand.filter(t=>t.k!=='J');if(pool.length)return pool[Math.floor(Math.random()*pool.length)]}
+  const sc=lv===3?hardScores(p,i):tileScores(p);let best=null,bs=Infinity;
   for(const k in sc)if(sc[k]<bs){bs=sc[k];best=k}
   return best?p.hand.find(t=>t.k===best):p.hand.find(t=>t.k==='J');
 }
 function botCall(p,k){
   if(k==='J')return null;
-  const lv=botLevel(players.indexOf(p));if(lv===0&&Math.random()<.6)return null;
+  const lv=botLevel(players.indexOf(p));if((lv===0&&Math.random()<.6)||(lv===1&&Math.random()<.25))return null;
   const {res,c,j}=analyze(p.hand,p.exp);const r=res[0];
-  if(!r||r.dist>(lv===2?9:lv===0?5:7)||r.cp.hand.conc)return null;
+  if(!r||r.dist>(lv===3?9:lv===0?5:lv===1?6:7)||r.cp.hand.conc)return null;
   const nk=c[k]||0;if(nk<1)return null;
   for(const g of r.cp.groups){
     if(g.k!==k||g.n<3||nk+j<g.n-1||(r.need[k]||0)<=nk)continue;
@@ -2145,7 +2150,7 @@ function doSwap(pi,t,[qi,ei]){
   Sound.chime();toastAll(v=>pi===v?'Joker is yours':`${nameV(pi,v)} takes a Joker`);
 }
 function botSwaps(pi){
-  if(botLevel(pi)===0&&Math.random()<.75)return;
+  if((botLevel(pi)===0&&Math.random()<.75)||(botLevel(pi)===1&&Math.random()<.3))return;
   const p=players[pi];let again=true;
   while(again){again=false;const cur=analyze(p.hand,p.exp).res[0]?.dist??99;
     for(const t of p.hand){if(t.k==='J')continue;const tg=swapTargets(t);if(!tg.length)continue;
@@ -2553,7 +2558,7 @@ function whyText(r){
 // ================= Render =================
 function expHTML(p,size){const fl=p.flowers&&p.flowers.length?`<div class="exp flowers" title="Flowers and seasons">${p.flowers.map(t=>tileHTML(t,size)).join('')}</div>`:'';
   return p.exp.length||fl?`<div class="exps">${p.exp.map(e=>`<div class="exp">${e.tiles.map((t,x)=>e.conc&&(x===0||x===3)?`<div class="tile ${size} back-tile" title="Concealed kong"></div>`:tileHTML(t,size,true)).join('')}</div>`).join('')}${fl}</div>`:''}
-const seatTag=i=>NET.mode==='client'?(NET.tags&&NET.tags[i]||''):(HUMAN[i]?(i===0&&MP()?'Host':'Player'):(MP()?'Bot'+(botLevel(i)!==1?' · '+LEVELS[botLevel(i)]:''):botLevel(i)!==1?LEVELS[botLevel(i)]:''));
+const seatTag=i=>NET.mode==='client'?(NET.tags&&NET.tags[i]||''):(HUMAN[i]?(i===0&&MP()?'Host':'Player'):(MP()?'Bot'+(botLevel(i)!==2?' · '+LEVELS[botLevel(i)]:''):botLevel(i)!==2?LEVELS[botLevel(i)]:''));
 function renderSeat(i){
   const p=players[i],el=$('#seat'+i);const active=turn===i&&phase==='play';
   el.className=`seat seat-${SEATPOS[i]}${active?' turn':''}${active&&step==='discard'&&!callState?' thinking':''}`;
@@ -3051,8 +3056,8 @@ function resetProgress(){
   clearProgress();scores=[0,0,0,0];shown=[0,0,0,0];dealer=-1;pendingStart=true;
   closeModal();toast('Progress reset');newGame();
 }
-function diffSlider(id,v,bot){return `<div class="slider"><input type="range" id="${id}" min="0" max="2" step="1" value="${v}" ${bot?`data-bot="${bot}"`:''} aria-valuetext="${LEVELS[v]}" aria-label="${bot?NAMES[bot]+' difficulty':'Bot difficulty'}"><div class="ticks">${LEVELS.map((l,x)=>`<span class="${x===v?'on':''}">${l}</span>`).join('')}</div></div>`}
-function paintSlider(el){const v=+el.value;el.setAttribute('aria-valuetext',LEVELS[v]);el.style.setProperty('--fill',(v*50)+'%');
+function diffSlider(id,v,bot){return `<div class="slider"><input type="range" id="${id}" min="0" max="3" step="1" value="${v}" ${bot?`data-bot="${bot}"`:''} aria-valuetext="${LEVELS[v]}" aria-label="${bot?NAMES[bot]+' difficulty':'Bot difficulty'}"><div class="ticks">${LEVELS.map((l,x)=>`<span class="${x===v?'on':''}">${l}</span>`).join('')}</div></div>`}
+function paintSlider(el){const v=+el.value;el.setAttribute('aria-valuetext',LEVELS[v]);el.style.setProperty('--fill',(v*100/3)+'%');
   el.parentElement.querySelectorAll('.ticks span').forEach((s,x)=>s.classList.toggle('on',x===v))}
 const HR=[
   ['threeExp','Three-exposure rule','If a player with 3 exposures wins on your discard, you pay for the whole table.'],
@@ -3099,7 +3104,7 @@ function showSettings(tab){
      <span class="seg" role="group" aria-label="Starting seat">${WIND.map((w,i)=>`<button class="${settings.startWind===i?'on':''}" data-wind="${i}" aria-pressed="${settings.startWind===i}">${w}</button>`).join('')}</span></div>
    ${GAME==='hk'?'':`<div class="setrow"><span class="st"><b>Making exposures</b><span class="d">Quick pick: choose PUNG, KONG and so on when you call. Build your own: press CALL, add the tiles yourself, and the group locks in when you discard.</span></span>
      <span class="seg" role="group" aria-label="Making exposures">${[['quick','Quick pick'],['build','Build your own']].map(([v,l])=>`<button class="${settings.expMode===v?'on':''}" data-exp="${v}" aria-pressed="${settings.expMode===v}">${l}</button>`).join('')}</span></div>`}
-   <div class="setrow col"><span class="st"><b>Bot difficulty</b><span class="d">Easy bots make loose throws and rarely call. Hard bots chase the most realistic hand, count live tiles and avoid feeding a player with 2 or more exposures. Applies right away.</span></span>
+   <div class="setrow col"><span class="st"><b>Bot difficulty</b><span class="d">Beginner bots make lots of loose throws and rarely call, so they almost never win. Easy bots slip up now and then but can still win. Hard bots chase the most realistic hand, count live tiles and avoid feeding a player with 2 or more exposures. Applies right away.</span></span>
      ${diffSlider('s_diff',settings.diff)}<span class="d" id="diffNote">${[1,2,3].some(i=>botLevel(i)!==settings.diff)?'Bots are set individually below.':''}</span></div>
    <button class="morebtn" id="s_botmore" aria-expanded="false" aria-controls="botList">More <span class="chev">▾</span></button>
    <div id="botList" class="hrlist" hidden>
@@ -3210,7 +3215,7 @@ function showRoomSettings(){
       <ul class="rulelist">
         <li><b>Suggested hands</b><span>${r.hints?'On':'Off'}</span></li>
         <li><b>After each discard</b><span>${r.proceed?'Everyone taps Proceed':'Move on automatically'}</span></li>
-        <li><b>Bot difficulty</b><span>${LEVELS[r.diff??1]}</span></li>
+        <li><b>Bot difficulty</b><span>${LEVELS[r.diff??2]}</span></li>
         <li><b>Bot speed</b><span>${SPEED_NAMES[r.botSpeed]||'Default'}</span></li>
         <li><b>House rules</b><span>${on.length?on.map(esc).join(', '):'None, standard rules only'}</span></li></ul>
       <div class="mrow"><button class="btn btn-gold" onclick="settingsDone()">Done</button></div>`);
@@ -3309,7 +3314,7 @@ function tileBlurb(){
   if(settings.tiles==='ocean')return 'Ocean tiles: Dots are bubbles, Bams are kelp, Craks are numbered waves, Winds are compass roses, Red is coral, Green is an octopus, Soap is a jellyfish. Flowers are a starfish, scallop, sand dollar and anemone. Jokers are a mermaid or a shark.';
   if(settings.tiles==='celestial')return 'Celestial tiles: Dots are planets and moon phases, Bams are shooting stars, Craks are numbered orbits, Winds are constellations shaped like N, E, S and W, Red is the sun, Green is a comet, Soap is the moon. Flowers are an eclipse, galaxy, aurora and North Star. Jokers are a black hole.';
   if(settings.tiles==='forest')return 'Forest tiles: Dots are mushrooms, Bams are birch branches, Craks are numbered fern fronds, Red is a fox, Green is an owl, Soap is a firefly. Flowers: acorn, pinecone, clover, maple leaf. Jokers: a fairy or a dragon.';
-  if(settings.tiles==='desert')return 'Desert Night tiles: Dots are cactus flowers, Bams are saguaros, Craks are numbered sand dunes, Red is a scorpion, Green is a coyote, Soap is a lantern. Flowers: prickly pear, agave, desert lily, moon and star. Jokers: a genie.';
+  if(settings.tiles==='desert')return 'Desert Night tiles: Dots are cactus flowers, Bams are saguaros, Craks are numbered sand dunes, Red is a scorpion, Green is a coyote, Soap is a lantern. Flowers: prickly pear, agave, desert lily, desert star. Jokers: a genie.';
   if(settings.tiles==='arctic')return 'Arctic tiles: Dots are snowflakes, Bams are icicles, Craks are numbered northern lights, Winds are igloos, Red is a polar bear, Green is a penguin, Soap is a snowy owl. Flowers: snowman, snowy pine, mitten, snow globe. Jokers: a narwhal.';
   if(settings.tiles==='garden')return 'Garden tiles: Dots are blooms, Bams are flower stems, Craks are numbered vines, Red is a rose, Green is a fern, Soap is a lily. Flowers: tulip, daisy, sunflower, lavender. Jokers: a butterfly or a bee.';
   if(settings.tiles==='volcano')return 'Volcano tiles: Dots are lava bubbles, Bams are obsidian shards, Craks are numbered flames. Flowers: geode, ember, hot spring, obsidian blade. Jokers: a fire dragon.';
@@ -3621,10 +3626,10 @@ function roomSummaryHTML(r){
   if(!r)return '';
   if(GAME==='hk'){const h={...HK_DEF,...(r.hk||{})};   // Chinese mahjong rooms: the Hong Kong rules in play
     return `<ul class="rulechips" aria-label="Room rules"><li>Chinese mahjong · Hong Kong rules</li><li>${h.minFaan} faan to win · cap ${h.cap}</li><li>${h.scoring==='old'?'Old Style scoring':h.table==='full'?'Full spicy':'Half spicy'}</li>
-      <li>${LEVELS[r.diff??1]} bots · ${(SPEED_NAMES[r.botSpeed]||'Default').toLowerCase()} speed</li>${h.bonusWin?'<li>7 or 8 flowers win</li>':''}${h.penalties?'<li>Penalty payments</li>':''}</ul>`}
+      <li>${LEVELS[r.diff??2]} bots · ${(SPEED_NAMES[r.botSpeed]||'Default').toLowerCase()} speed</li>${h.bonusWin?'<li>7 or 8 flowers win</li>':''}${h.penalties?'<li>Penalty payments</li>':''}</ul>`}
   const hr=r.house?HR.filter(([k])=>r.hr&&r.hr[k]).map(([,l])=>l):[];
   return `<ul class="rulechips" aria-label="Room rules"><li>Suggested hands ${r.hints?'on':'off'}</li><li>${r.proceed?'Everyone taps Proceed':'Moves on automatically'}</li>
-    <li>${LEVELS[r.diff??1]} bots · ${(SPEED_NAMES[r.botSpeed]||'Default').toLowerCase()} speed</li><li>${hr.length?`House rules: ${hr.length}`:'Standard rules'}</li></ul>`;
+    <li>${LEVELS[r.diff??2]} bots · ${(SPEED_NAMES[r.botSpeed]||'Default').toLowerCase()} speed</li><li>${hr.length?`House rules: ${hr.length}`:'Standard rules'}</li></ul>`;
 }
 function showLobby(){
   if(!room)return;

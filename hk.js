@@ -299,10 +299,10 @@ function hkDiscardScore(i,c,m,x,plan){
 function hkChooseDiscard(i){
   const p=players[i],lv=botLevel(i);const c=hkCounts(p.hand),m=p.exp.length,plan=hkPlan(i);
   if(godOn()&&godNext[i]!=null){const f=p.hand.find(t=>t.id===godNext[i]);delete godNext[i];if(f)return f}
-  if(lv===0&&Math.random()<.3)return p.hand[Math.floor(Math.random()*p.hand.length)];
+  if((lv===0&&Math.random()<.3)||(lv===1&&Math.random()<.1))return p.hand[Math.floor(Math.random()*p.hand.length)];
   let best=null,bs=Infinity;
   for(let x=0;x<34;x++){if(!c[x])continue;let s=hkDiscardScore(i,c,m,x,plan);
-    if(lv===2){c[x]--;const sh=hkShanten(c,m);let uk=0;for(let y=0;y<34;y++){if(c[y]>=4)continue;c[y]++;if(hkShanten(c,m)<sh)uk+=4-c[y]+1;c[y]--}c[x]++;s-=uk*.05}
+    if(lv===3){c[x]--;const sh=hkShanten(c,m);let uk=0;for(let y=0;y<34;y++){if(c[y]>=4)continue;c[y]++;if(hkShanten(c,m)<sh)uk+=4-c[y]+1;c[y]--}c[x]++;s-=uk*.05}
     s+=Math.random()*.2;if(s<bs){bs=s;best=x}}
   return p.hand.find(t=>t.k===HK_KINDS[best])||p.hand[0];
 }
@@ -317,7 +317,7 @@ function hkBotAct(i){
 function hkBotClaim(j,t,from){
   if(godPow('noCall'))return null;
   const p=players[j],x=HKI[t.k],c=hkCounts(p.hand),m=p.exp.length,lv=botLevel(j);
-  if(lv===0&&Math.random()<.5)return null;
+  if((lv===0&&Math.random()<.5)||(lv===1&&Math.random()<.2))return null;
   const sh=hkShanten(c,m),plan=hkPlan(j);
   const fits=x>=27||plan.suit<0||Math.floor(x/9)===plan.suit;
   if(c[x]>=2&&fits){

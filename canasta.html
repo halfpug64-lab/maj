@@ -561,7 +561,7 @@ function findOpening(i,keep){
 // Kept in memory only, never saved, so a reload always turns it off.
 const PARTY_HASH=1539971991;
 const pHash=v=>{let h=2166136261;for(const ch of String(v))h=Math.imul(h^ch.charCodeAt(0),16777619)>>>0;return h};
-let GODSTATE=null,godOpen=false,godPick=null;   // godPick: what tapping a card in the picker does
+let GODSTATE=null,godOpen=false,godPick=null,godMine=null;   // godMine: one of your cards picked to be replaced   // godPick: what tapping a card in the picker does
 const GOD=()=>GODSTATE||(GODSTATE={on:false,reveal:false,noPack:false,noOut:false,rigJ:0,draw:{},next:{}});
 const godOn=()=>!!(GODSTATE&&GODSTATE.on),godPow=k=>godOn()&&!!GODSTATE[k];
 const KEYS=[...['A','2','3','4','5','6','7','8','9','10','J','Q','K'].flatMap(r=>SUITS.map(su=>r+'|'+su)),'JK|'];
@@ -573,7 +573,7 @@ const godAvail=(k,not)=>godSources(k,not).length;
 const swapAt=(a,b)=>{const t=a.list[a.idx];a.list[a.idx]=b.list[b.idx];b.list[b.idx]=t};
 // give yourself a card: it trades places with your least useful card
 function godGive(k){const src=godSources(k,G.hands[0])[0];if(!src){toast('None of those are free right now');return}
-  const mine=rankDiscards(0)[0]||G.hands[0][0];const at={list:G.hands[0],idx:G.hands[0].indexOf(mine)};swapAt(src,at);
+  const mine=(godMine!=null&&G.hands[0].find(c=>c.id===godMine))||rankDiscards(0)[0]||G.hands[0][0];godMine=null;const at={list:G.hands[0],idx:G.hands[0].indexOf(mine)};swapAt(src,at);
   G.newIds=new Set([G.hands[0][at.idx].id]);sortHand(G.hands[0]);godDone(`You got the ${cname(cardOfKey(k))}`)}
 // put a card on top of the discard pile
 function godTop(k){const src=godSources(k).filter(x=>!(x.area==='pile'&&x.idx===G.pile.length-1))[0];if(!src){toast('None of those are free right now');return}
@@ -591,11 +591,12 @@ function godRefresh(){const g=$('#god');if(!g){render();return}const y=g.scrollT
 function closeGod(){godOpen=false;closeModal();render()}
 function godHTML(){const g=GOD();if(!G)return '<h2>Canasta Admin</h2><p>Deal a hand first.</p>';
   const modes=[['give','Give me'],['top','Top of the pack'],...[0,1,2,3].map(i=>['draw'+i,i===0?'My next draw':NAMES[i]+"'s next draw"])];
-  const head=godPick==='give'?'Tap a card to give it to yourself <span>(it trades places with your least useful card)</span>':godPick==='top'?'Tap a card to put it on top of the discard pile':`Tap the card ${godPick==='draw0'?'you':NAMES[+godPick.slice(4)]} will draw next`;
+  const gm=godMine!=null&&G.hands[0].find(c=>c.id===godMine);if(godMine!=null&&!gm)godMine=null;
+  const head=godPick==='give'?(gm?`Tap a card to replace your ${cname(gm)}`:'Tap a card to give it to yourself <span>(it replaces your least useful card, or tap one of your cards below to choose which)</span>'):godPick==='top'?'Tap a card to put it on top of the discard pile':`Tap the card ${godPick==='draw0'?'you':NAMES[+godPick.slice(4)]} will draw next`;
   const kc=k=>{const c=cardOfKey(k),n=godAvail(k,godPick==='give'?G.hands[0]:null);return `<button class="gk" data-k="${k}" ${n&&!G.over?'':'disabled'} title="${cname(c)}">${cardHTML(c,'sm')}<b class="gcnt">${n}</b></button>`};
   const hand=i=>{const h=G.hands[i],nx=g.next[i]!=null&&h.find(c=>c.id===g.next[i]),dk=g.draw[i];
-    return `<div class="gsec">${i===0?'Your hand':NAMES[i]}${nx?` <span class="gtag">throws ${cname(nx)} next</span>`:''}${dk?` <span class="gtag">draws ${cname(cardOfKey(dk))} next <button class="gx" data-gdclear="${i}" aria-label="Cancel">×</button></span>`:''}${i?'<span class="gtag">tap a card: they throw it next</span>':''}</div>
-      <div class="grow">${h.map(c=>i?`<button class="gt${nx&&nx.id===c.id?' on':''}" data-thr="${i}:${c.id}">${cardHTML(c,'sm')}</button>`:`<span class="gt">${cardHTML(c,'sm')}</span>`).join('')}</div>`};
+    return `<div class="gsec">${i===0?'Your hand':NAMES[i]}${nx?` <span class="gtag">throws ${cname(nx)} next</span>`:''}${dk?` <span class="gtag">draws ${cname(cardOfKey(dk))} next <button class="gx" data-gdclear="${i}" aria-label="Cancel">×</button></span>`:''}${i?'<span class="gtag">tap a card: they throw it next</span>':'<span class="gtag">tap a card to replace it</span>'}</div>
+      <div class="grow">${h.map(c=>i?`<button class="gt${nx&&nx.id===c.id?' on':''}" data-thr="${i}:${c.id}">${cardHTML(c,'sm')}</button>`:`<button class="gt${godMine===c.id?' on':''}" data-mine="${c.id}" title="Replace this card">${cardHTML(c,'sm')}</button>`).join('')}</div>`};
   return `<h2 class="godtitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>Canasta Admin</h2>
    <p class="setnote">Party mode. You control the table. Cards always trade places with real ones, so nothing is created or lost.</p>
    <div class="gpick"><div class="cseg gmodes" role="group" aria-label="What tapping a card does">${modes.map(([v,l])=>`<button class="${godPick===v?'on':''}" data-gmode="${v}">${l}</button>`).join('')}</div>
@@ -615,6 +616,7 @@ function bindGod(){const b=(id,fn)=>{const e=document.getElementById(id);if(e)e.
   document.querySelectorAll('[data-k]').forEach(e=>e.onclick=()=>{const k=e.dataset.k;
     if(godPick==='give')godGive(k);else if(godPick==='top')godTop(k);else{const i=+godPick.slice(4);GOD().draw[i]=k;godDone(`${i===0?'Your':NAMES[i]+"'s"} next draw: ${cname(cardOfKey(k))}`)}});
   document.querySelectorAll('[data-thr]').forEach(e=>e.onclick=()=>{const [i,id]=e.dataset.thr.split(':').map(Number);const g=GOD();if(g.next[i]===id)delete g.next[i];else g.next[i]=id;Sound.tap();godRefresh()});
+  document.querySelectorAll('[data-mine]').forEach(e=>e.onclick=()=>{const id=+e.dataset.mine;godMine=godMine===id?null:id;godPick='give';Sound.tap();godRefresh();const g=$('#god');if(g)g.scrollTop=0});
   document.querySelectorAll('[data-gdclear]').forEach(e=>e.onclick=()=>{delete GOD().draw[+e.dataset.gdclear];godRefresh()});
   document.querySelectorAll('[data-gp]').forEach(e=>e.onchange=()=>{GOD()[e.dataset.gp]=e.checked;godRefresh()});
   document.querySelectorAll('[data-rigj]').forEach(e=>e.onclick=()=>{GOD().rigJ=+e.dataset.rigj;godRefresh()});
@@ -675,7 +677,7 @@ function takePack(i,openMelds){
 function needLeft(i,goingOut){return goingOut?0:2}
 function discardCard(i,id){
   const h=G.hands[i];const c=h.find(x=>x.id===id);if(!c)return 'Pick a card';
-  if(isThree(c))return '3s are never discarded';
+  if(isThree(c))return i===0?'3s can\'t be thrown away. Tap Lay down 3 to put it on the table and draw a replacement.':'3s are never discarded';
   const t=team(i),out=h.length===1&&G.pendingTalon!==i;
   if(out&&G.noOut&&G.noOut[i])return 'Your partner said no, so you can\'t go out this turn';
   if(out&&!canGoOut(t))return outBlock(t);
@@ -848,7 +850,9 @@ function botMeld(i){
     // wild cards finish canastas: a meld with five or more naturals and room
     const wilds=h.filter(isWild);
     for(const m of G.melds[t].slice().sort((a,b)=>(b.r==='W')-(a.r==='W')||b.cards.length-a.cards.length)){if(!wilds.length)break;if(m.cards.length>=7||(m.r!=='W'&&wildCount(m)>=2))continue;
-      if(openingTurn(i)&&natCount(m)<3)continue;const w=wilds.sort((a,b)=>val(a)-val(b))[0];
+      if(openingTurn(i)&&natCount(m)<3)continue;
+      // keep a couple of wild cards in reserve to finish the last melds when going out; spend them on near-canastas
+      if(m.r!=='W'&&m.cards.length<5&&wilds.length<=2)continue;const w=wilds.sort((a,b)=>val(a)-val(b))[0];
       if(!meldAdd(i,m,[w.id])){wilds.shift();did=true}}
     if(!did)break;
   }
@@ -933,6 +937,7 @@ function rankDiscards(i){
   const cnt=r=>h.filter(c=>c.r===r).length;
   const rate=c=>{let s=cnt(c.r)*3;const ours=teamMeld(t,c.r);if(ours&&ours.cards.length<7)s+=5;if(SA()&&(c.r==='7'||c.r==='A'))s+=2;
     if(SA()&&(c.r==='7'||c.r==='A')&&!ours&&cnt(c.r)>=3&&(riskyStart(i,c.r,cnt(c.r))||(G.prep&&G.prep[i])||canGoOut(t)||canGoOut(opp)))s-=cnt(c.r)*3+30;   // holding three or more costs 1,500: shed them first
+    if(SA()&&(c.r==='7'||c.r==='A')&&!ours&&cnt(c.r)<3&&canGoOut(t)&&riskyStart(i,c.r,cnt(c.r)+1))s-=10;
     if(isDead(c.r))s-=8;const theirs=teamMeld(opp,c.r);if(theirs&&theirs.cards.length>=5)s-=6;if(theirs&&theirs.cards.length<5)s+=6;
     // feeding the pack: the bigger the pile, the more it matters whether the next player could hold a pair of this rank
     const nx=(i+1)%4,pk=G.pile.length+1;
@@ -1032,7 +1037,7 @@ function doSuggest(){if(!myTurn())return;const op=findOpening(0,G.phase==='draw'
 function doMeld(){if(!myTurn())return;if(G.phase!=='play'&&G.opened[0])return;const cs=selCards();if(!cs.length)return;
   if(!G.opened[0]){doStage();return}
   snap();
-  if(cs.every(isWild)&&cs.length<3&&!teamMeld(0,'W')){
+  if(cs.every(isWild)&&cs.length<3&&!openWild(0)){
     // best home: one this finishes into a canasta, then the meld with the most natural cards
     const opts=G.melds[0].filter(m=>m.r!=='W'&&m.cards.length<7).sort((a,b)=>((b.cards.length+cs.length===7)-(a.cards.length+cs.length===7))||(b.cards.filter(isNat).length-a.cards.filter(isNat).length));
     let err='';for(const m of opts){err=meldAdd(0,m,cs.map(c=>c.id));if(!err){sel.clear();G.hint=null;render();return}}
@@ -1147,7 +1152,8 @@ function render(){
     <div class="banner"><div class="st">${st}</div><div class="sub">${sub}</div></div>
     <div class="pile">${top?cardHTML(top):'<div class="emptypile"></div>'}Pack: ${G.pile.length}</div>`;
   $('#log').innerHTML=logs.map((m,x)=>`<div${x?' style="opacity:'+(x===1?.75:.5)+'"':''}>${m}</div>`).join('');
-  const h=G.hands[0],me=$('#me');me.className='me'+(myTurn()?' turn':'');
+  const h=G.hands[0],me=$('#me');
+  for(const id of [...sel])if(!h.some(c=>c.id===id))sel.delete(id);me.className='me'+(myTurn()?' turn':'');
   const sp=myTurn()&&G.phase==='play'&&!G.opened[0]?specialHand(h):null;
   let acts='';
   if(myTurn()&&G.phase==='draw'){
@@ -1164,7 +1170,7 @@ function render(){
   if(myTurn()&&G.phase==='play'&&G.opened[0]&&canGoOut(0)&&G.pendingTalon!==0&&!(G.asked&&G.asked[0]))acts+=`<button class="btn" id="aAsk" title="You can ask once each turn">${NAMES[2]}, may I go out?</button>`;
   if(myTurn()&&G.mustOut&&G.mustOut[0])acts+=`<span class="mustout">${NAMES[2]} said yes: go out this turn</span>`;
   // like Swap for Joker in mahjong: select your 3 and the button appears
-  if(myTurn()&&!G.opened[0]&&selCards().some(isThree))acts+=`<button class="btn gold" id="aLay3" title="Set the 3 out on the table and draw a replacement">Lay down 3</button>`;
+  if(myTurn()&&selCards().some(isThree))acts+=`<button class="btn gold" id="aLay3" title="Set the 3 out on the table and draw a replacement">Lay down 3</button>`;
   if(undoOn()&&undoStack.length&&!G.over)acts+=`<button class="btn sm" id="aUndo" title="Take back your last move">↶ Undo</button>`;
   if(myTurn()&&showHint())acts+=`<button class="btn sm" id="aHint" title="What should I do?">💡 Hint</button>`;
   const stagedIds=new Set(staged.flatMap(g=>g.cards.map(c=>c.id)));
