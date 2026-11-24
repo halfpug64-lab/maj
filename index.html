@@ -1391,44 +1391,6 @@ body.table-view .seat-top .plate{flex-wrap:nowrap}body.table-view .plate .pname{
 </style>
 </head>
 <body>
-<div id="gumlock" hidden role="dialog" aria-modal="true" aria-labelledby="gumTitle">
-  <div class="gumbox">
-    <svg class="gumart" viewBox="0 0 96 64" aria-hidden="true"><rect x="6" y="18" width="84" height="30" rx="8" fill="#f2c94c"/><rect x="6" y="18" width="84" height="30" rx="8" fill="none" stroke="#b8862b" stroke-width="2.5"/><rect x="30" y="18" width="36" height="30" fill="#ff7eb6"/><path d="M30 18v30M66 18v30" stroke="#b8862b" stroke-width="2"/><text x="48" y="38" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="12" fill="#fff">GUM</text></svg>
-    <h2 id="gumTitle">Give Dylan a piece of gum</h2>
-    <p>and he'll give you a code. Enter the code to play.</p>
-    <form id="gumform" autocomplete="off"><input id="gumcode" type="text" inputmode="text" autocapitalize="characters" spellcheck="false" maxlength="20" placeholder="Code" aria-label="Code from Dylan"><button type="submit">Play</button></form>
-    <p id="gummsg" class="gummsg" aria-live="polite"></p>
-  </div>
-</div>
-<style>
-#gumlock{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;
-  background:radial-gradient(900px 620px at 50% 38%,#1b5e4f,#0b2a24 70%,#06140f);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#f5eedc}
-#gumlock[hidden]{display:none}
-#gumlock .gumbox{width:100%;max-width:380px;text-align:center;background:rgba(0,0,0,.35);border:1px solid rgba(236,198,109,.4);border-radius:22px;padding:28px 22px 22px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
-#gumlock .gumart{width:110px;height:74px;display:block;margin:0 auto 6px;animation:gumbob 2.4s ease-in-out infinite}
-@keyframes gumbob{50%{transform:translateY(-5px) rotate(-3deg)}}
-#gumlock h2{margin:4px 0 6px;font:700 26px/1.15 "Playfair Display",Georgia,serif;color:#ecc66d}
-#gumlock p{margin:0 0 16px;font-size:16px;color:#d7e3df;line-height:1.4}
-#gumlock form{display:flex;gap:8px}
-#gumlock input{flex:1;min-width:0;padding:13px 14px;border-radius:12px;border:2px solid rgba(236,198,109,.55);background:#fffaf0;color:#2b2216;font:800 18px/1 Inter,Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;text-align:center}
-#gumlock input:focus{outline:3px solid #ecc66d;outline-offset:2px}
-#gumlock button{padding:0 22px;border:0;border-radius:12px;background:linear-gradient(180deg,#f6d27e,#d9a93a);color:#2a1d02;font:800 17px Inter,Arial,sans-serif;cursor:pointer}
-#gumlock .gummsg{min-height:20px;margin:12px 0 0;font-size:14px;font-weight:700;color:#ff9e9e}
-#gumlock input.shake{animation:gumshake .08s 4}@keyframes gumshake{50%{transform:translateX(6px)}}
-@media(prefers-reduced-motion:reduce){#gumlock .gumart,#gumlock input.shake{animation:none}}
-</style>
-<script>
-// The gum gate: the code isn't stored here, only a scrambled version of it. Once unlocked, this device stays unlocked.
-(function(){var H=2776090843,K='amj_gum',ok=false;try{ok=localStorage.getItem(K)===String(H)}catch(e){}
-  var el=document.getElementById('gumlock');if(ok){el.remove();return}
-  el.hidden=false;document.documentElement.style.overflow='hidden';
-  var h=function(v){var x=2166136261;for(var i=0;i<v.length;i++)x=Math.imul(x^v.charCodeAt(i),16777619)>>>0;return x};
-  var inp=document.getElementById('gumcode'),msg=document.getElementById('gummsg');setTimeout(function(){try{inp.focus()}catch(e){}},50);
-  document.getElementById('gumform').onsubmit=function(e){e.preventDefault();
-    if(h(inp.value.trim().toLowerCase())===H){try{localStorage.setItem(K,String(H))}catch(x){}el.remove();document.documentElement.style.overflow=''}
-    else{msg.textContent=inp.value.trim()?"That's not it. Better bring Dylan some gum.":'Type the code Dylan gave you.';inp.classList.remove('shake');void inp.offsetWidth;inp.classList.add('shake');inp.select()}};
-})();
-</script>
 
 <header class="topbar">
   <div class="bar-in">
