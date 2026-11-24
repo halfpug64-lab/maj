@@ -187,14 +187,18 @@ h1{font-family:var(--display);font-weight:400;font-size:22px;letter-spacing:1.5p
 .me-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .turnpill{background:var(--gold);color:#2b1d02;font-weight:800;font-size:10.5px;letter-spacing:.14em;padding:4px 10px;border-radius:999px;box-shadow:0 0 18px rgba(236,198,109,.5)}
 .sortbtns{margin-left:auto;display:flex;gap:6px}
+@media(pointer:coarse){.sortbtns .btn{min-height:36px;padding:6px 14px}}
+@media(max-height:500px){.rack .tile.sel{transform:translateY(-8px)!important}}
+#stars .faanref{max-height:min(52vh,460px);overflow-y:auto;padding-right:4px;scrollbar-width:thin}
 .rack{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:5px;padding:24px 10px 22px;margin-top:10px;border-radius:14px;min-height:118px;
   background:linear-gradient(180deg,#5d3b1f,#3b2311 62%,#28160a);box-shadow:inset 0 2px 0 rgba(255,255,255,.08),inset 0 -10px 18px rgba(0,0,0,.45),0 10px 24px rgba(0,0,0,.45)}
 .rack::after{content:"";position:absolute;left:10px;right:10px;bottom:7px;height:7px;border-radius:4px;background:linear-gradient(#80542d,#4a2c14);box-shadow:0 -1px 0 rgba(255,255,255,.12);z-index:0}
 .actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;margin-top:14px;min-height:42px}
 .callbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;padding:10px 14px;border-radius:14px;
   background:linear-gradient(180deg,#f8dc8a,#e0b04a);color:#2a1d00;font-weight:800;box-shadow:0 0 34px rgba(236,198,109,.45);animation:rise .35s cubic-bezier(.2,1.3,.4,1)}
-.callbar .btn-ghost{color:#2a1d00;border-color:rgba(122,88,21,.6);background:rgba(255,255,255,.25)}
-.callbar .btn-ghost:hover{background:rgba(255,255,255,.5)}
+body .callbar .btn-ghost,body.table-view .actions .callbar .btn-ghost{color:#2a1d00;border:2px solid #7a5815;background:#fffaf0;font-weight:800;box-shadow:0 2px 0 rgba(122,88,21,.35);backdrop-filter:none}
+body .callbar .btn-ghost:hover,body.table-view .actions .callbar .btn-ghost:hover{background:#fff}
+.callbar .ctimer{position:absolute;left:0;bottom:0;height:4px;width:100%;background:#7a5815;transform-origin:left;animation:ctimer linear forwards}@keyframes ctimer{to{transform:scaleX(0)}}
 @keyframes rise{from{opacity:0;transform:translateY(12px) scale(.96)}}
 @media(max-width:640px){.rack .tile{--w:40px}.rack{gap:3px;padding:20px 6px 20px}.sortbtns{margin-left:0;width:100%}.pool{min-height:180px}}
 
@@ -1648,8 +1652,9 @@ function tileHTML(t,cls='',withId=false){
   return `<div class="tile ${cls}" title="${tname(k)}" ${withId?`data-id="${t.id}"`:''}>${faceSVG(k,v)}</div>`;
 }
 function tname(k){
-  if(SUITS.includes(k[0])&&k.length===2)return k[1]+' '+SUITNAME[k[0]];
-  return {N:'North',E:'East',W:'West',S:'South',R:'Red Dragon',G:'Green Dragon','0':'Soap',F:'Flower',J:'Joker'}[k];
+  const hk=typeof GAME!=='undefined'&&GAME==='hk';
+  if(SUITS.includes(k[0])&&k.length===2)return k[1]+' '+(hk?{B:'Bamboo',C:'Character',D:'Dot'}:SUITNAME)[k[0]];
+  return {N:'North',E:'East',W:'West',S:'South',R:'Red Dragon',G:'Green Dragon','0':hk?'White Dragon':'Soap',F:'Flower',J:'Joker'}[k];
 }
 
 // ================= Card =================
@@ -2017,7 +2022,7 @@ function loadProgress(){
   if(!settings.save)return;
   try{const pr=JSON.parse(localStorage.getItem(GAME==='hk'?'amj_progress_hk':'amj_progress'));
     if(pr&&Array.isArray(pr.scores)&&pr.scores.length===4){scores=pr.scores;if(pr.dealer>=0){dealer=pr.dealer;pendingStart=false}
-      if(GAME==='hk'){hkWind=pr.hkWind||0;hkRot=pr.hkRot||0;hkKeep=!!pr.hkKeep;hkRepeat=pr.hkRepeat||0;hkMatchOver=!!pr.hkMatchOver}}}catch(e){}
+      if(GAME==='hk'){hkWind=pr.hkWind||0;hkRot=pr.hkRot||0;hkKeep=!!pr.hkKeep;hkRepeat=pr.hkRepeat||0;hkMatchOver=!!pr.hkMatchOver;hkHistory=Array.isArray(pr.hist)?pr.hist:[]}}}catch(e){}
   hkApplyRules();
 }
 loadProgress();
@@ -2547,12 +2552,12 @@ function whyText(r){
 // ================= Render =================
 function expHTML(p,size){const fl=p.flowers&&p.flowers.length?`<div class="exp flowers" title="Flowers and seasons">${p.flowers.map(t=>tileHTML(t,size)).join('')}</div>`:'';
   return p.exp.length||fl?`<div class="exps">${p.exp.map(e=>`<div class="exp">${e.tiles.map((t,x)=>e.conc&&(x===0||x===3)?`<div class="tile ${size} back-tile" title="Concealed kong"></div>`:tileHTML(t,size,true)).join('')}</div>`).join('')}${fl}</div>`:''}
-const seatTag=i=>NET.mode==='client'?(NET.tags&&NET.tags[i]||''):(HUMAN[i]?(i===0&&MP()?'Host':'Player'):(MP()?'Bot · ':'')+LEVELS[botLevel(i)]);
+const seatTag=i=>NET.mode==='client'?(NET.tags&&NET.tags[i]||''):(HUMAN[i]?(i===0&&MP()?'Host':'Player'):(MP()?'Bot'+(botLevel(i)!==1?' · '+LEVELS[botLevel(i)]:''):botLevel(i)!==1?LEVELS[botLevel(i)]:''));
 function renderSeat(i){
   const p=players[i],el=$('#seat'+i);const active=turn===i&&phase==='play';
   el.className=`seat seat-${SEATPOS[i]}${active?' turn':''}${active&&step==='discard'&&!callState?' thinking':''}`;
   const body=phase==='over'||godPow('reveal')?`<div class="reveal">${p.hand.map(t=>tileHTML(t,'xs')).join('')}</div>`:`<div class="backs">${p.hand.map(()=>'<i class="back"></i>').join('')}</div>`;
-  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${dealer===i?'<span class="eastchip">E</span> ':''}${windOf(i)} · ${p.hand.length} tiles<span class="lvl"> · ${seatTag(i)}</span>${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="orack-wrap"><div class="orack">${body}${p.exp.length||(p.flowers&&p.flowers.length)?expHTML(p,'xs'):'<div class="exps ledge-empty"></div>'}</div></div>`;
+  el.innerHTML=`<div class="plate"><div class="avatar">${bulletHTML(i)}</div><div class="meta"><div class="pname">${NAMES[i]}</div><div class="pinfo">${dealer===i?'<span class="eastchip">E</span> ':''}${windOf(i)} · ${p.hand.length} tiles${seatTag(i)?`<span class="lvl"> · ${seatTag(i)}</span>`:''}${dead[i]?' · <b style="color:#ff8a80">dead hand</b>':''}</div></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div></div><div class="orack-wrap"><div class="orack">${body}${p.exp.length||(p.flowers&&p.flowers.length)?expHTML(p,'xs'):'<div class="exps ledge-empty"></div>'}</div></div>`;
 }
 function renderScores(){
   if(scoreAnim)return;
@@ -3114,8 +3119,15 @@ function showSettings(tab){
       +seg('table','Points table','Half spicy doubles every second faan after 4. Full spicy doubles every faan.',[['half','Half spicy'],['full','Full spicy']])
       +seg('discPay','Discard wins','Who pays when someone wins on a discard.',[['all','Thrower pays all'],['half','Thrower pays half']])
       +seg('repeat','East repeats','Whether East keeps the deal after winning or a drawn hand.',[['always','Always'],['cap3','Up to 3 times'],['never','Never']])
+      +seg('chowOffer','Chow offers','When the player on your left throws a tile you could chow. Helpful only skips chows that don\'t bring you closer to a ready hand.',[['all','All'],['useful','Helpful only'],['never','Never']])
+      +seg('callTimer','Call timer','How long you get to decide on a call before the tile goes by. Off waits for you.',[[0,'Off'],[5,'5 sec'],[10,'10 sec']])
       +swRow('hkr_sevenPairs','Seven Pairs','Allow a hand of seven different pairs, worth 4 faan.',!!R.sevenPairs)
       +swRow('hkr_noLastCalls','No calls on the last discard','Once the wall is empty, the last discard can only be claimed to win.',!!R.noLastCalls)
+      +seg('scoring','Scoring style','New Style turns faan into points with the table above. Old Style uses a small table (3 faan = 1, 4–6 = 2, 7–9 = 4, 10+ = 8) where everyone pays, doubled for a self-draw, for the discarder and when East wins or loses; flower faan don\'t count toward the minimum.',[['new','New Style'],['old','Old Style']])
+      +seg('selfTriplets','Self triplets','Four concealed pungs. A limit hand, or (the 2010 Hong Kong change) scored like any other hand.',[['limit','Limit hand'],['normal','Normal hand']])
+      +swRow('hkr_bonusWin','Win with 7 or 8 flowers and seasons','Collect 7 bonus tiles and you win at once for 3 faan; all 8 is a limit win. Everyone pays.',!!R.bonusWin)
+      +swRow('hkr_penalties','Penalty payments','The discarder pays the whole win when they feed a one-suit hand its fourth set (or the winning tile after three), or throw a never-seen tile with 5 or fewer left in the wall.',!!R.penalties)
+      +swRow('hkr_pureGreen','Pure Green','A hand of only green tiles (2, 3, 4, 6 and 8 Bamboo and Green Dragons) is a limit hand.',!!R.pureGreen)
       +swRow('s_hkCoach','Coach','Tells you how many tiles you are from ready and suggests a tile to throw.',settings.hkCoach===true)
       +swRow('s_hkFaan','Faan counter','A bubble by your rack that shows how much faan your hand has right now.',settings.hkFaan!==false)})()}`:''}
    <div class="set-sec">Party mode</div>
@@ -3146,7 +3158,7 @@ function showSettings(tab){
   const hkSet=(k,v)=>{settings.hkRules={...hkR(),[k]:v};saveSettings();hkApplyRules();render()};
   document.querySelectorAll('[data-hkr]').forEach(b=>b.onclick=()=>{const k=b.dataset.hkr,raw=b.dataset.v;hkSet(k,/^\d+$/.test(raw)?+raw:raw);
     document.querySelectorAll(`[data-hkr="${k}"]`).forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
-  ['sevenPairs','noLastCalls'].forEach(k=>{const e=document.getElementById('hkr_'+k);if(e)e.onchange=()=>hkSet(k,e.checked)});
+  ['sevenPairs','noLastCalls','bonusWin','penalties','pureGreen'].forEach(k=>{const e=document.getElementById('hkr_'+k);if(e)e.onchange=()=>hkSet(k,e.checked)});
   if($('#s_hkCoach'))$('#s_hkCoach').onchange=e=>{settings.hkCoach=e.target.checked;saveSettings();render()};
   if($('#s_hkFaan'))$('#s_hkFaan').onchange=e=>{settings.hkFaan=e.target.checked;saveSettings();render()};
   $('#s_reset').onclick=()=>askConfirm({title:'Reset progress?',body:'All scores go back to 0, the saved game is deleted, and a fresh game is dealt with you at your starting seat. Your settings stay the same.',
