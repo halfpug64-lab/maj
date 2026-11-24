@@ -260,6 +260,25 @@ body.tv .hand{padding-top:13px;min-height:calc(var(--cw)*1.4 + 16px)}body.tv .ac
   body.tv .zone .card.sm,body.tv .meld.closed .cpile{--cw:26px}body.tv .zone h3{font-size:11px}body.tv .zone h3 .threes .card{--cw:18px}
   body.tv .me{padding:4px 8px 6px}body.tv .mehead .info{display:none}body.tv .hand{padding-top:10px;min-height:calc(var(--cw)*1.4 + 12px)}body.tv .acts{margin-top:4px}body.tv .acts .btn{min-height:34px;padding:5px 12px}
 }
+
+/* Canasta Admin (party mode) */
+#bGod{color:#ffd23f}
+.pcode{display:flex;gap:8px;align-items:center}.pcode input{width:96px;padding:8px 10px;border-radius:10px;border:1px solid #cdbb8c;background:#fffdf6;color:#2b2216;font:600 16px var(--body);letter-spacing:3px}
+.pcode input.shake{animation:gshake .09s 4;border-color:#c0392b}@keyframes gshake{50%{transform:translateX(4px)}}
+#god{max-width:760px}#god .godtitle{display:flex;align-items:center;gap:10px}#god .godtitle svg{width:28px;height:28px;color:#c99a2e}
+#god .gpick{position:sticky;top:-22px;z-index:3;margin:0 -8px;padding:10px 8px;background:linear-gradient(180deg,#fbf6e9,#f4ebd5);border-bottom:1px solid #e2d5b5}
+#god .gmodes{flex-wrap:wrap;margin-bottom:8px}#god .ghead{font-weight:800;margin:0 0 8px}#god .ghead span{font-weight:500;color:#7a6a4c;font-size:13px}
+#god .grow{display:flex;flex-wrap:wrap;gap:5px}#god .card.sm{--cw:34px}
+#god .gt,#god .gk{all:unset;cursor:pointer;position:relative;border-radius:7px;line-height:0;display:inline-block}
+#god .gt:focus-visible,#god .gk:focus-visible{outline:3px solid #2557b8;outline-offset:2px}
+#god .gt.on{outline:3px solid #a87b22;outline-offset:2px}#god .gk[disabled],#god .gt[disabled]{opacity:.35;cursor:default}#god span.gt{cursor:default}
+#god .gk>.gcnt{position:absolute;z-index:3;right:-5px;bottom:-5px;min-width:14px;padding:0 3px;border-radius:8px;background:#1d1a14;color:#fff;font:700 10px/14px var(--body);text-align:center}
+#god .gnum{position:absolute;left:50%;bottom:-2px;transform:translate(-50%,100%);font:700 9px/1 var(--body);font-style:normal;color:#7a6a4c}
+#god .grow:has(.gnum){row-gap:16px;padding-bottom:12px}
+#god .gsec{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:16px 0 6px;font-weight:800;font-size:15px}
+#god .gtag{font-weight:600;font-size:12px;color:#7a6a4c;background:rgba(0,0,0,.05);border-radius:20px;padding:2px 8px}
+#god .gx{all:unset;cursor:pointer;margin-left:4px;font-weight:800}
+.reveal{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;max-width:100%}.reveal .card.sm{--cw:22px}.reveal .card .ix2,.reveal .card .ace,.reveal .card .face{display:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -268,6 +287,7 @@ body.tv .hand{padding-top:13px;min-height:calc(var(--cw)*1.4 + 16px)}body.tv .ac
   <a class="btn icon" href="index.html" id="bHome" title="Home screen" aria-label="Home screen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.8V20h13V9.8"/><path d="M10 20v-5.5h4V20"/></svg></a>
   <h1>American Canasta <i class="beta">Alpha</i></h1>
   <div class="sc" id="scores"></div>
+  <button class="btn icon" id="bGod" hidden title="Canasta Admin" aria-label="Canasta Admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></button>
   <button class="btn icon" id="bSet" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   <button class="btn icon" id="bHelp" title="How to play" aria-label="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5V14"/><path d="M12 17.2h.01"/></svg></button>
   <button class="btn gold sm" id="bNew">New game</button>
@@ -360,7 +380,7 @@ const Sound={on:(()=>{try{return localStorage.getItem('amj_sound')!=='off'}catch
 let G=null,score=[0,0],dealer=3,gid=0,sel=new Set(),staged=[],logMsg='';
 try{const s=JSON.parse(localStorage.getItem('amj_canasta'));if(s&&Array.isArray(s.score)){score=s.score;dealer=s.dealer??3}}catch(e){}
 const saveScores=()=>{try{if(settings.save!==false)localStorage.setItem('amj_canasta',JSON.stringify({score,dealer}))}catch(e){}};
-const later=(fn,ms)=>{const g=gid;setTimeout(()=>{if(g===gid)fn()},ms)};
+const later=(fn,ms)=>{const g=gid;const run=()=>{if(g!==gid)return;if(typeof godOpen!=='undefined'&&godOpen){setTimeout(run,300);return}fn()};setTimeout(run,ms)};   // the game waits while Canasta Admin is open
 function newDeck(){let id=0;const d=[];
   for(let k=0;k<2;k++){for(const s of SUITS)for(const r of [...RANKS,'2','3'])d.push({id:id++,r,s});d.push({id:id++,r:'JK',s:''},{id:id++,r:'JK',s:''})}
   for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
@@ -374,7 +394,7 @@ function newHand(){
   for(let r=0;r<13;r++)for(let x=1;x<=4;x++)hands[(dealer+x)%4].push(deck.pop());
   G={rules:{...CR_DEF,...(settings.canastaRules||{})},stock:deck,pile:[],hands,melds:[[],[]],threes:[[],[]],opened:[false,false],talon:[[],[],[],[]],turn:(dealer+1)%4,phase:'draw',
      firstOpen:null,emptyAtTurn:true,newIds:new Set(),over:false,justPicked:false,seenCan:[],dealFx:true,asked:{},mustOut:{},noOut:{}};
-  hands.forEach(sortHand);saveScores();
+  hands.forEach(sortHand);saveScores();godRigDeal();
   log(`${NAMES[dealer]==='You'?'You deal':NAMES[dealer]+' deals'}. ${NAMES[G.turn]==='You'?'You go':NAMES[G.turn]+' goes'} first.`);
   startTurn();
 }
@@ -533,9 +553,78 @@ function findOpening(i,keep){
   return ms;
 }
 
+
+// ================= Party mode: Canasta Admin =================
+// Unlocked in Settings with the same code as Mahjong Admin (only a hash of it is kept here). Every power swaps real cards
+// between hands, the draw pile and the discard pile, so the deck always stays exactly 108 cards and every rule still works.
+// Kept in memory only, never saved, so a reload always turns it off.
+const PARTY_HASH=1539971991;
+const pHash=v=>{let h=2166136261;for(const ch of String(v))h=Math.imul(h^ch.charCodeAt(0),16777619)>>>0;return h};
+let GODSTATE=null,godOpen=false,godPick=null;   // godPick: what tapping a card in the picker does
+const GOD=()=>GODSTATE||(GODSTATE={on:false,reveal:false,noPack:false,noOut:false,rigJ:0,draw:{},next:{}});
+const godOn=()=>!!(GODSTATE&&GODSTATE.on),godPow=k=>godOn()&&!!GODSTATE[k];
+const KEYS=[...['A','2','3','4','5','6','7','8','9','10','J','Q','K'].flatMap(r=>SUITS.map(su=>r+'|'+su)),'JK|'];
+const keyOf=c=>c.r+'|'+(c.r==='JK'?'':c.s),cardOfKey=k=>{const [r,su]=k.split('|');return {id:-1,r,s:su}};
+// where a card of this kind can come from (never from melds or 3s on the table)
+function godSources(k,not){const out=[];const add=(list,area,seat)=>list.forEach((c,idx)=>{if(keyOf(c)===k&&list!==not)out.push({list,idx,area,seat})});
+  add(G.stock,'stock');for(const i of [1,2,3])add(G.hands[i],'hand',i);add(G.pile,'pile');add(G.hands[0],'hand',0);return out}
+const godAvail=(k,not)=>godSources(k,not).length;
+const swapAt=(a,b)=>{const t=a.list[a.idx];a.list[a.idx]=b.list[b.idx];b.list[b.idx]=t};
+// give yourself a card: it trades places with your least useful card
+function godGive(k){const src=godSources(k,G.hands[0])[0];if(!src){toast('None of those are free right now');return}
+  const mine=rankDiscards(0)[0]||G.hands[0][0];const at={list:G.hands[0],idx:G.hands[0].indexOf(mine)};swapAt(src,at);
+  G.newIds=new Set([G.hands[0][at.idx].id]);sortHand(G.hands[0]);godDone(`You got the ${cname(cardOfKey(k))}`)}
+// put a card on top of the discard pile
+function godTop(k){const src=godSources(k).filter(x=>!(x.area==='pile'&&x.idx===G.pile.length-1))[0];if(!src){toast('None of those are free right now');return}
+  if(G.pile.length){swapAt(src,{list:G.pile,idx:G.pile.length-1})}else{const [c]=src.list.splice(src.idx,1);G.pile.push(c);if(src.list!==G.stock){const r=G.stock.pop();if(r)src.list.push(r)}}
+  godDone(`${cname(cardOfKey(k))} is on top of the discard pile`)}
+// pull a planned draw to the top of the draw pile right before that player draws
+function godDrawNow(i){const g=GODSTATE;if(!godOn()||!g.draw[i]||!G.stock.length)return;const k=g.draw[i];delete g.draw[i];
+  const src=godSources(k,G.hands[i]).filter(x=>!(x.area==='pile'&&x.idx===G.pile.length-1))[0];if(src)swapAt(src,{list:G.stock,idx:G.stock.length-1})}
+function godDone(m){Sound.good();toast(m);godRefresh()}
+function godRigDeal(){const g=GODSTATE;if(!godOn()||!g.rigJ)return;let n=g.rigJ-G.hands[0].filter(c=>c.r==='JK').length;
+  while(n-->0){const src=godSources('JK|',G.hands[0])[0];if(!src)break;const h=G.hands[0];const worst=h.filter(c=>c.r!=='JK'&&!isWild(c)).sort((a,b)=>val(a)-val(b))[0]||h[0];swapAt(src,{list:h,idx:h.indexOf(worst)})}
+  sortHand(G.hands[0])}
+function showGod(){if(!godOn())return;godOpen=true;godPick=godPick||'give';$('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="Canasta Admin"><div class="box" id="god">${godHTML()}</div></div>`;bindGod()}
+function godRefresh(){const g=$('#god');if(!g){render();return}const y=g.scrollTop;g.innerHTML=godHTML();bindGod();g.scrollTop=y;render()}
+function closeGod(){godOpen=false;closeModal();render()}
+function godHTML(){const g=GOD();if(!G)return '<h2>Canasta Admin</h2><p>Deal a hand first.</p>';
+  const modes=[['give','Give me'],['top','Top of the pack'],...[0,1,2,3].map(i=>['draw'+i,i===0?'My next draw':NAMES[i]+"'s next draw"])];
+  const head=godPick==='give'?'Tap a card to give it to yourself <span>(it trades places with your least useful card)</span>':godPick==='top'?'Tap a card to put it on top of the discard pile':`Tap the card ${godPick==='draw0'?'you':NAMES[+godPick.slice(4)]} will draw next`;
+  const kc=k=>{const c=cardOfKey(k),n=godAvail(k,godPick==='give'?G.hands[0]:null);return `<button class="gk" data-k="${k}" ${n&&!G.over?'':'disabled'} title="${cname(c)}">${cardHTML(c,'sm')}<b class="gcnt">${n}</b></button>`};
+  const hand=i=>{const h=G.hands[i],nx=g.next[i]!=null&&h.find(c=>c.id===g.next[i]),dk=g.draw[i];
+    return `<div class="gsec">${i===0?'Your hand':NAMES[i]}${nx?` <span class="gtag">throws ${cname(nx)} next</span>`:''}${dk?` <span class="gtag">draws ${cname(cardOfKey(dk))} next <button class="gx" data-gdclear="${i}" aria-label="Cancel">×</button></span>`:''}${i?'<span class="gtag">tap a card: they throw it next</span>':''}</div>
+      <div class="grow">${h.map(c=>i?`<button class="gt${nx&&nx.id===c.id?' on':''}" data-thr="${i}:${c.id}">${cardHTML(c,'sm')}</button>`:`<span class="gt">${cardHTML(c,'sm')}</span>`).join('')}</div>`};
+  return `<h2 class="godtitle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>Canasta Admin</h2>
+   <p class="setnote">Party mode. You control the table. Cards always trade places with real ones, so nothing is created or lost.</p>
+   <div class="gpick"><div class="cseg gmodes" role="group" aria-label="What tapping a card does">${modes.map(([v,l])=>`<button class="${godPick===v?'on':''}" data-gmode="${v}">${l}</button>`).join('')}</div>
+     <div class="ghead">${head}</div><div class="grow">${KEYS.map(kc).join('')}</div></div>
+   ${[0,1,2,3].map(hand).join('')}
+   <div class="gsec">Draw pile <span class="gtag">${G.stock.length} left · 1 is the next draw</span></div><div class="grow">${G.stock.slice(-12).reverse().map((c,x)=>`<span class="gt">${cardHTML(c,'sm')}<i class="gnum">${x+1}</i></span>`).join('')}</div>
+   <div class="gsec">Discard pile <span class="gtag">${G.pile.length}</span></div><div class="grow">${G.pile.length?G.pile.slice(-14).map(c=>`<span class="gt">${cardHTML(c,'sm')}</span>`).join(''):'<span class="setnote">Empty</span>'}</div>
+   <h3>Powers</h3>
+   <div class="crow"><div><b>Show everyone's cards</b><span>The other hands show face up at their seats.</span></div><label class="ctog"><input type="checkbox" data-gp="reveal" ${g.reveal?'checked':''}><i></i></label></div>
+   <div class="crow"><div><b>Computer players never take the pack</b><span>They always draw from the draw pile.</span></div><label class="ctog"><input type="checkbox" data-gp="noPack" ${g.noPack?'checked':''}><i></i></label></div>
+   <div class="crow"><div><b>Computer players never go out</b><span>Only you (or nobody) can end the hand by going out.</span></div><label class="ctog"><input type="checkbox" data-gp="noOut" ${g.noOut?'checked':''}><i></i></label></div>
+   <div class="crow"><div><b>Jokers in my deal</b><span>How many jokers you're dealt every new hand.</span></div><div class="cseg">${[0,1,2,3,4].map(n=>`<button class="${(g.rigJ||0)===n?'on':''}" data-rigj="${n}">${n}</button>`).join('')}</div></div>
+   <div class="crow"><div><b>Scores</b><span>Us ${score[0]} · Them ${score[1]}</span></div><div class="mrow" style="margin:0"><button class="btn sm" id="gUs">+500 us</button><button class="btn sm" id="gThem">+500 them</button><button class="btn sm" id="gReset">Reset</button></div></div>
+   <div class="mrow"><button class="btn gold" id="gDone">Done</button></div>`}
+function bindGod(){const b=(id,fn)=>{const e=document.getElementById(id);if(e)e.onclick=fn};
+  document.querySelectorAll('[data-gmode]').forEach(e=>e.onclick=()=>{godPick=e.dataset.gmode;godRefresh()});
+  document.querySelectorAll('[data-k]').forEach(e=>e.onclick=()=>{const k=e.dataset.k;
+    if(godPick==='give')godGive(k);else if(godPick==='top')godTop(k);else{const i=+godPick.slice(4);GOD().draw[i]=k;godDone(`${i===0?'Your':NAMES[i]+"'s"} next draw: ${cname(cardOfKey(k))}`)}});
+  document.querySelectorAll('[data-thr]').forEach(e=>e.onclick=()=>{const [i,id]=e.dataset.thr.split(':').map(Number);const g=GOD();if(g.next[i]===id)delete g.next[i];else g.next[i]=id;Sound.tap();godRefresh()});
+  document.querySelectorAll('[data-gdclear]').forEach(e=>e.onclick=()=>{delete GOD().draw[+e.dataset.gdclear];godRefresh()});
+  document.querySelectorAll('[data-gp]').forEach(e=>e.onchange=()=>{GOD()[e.dataset.gp]=e.checked;godRefresh()});
+  document.querySelectorAll('[data-rigj]').forEach(e=>e.onclick=()=>{GOD().rigJ=+e.dataset.rigj;godRefresh()});
+  b('gUs',()=>{score[0]+=500;saveScores();godRefresh()});b('gThem',()=>{score[1]+=500;saveScores();godRefresh()});b('gReset',()=>{score=[0,0];saveScores();godRefresh()});
+  b('gDone',closeGod)}
+function syncGodBtn(){const e=$('#bGod');if(e)e.hidden=!godOn()}
+
 // ================= Turn actions (shared by you and the bots) =================
 function drawCard(i){
   if(!G.stock.length){endHand(null,'stock');return false}
+  godDrawNow(i);
   // drawing instead of taking the pack tells everyone you don't hold a pair of the top card
   {const tp=G.pile[G.pile.length-1];if(tp&&isNat(tp))(G.passHist=G.passHist||[[],[],[],[]])[i].push(tp.r)}
   const sr=stockRect();const c=G.stock.pop();G.hands[i].push(c);if(i===0){G.newIds=new Set([c.id]);fly(c,sr)}else fly(null,sr,{toSeat:i});Sound.flick();
@@ -619,7 +708,7 @@ function layMelds(i,groups){
 }
 // melding must leave a card to discard, and two cards unless the team can then go out; otherwise it's undone
 // computer players won't go out while their team still has an unfinished 7s or Aces meld (it costs 2,500)
-const goOutOK=i=>canGoOut(team(i))&&(i===0||!badIncomplete(team(i)))&&!(G.noOut&&G.noOut[i]);
+const goOutOK=i=>!(i!==0&&godPow('noOut'))&&canGoOut(team(i))&&(i===0||!badIncomplete(team(i)))&&!(G.noOut&&G.noOut[i]);
 function keepRule(i,undo){const t=team(i),n=G.hands[i].length;
   if(n<1||(n<2&&!goOutOK(i))){undo();return n<1?'Keep a card to discard':'Keep at least two cards unless you can go out'}return ''}
 // the turn your team opens, everything you meld until you discard counts as part of the initial meld
@@ -724,7 +813,8 @@ function botTurn(i){
   let took=false;
   if(G.pile.length){
     const tp=G.pile[G.pile.length-1],pc=tp?G.pile.filter(c=>c.r===tp.r).length:0,risky=tp&&riskyStart(i,tp.r,pc+h.filter(c=>c.r===tp.r).length,pc);
-    if(G.opened[t]){const o=packOption(i);if(o.how&&G.pile.length>=2&&!risky){took=!takePack(i,[])}}
+    if(godPow('noPack')){}
+    else if(G.opened[t]){const o=packOption(i);if(o.how&&G.pile.length>=2&&!risky){took=!takePack(i,[])}}
     else{const op=findOpening(i,0);if(op){const used=op.flatMap(m=>m.cards.map(c=>c.id));const o=packOption(i,used,op);if(o.how&&!takePack(i,op))took=true}}
   }
   if(!took){if(!G.stock.length){if(G.pile.length){const o=packOption(i);if(o.how&&G.opened[t]&&!takePack(i,[])){took=true}}if(!took){endHand(null,'stock');return}}
@@ -733,7 +823,7 @@ function botTurn(i){
   if(!G.opened[t]){const sp=specialHand(G.hands[i]);if(sp){endHand(null,'special',{...sp,t,seat:i});return}}
   if(!G.opened[t]){const op=findOpening(i,G.stock.length>8?1:2);if(op&&!layMelds(i,op)){}}
   const finish=()=>{
-    if(G.opened[t]&&canGoOut(t)&&!(G.noOut&&G.noOut[i])&&canFinish(i)){const n0=G.hands[i].length;meldOut(i);if(G.hands[i].length<n0)log(`${NAMES[i]} melded ${n0-G.hands[i].length} cards to go out.`)}
+    if(G.opened[t]&&canGoOut(t)&&!godPow('noOut')&&!(G.noOut&&G.noOut[i])&&canFinish(i)){const n0=G.hands[i].length;meldOut(i);if(G.hands[i].length<n0)log(`${NAMES[i]} melded ${n0-G.hands[i].length} cards to go out.`)}
     else if(G.opened[t])botMeld(i);
     render();later(()=>botDiscard(i),SPEED*.6)};
   if(i===2&&G.opened[t]&&!G.asked[2]&&canFinish(2)&&partnerShouldAsk()){G.asked[2]=true;askYou(finish);return}
@@ -768,6 +858,7 @@ function botDiscard(i){
   if(G.over||G.turn!==i)return;const t=team(i),h=G.hands[i],opp=1-t;
   if(!h.length){endHand(i,'out');return}
   if(h.length===1&&canGoOut(t)){discardCard(i,h[0].id);return}   // only reachable when going out is allowed
+  if(godOn()&&GODSTATE.next[i]!=null){const id=GODSTATE.next[i];delete GODSTATE.next[i];if(h.some(c=>c.id===id)&&!discardCard(i,id))return}
   const cands=rankDiscards(i);
   for(const c of cands){if(!discardCard(i,c.id))return}
   // nothing legal (a rare corner): throw the lowest card anyway so the game can't stall
@@ -1043,7 +1134,7 @@ function render(){
   $('#scores').innerHTML=`<span class="chip">Us <b>${score[0]}</b></span><span class="chip">Them <b>${score[1]}</b></span>`;
   if(!G){return}
   for(const s of [1,2,3]){const e=$('#s'+s);e.className='seat'+(G.turn===s&&!G.over?' turn':'');
-    e.innerHTML=`<div><div class="nm">${NAMES[s]}</div><div class="info">${s===2?'<span class="pt">Your partner · </span>':''}${G.hands[s].length} cards${G.talon[s].length?' + '+G.talon[s].length+' bonus':''}</div></div>${backs(G.hands[s].length,s!==2)}`}
+    e.innerHTML=`<div><div class="nm">${NAMES[s]}</div><div class="info">${s===2?'<span class="pt">Your partner · </span>':''}${G.hands[s].length} cards${G.talon[s].length?' + '+G.talon[s].length+' bonus':''}</div></div>${godPow('reveal')?`<div class="reveal">${G.hands[s].map(c=>cardHTML(c,'sm')).join('')}</div>`:backs(G.hands[s].length,s!==2)}`}
   $('#themZone').innerHTML=zoneHTML(1);$('#usZone').innerHTML=zoneHTML(0);
   const top=G.pile[G.pile.length-1];
   let st,sub='';
@@ -1155,7 +1246,13 @@ function showRules(){
     ${tog('lastThree','A 3 as the last card ends the hand','Drawing a 3 as the very last card ends the hand at once (it counts 5 against).')}
     ${tog('sevensAces','Special 7s and Aces rules','On: 7s never take wild cards, Aces take them only in the first meld, natural Aces or 7s canastas score 2,500, an unfinished 7s meld or an unfinished Aces meld with no wild cards costs 2,500 (an Aces meld with a wild card is an ordinary mixed meld: no penalty), and holding three or more 7s or Aces at the end costs 1,500. Off: 7s and Aces play like any other rank.')}
     ${tog('barGoOut','No going out with an unfinished 7s or Aces meld','Your team can\'t go out while it has a 7s meld or an Aces meld with no wild cards under seven cards.')}
+    <h3>Party mode</h3>
+    ${godOn()?`<div class="crow"><div><b>Canasta Admin is on</b><span>Control who gets what, the draw pile, the discard pile and the computer players. It turns itself off when the page reloads.</span></div><div class="mrow" style="margin:0"><button class="btn gold sm" id="gOpen">Open</button><button class="btn sm" id="gOff">Turn off</button></div></div>`
+      :`<div class="crow"><div><b>Party mode</b><span>Got a code? Enter it here.</span></div><div class="pcode"><input id="pcode" type="password" inputmode="numeric" maxlength="8" placeholder="Code" autocomplete="off" aria-label="Party mode code"><button class="btn sm" id="pgo">Enter</button></div></div>`}
     <div class="mrow"><button class="btn gold" id="mDone">Done</button></div></div></div>`;
+  {const pgo=()=>{const i=$('#pcode');if(!i)return;if(pHash(i.value.trim())===PARTY_HASH){GOD().on=true;syncGodBtn();Sound.good();closeModal();toast('Canasta Admin unlocked');showGod()}else{i.value='';i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake')}};
+   const pg=$('#pgo');if(pg){pg.onclick=pgo;$('#pcode').onkeydown=e=>{if(e.key==='Enter')pgo()}}
+   const go=$('#gOpen');if(go)go.onclick=()=>{closeModal();showGod()};const gf=$('#gOff');if(gf)gf.onclick=()=>{GODSTATE=null;syncGodBtn();closeModal();render();toast('Party mode is off')}}
   const save=(k,v)=>{settings.canastaRules={...CR_DEF,...(settings.canastaRules||{}),[k]:v};
     try{const st=JSON.parse(localStorage.getItem('amj_settings'))||{};st.canastaRules=settings.canastaRules;localStorage.setItem('amj_settings',JSON.stringify(st))}catch(e){}};
   document.querySelectorAll('[data-cr]').forEach(b=>b.onclick=()=>{const k=b.dataset.cr,raw=b.dataset.v;save(k,/^\d+$/.test(raw)?+raw:raw);
@@ -1171,7 +1268,7 @@ function showRules(){
     document.querySelectorAll('[data-speed]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
   $('#mDone').onclick=closeModal;$('#mDone').focus();
 }
-$('#bSet').onclick=showRules;
+$('#bSet').onclick=showRules;$('#bGod').onclick=showGod;
 $('#bNew').onclick=()=>{
   $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>Start a new game?</h2><p>Both scores go back to 0 and a fresh hand is dealt.</p>
     <div class="mrow"><button class="btn gold" id="mYes">New game</button><button class="btn" id="mNo">Keep playing</button></div></div></div>`;
