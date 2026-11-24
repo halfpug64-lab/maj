@@ -1435,7 +1435,7 @@ body.table-view .seat-top .plate{flex-wrap:nowrap}body.table-view .plate .pname{
   <div class="splash-tag">NEW YORK EDITION</div>
   <div class="gamepick" role="radiogroup" aria-label="Game">
     <button role="radio" data-game="american" aria-checked="true">American Mah Jongg<small>2026 card</small></button>
-    <button role="radio" data-game="hk" aria-checked="false"><span>Chinese Mahjong <i class="beta">Beta</i></span><small>Hong Kong rules</small></button>
+    <button role="radio" data-game="hk" aria-checked="false"><span>Chinese Mahjong</span><small>Hong Kong rules</small></button>
     <button role="radio" data-game="canasta" aria-checked="false"><span>American Canasta <i class="beta">Alpha</i></span><small>Modern rules</small></button>
   </div>
   <div class="splash-tabs" role="tablist" aria-label="Game mode"><button role="tab" id="tabSolo" class="on" aria-selected="true" aria-controls="splashSolo">Solo</button><button role="tab" id="tabMP" aria-selected="false" aria-controls="splashMP">Multiplayer</button></div>
@@ -2381,7 +2381,7 @@ function resolveCalls(i,t){
   finishCalls(cs);
 }
 function answerCall(seat,c){             // 'mj', 'pass', 'build' or a group size
-  if(GAME==='hk'){if(seat===0)hkAnswer(c);return}
+  if(GAME==='hk'){hkAnswerSeat(seat,c);return}
   const cs=callState;if(!cs||!cs.offers[seat]||seat in cs.choices)return;const o=cs.offers[seat];
   if(c==='mj'&&!o.mj)return;if(typeof c==='number'&&!o.exp.includes(c))return;if(c==='build'&&(seat!==0||MP()||!o.exp.length))return;
   if(c!=='mj'&&c!=='pass'&&c!=='build'&&typeof c!=='number')return;
@@ -2503,7 +2503,8 @@ function actMJ(seat){const p=players[seat];const w=isWin(p.hand,p.exp);if(!w)ret
   else if(phase==='charleston'&&seat===dealer)win(seat,w,null)}
 function hostAct(seat,m){
   switch(m.a){case 'pass':submitPass(seat,Array.isArray(m.ids)?m.ids.map(Number):[]);break;case 'vote':voteCharleston(seat,!!m.go);break;
-    case 'call':answerCall(seat,m.c);break;case 'discard':actDiscard(seat,+m.id);break;case 'swap':actSwap(seat,+m.id);break;case 'mj':actMJ(seat);break}
+    case 'call':answerCall(seat,m.c);break;case 'discard':actDiscard(seat,+m.id);break;case 'swap':actSwap(seat,+m.id);break;case 'mj':actMJ(seat);break;
+    case 'hkwin':if(GAME==='hk')hkActWin(seat);break;case 'hkkong':if(GAME==='hk')hkActKong(seat,String(m.k),String(m.kind));break}
 }
 
 // ================= Hand coach =================
@@ -3411,8 +3412,10 @@ function viewFor(s){
   return {t:'state',players:[0,1,2,3].map(v=>{const a=A(v),q=players[a];return{hand:(a===s||over)?q.hand:q.hand.map(()=>0),exp:q.exp}}),
     wallN:wall.length,discards,phase,turn:R(turn),step,passIdx,dealer:R(dealer),
     dead:[0,1,2,3].map(v=>dead[A(v)]),scores:[0,1,2,3].map(v=>scores[A(v)]),
-    call:cs?{i:R(cs.i),t:cs.t,o:(cs.offers[s]&&!(s in cs.choices))?cs.offers[s]:null,ms:cs.deadline?Math.max(0,cs.deadline-Date.now()):0,
-      waiting:Object.keys(cs.offers).map(Number).filter(x=>!(x in cs.choices)).map(R)}:null,
+    call:cs?{i:R(cs.i),t:cs.t,o:(cs.offers&&cs.offers[s]&&!(s in cs.choices))?cs.offers[s]:null,ms:cs.deadline?Math.max(0,cs.deadline-Date.now()):0,
+      waiting:Object.keys(cs.offers||{}).map(Number).filter(x=>!(x in cs.choices)).map(R),hk:!!cs.hk,rob:cs.rob?{j:R(cs.rob.j)}:null}:null,
+    hk:GAME==='hk'?{wind:hkWind,rot:hkRot,last:hkLast,first:hkFirst,keep:hkKeep,over:hkMatchOver,rules:hkR(),flowers:[0,1,2,3].map(v=>players[A(v)].flowers||[]),
+      hist:hkHistory.map(h=>({...h,winner:h.winner==null?null:R(h.winner),from:h.from==null?null:R(h.from),pay:[0,1,2,3].map(v=>h.pay[A(v)]),total:[0,1,2,3].map(v=>h.total[A(v)]),east:R(h.east)}))}:null,
     chStop:chStop<0?-1:R(chStop),waiting:chWaiting().map(R),host:R(0),
     seats:[0,1,2,3].map(v=>{const a=A(v);return{name:SEATNAME[a],abs:a,human:HUMAN[a],tag:seatTag(a)}}),
     rules:{house:RM().house,hr:RM().hr,hints:RM().hints,proceed:RM().proceed,diff:RM().diff,botSpeed:RM().botSpeed}};
@@ -3428,7 +3431,7 @@ function refreshNames(){NAMES=['You',...SEATNAME.slice(1)];AV=[0,1,2,3].map(a=>a
 
 // ---- hosting ----
 async function createRoom(px){
-  if(GAME!=='american'){setGame('american');toast('Multiplayer rooms play American Mah Jongg')}
+  if(GAME==='canasta'){setGame('american');toast('Rooms play American or Chinese mahjong')}
   mpMsg(px,'Creating your room…');
   try{await loadPeerLib()}catch(e){mpMsg(px,"Couldn't load the multiplayer file (vendor/peerjs.min.js). Refresh the page and try again.",true);return}
   const code=genCode();let peer;
@@ -3457,7 +3460,7 @@ function hostHello(c,m){
     if(room.started){netTo(c,{t:'full',why:'started'});return}
     seat=[2,1,3].find(x=>!room.seats[x]);if(seat==null){netTo(c,{t:'full',why:'full'});return}}
   room.seats[seat]={name,cid:c.cid};c.seat=seat;c.live=true;
-  netTo(c,{t:'welcome',seat,code:room.code,card:currentCardText()});
+  netTo(c,{t:'welcome',seat,code:room.code,card:currentCardText(),game:GAME});
   if(room.started){const back=!HUMAN[seat];HUMAN[seat]=true;SEATNAME[seat]=name;refreshNames();
     if(back)toastAll(v=>v===seat?'Welcome back':`${nameV(seat,v)} is back`);render()}
   lobbyChanged();
@@ -3479,7 +3482,7 @@ function hostDrop(c){
 function lobbyChanged(){
   if(NET.mode!=='host'||!room)return;
   const seats=room.seats.map(x=>x?{name:x.name}:null);
-  const rr=RM();netBroadcast({t:'lobby',seats,started:room.started,rules:{house:rr.house,hr:rr.hr,hints:rr.hints,proceed:rr.proceed,diff:rr.diff,botSpeed:rr.botSpeed}});
+  const rr=RM();netBroadcast({t:'lobby',seats,started:room.started,game:GAME,rules:{house:rr.house,hr:rr.hr,hints:rr.hints,proceed:rr.proceed,diff:rr.diff,botSpeed:rr.botSpeed,hk:GAME==='hk'?hkR():null}});
   if($('#lobby'))showLobby();
 }
 function startRoomGame(){
@@ -3496,7 +3499,6 @@ function startRoomGame(){
 
 // ---- joining ----
 async function joinRoom(px,code){
-  if(GAME!=='american'){setGame('american');toast('Multiplayer rooms play American Mah Jongg')}
   code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(code.length<4){mpMsg(px,'Type the room code your friend gave you.',true);return}
   mpMsg(px,'Joining…');
@@ -3520,15 +3522,17 @@ async function joinRoom(px,code){
 function clientRecv(px,m){
   if(!m||typeof m!=='object')return;
   switch(m.t){
-    case 'welcome':NET.mode='client';NET.joined=true;NET.seat=m.seat;NET.lastHost=Date.now();room={code:m.code,seats:null};NET.lost=false;
+    case 'welcome':if(m.game&&m.game!==GAME&&(m.game==='hk'||m.game==='american'))setGame(m.game);NET.mode='client';NET.joined=true;NET.seat=m.seat;NET.lastHost=Date.now();room={code:m.code,seats:null};NET.lost=false;
       useCardText(m.card);document.body.classList.add('in-room','mp-client');startHeartbeat();$('#splash').classList.add('hide');
       if(phase==='idle')showLobby();else{closeModal();toast('Reconnected')}break;
     case 'full':mpMsg(px,m.why==='started'?'That game has already started.':'That room is full.',true);try{NET.peer.destroy()}catch(e){}break;
-    case 'lobby':if(room){room.seats=m.seats;room.started=m.started;if(m.rules)NET.rules=m.rules;if($('#lobby'))showLobby()}break;
+    case 'lobby':if(room){room.seats=m.seats;room.started=m.started;if(m.rules){NET.rules=m.rules;if(m.rules.hk)NET.hkRules=m.rules.hk}if(m.game&&m.game!==GAME&&(m.game==='hk'||m.game==='american'))setGame(m.game);if($('#lobby'))showLobby()}break;
     case 'state':applyState(m);break;
     case 'toast':toast(esc(m.m),m.kind||'');break;
     case 'result':clientResult(m);break;
-    case 'modal':if(m.kind==='wall')openModal(`<h2>Wall game</h2><p>The last tile is gone and nobody made Mah Jongg. ${m.wp?'<b>House rule:</b> every live hand gets 10 points.':'No points change hands.'}</p><div class="mrow"><span class="waitnote">Waiting for ${esc(NAMES[NET.hostView]||'the host')} to deal</span><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
+    case 'hkresult':if(m.j===0){Sound.fanfare();confetti();toast('Mah Jongg!','big')}else{Sound.sad();toast(`${esc(NAMES[m.j])}: Mah Jongg`)}hkShowResult(m.j,m.from,m.r,m.pts,m.pay,m.note);break;
+    case 'modal':if(m.kind==='hkdraw')openModal(`<h2>Drawn hand</h2><p>The wall ran out before anyone won, so no points change hands. ${hkEastNote()}</p>${hkMatchHTML()}<div class="mrow"><span class="waitnote">Waiting for ${esc(NAMES[NET.hostView]||'the host')} to deal</span><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
+      else if(m.kind==='wall')openModal(`<h2>Wall game</h2><p>The last tile is gone and nobody made Mah Jongg. ${m.wp?'<b>House rule:</b> every live hand gets 10 points.':'No points change hands.'}</p><div class="mrow"><span class="waitnote">Waiting for ${esc(NAMES[NET.hostView]||'the host')} to deal</span><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
       else openModal(`<h2>No winner</h2><p>Three hands are dead, so the hand ends. No points change hands.</p><div class="mrow"><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
       Sound.sad();break;
     case 'bye':NET.leaving=true;openModal(`<h2>The room closed</h2><p>${esc(NAMES[NET.hostView]||'The host')} left, so the game is over.</p><div class="mrow"><button class="btn btn-gold" onclick="leaveRoom()">Back to solo</button></div>`);break;
@@ -3543,7 +3547,9 @@ function applyState(m){
   mine.sort((a,b)=>rank(a)-rank(b));                // your own arrangement of your rack stays put
   wall=new Array(m.wallN);discards=m.discards;phase=m.phase;turn=m.turn;step=m.step;passIdx=m.passIdx;dealer=m.dealer;dead=m.dead;scores=m.scores;
   chStop=m.chStop;NET.waiting=m.waiting;NET.rules=m.rules;NET.hostView=m.host;
-  callState=m.call?{i:m.call.i,t:m.call.t,o:m.call.o,deadline:m.call.ms?Date.now()+m.call.ms:0,waiting:m.call.waiting}:null;
+  callState=m.call?{i:m.call.i,t:m.call.t,o:m.call.o,deadline:m.call.ms?Date.now()+m.call.ms:0,waiting:m.call.waiting,hk:m.call.hk,rob:m.call.rob}:null;
+  if(m.hk){hkWind=m.hk.wind;hkRot=m.hk.rot;hkLast=m.hk.last||{};hkFirst=m.hk.first;hkKeep=m.hk.keep;hkMatchOver=m.hk.over;NET.hkRules=m.hk.rules;hkApplyRules();
+    players.forEach((q,v)=>q.flowers=m.hk.flowers[v]||[]);hkHistory=m.hk.hist||[]}
   NAMES=m.seats.map((x,v)=>v===0?'You':cleanName(x.name));NET.humanV=m.seats.map(x=>x.human);NET.tags=m.seats.map(x=>esc(x.tag||''));
   AV=m.seats.map(x=>avatarFor({...x,name:cleanName(x.name)}));
   const ids=mine.map(t=>t.id);
@@ -3613,6 +3619,9 @@ function openMultiplayer(){
 }
 function roomSummaryHTML(r){
   if(!r)return '';
+  if(GAME==='hk'){const h={...HK_DEF,...(r.hk||{})};   // Chinese mahjong rooms: the Hong Kong rules in play
+    return `<ul class="rulechips" aria-label="Room rules"><li>Chinese mahjong · Hong Kong rules</li><li>${h.minFaan} faan to win · cap ${h.cap}</li><li>${h.scoring==='old'?'Old Style scoring':h.table==='full'?'Full spicy':'Half spicy'}</li>
+      <li>${LEVELS[r.diff??1]} bots · ${(SPEED_NAMES[r.botSpeed]||'Default').toLowerCase()} speed</li>${h.bonusWin?'<li>7 or 8 flowers win</li>':''}${h.penalties?'<li>Penalty payments</li>':''}</ul>`}
   const hr=r.house?HR.filter(([k])=>r.hr&&r.hr[k]).map(([,l])=>l):[];
   return `<ul class="rulechips" aria-label="Room rules"><li>Suggested hands ${r.hints?'on':'off'}</li><li>${r.proceed?'Everyone taps Proceed':'Moves on automatically'}</li>
     <li>${LEVELS[r.diff??1]} bots · ${(SPEED_NAMES[r.botSpeed]||'Default').toLowerCase()} speed</li><li>${hr.length?`House rules: ${hr.length}`:'Standard rules'}</li></ul>`;
@@ -3634,7 +3643,7 @@ function showLobby(){
       <div class="mpjoin"><input id="lkInput" readonly value="${esc(inviteLink(room.code))}" aria-label="Invite link"><button class="btn btn-ghost" id="lkCopy">Copy link</button></div>`:''}
     <ul class="lobbyseats">${rows}</ul>
     ${host&&!started?`<p class="setnote">${nHuman<2?'Waiting for at least one friend to join.':`${nHuman} people are in. ${4-nHuman?`${4-nHuman} bot${4-nHuman>1?'s':''} will fill the empty seat${4-nHuman>1?'s':''}.`:'The table is full.'}`}</p>`:''}
-    ${roomSummaryHTML(host?RM():(NET.rules||null))}
+    ${roomSummaryHTML(host?{...RM(),hk:GAME==='hk'?hkR():null}:(NET.rules||null))}
     ${!host&&!started?`<p class="setnote"><span class="spin"></span> Waiting for ${esc((seats&&seats[0]&&seats[0].name)||'the host')} to start the game.</p>`:''}
     ${started?'<p class="setnote">The game is on. Close this to get back to the table.</p>':''}
     <div class="mrow">${host&&!started?`<button class="btn btn-gold" id="lbStart" ${nHuman<2?'disabled':''}>Start game</button>`:''}
@@ -3642,7 +3651,7 @@ function showLobby(){
       ${started?'<button class="btn btn-gold" onclick="closeModal()">Back to the table</button>':''}
       <button class="btn btn-ghost" id="lbLeave">${host?'Close room':'Leave room'}</button></div></div>`);
   const st=$('#lbStart');if(st)st.onclick=startRoomGame;
-  $('#lbRules').onclick=()=>{settingsFromLobby=true;showRoomSettings()};
+  $('#lbRules').onclick=()=>{settingsFromLobby=true;if(GAME==='hk'&&host)showSettings('game');else showRoomSettings()};
   $('#lbLeave').onclick=()=>askConfirm({title:host?'Close the room?':'Leave the room?',body:host?'Everyone in the room is sent back to their own solo game.':'You go back to your solo game. A bot plays your seat.',yes:host?'Close room':'Leave room',onYes:leaveRoom});
   const cp=$('#lkCopy');if(cp)cp.onclick=()=>{const i=$('#lkInput');const done=()=>{cp.textContent='Copied'};
     try{navigator.clipboard.writeText(i.value).then(done,()=>{i.select()})}catch(e){i.select()}};
@@ -3675,7 +3684,7 @@ $('#btnFull').onclick=()=>{try{document.fullscreenElement?document.exitFullscree
 // Home: solo games pause behind the home screen and Resume picks up right where you were.
 // ---- choosing a game on the home screen ----
 const GAMES={american:{title:'American Mah Jongg',sub:'Play your 2026 card against three computer players.'},
-  hk:{title:'Chinese Mahjong',beta:'Beta',tag:'HONG KONG OLD STYLE',sub:'Hong Kong rules against three computer players. You need 3 faan to win (you can change that in Settings).'},
+  hk:{title:'Chinese Mahjong',beta:'',tag:'HONG KONG MAHJONG',sub:'Hong Kong rules against three computer players, or with friends in a room. You need 3 faan to win (you can change that in Settings).'},
   canasta:{title:'American Canasta',beta:'Alpha',tag:'MODERN AMERICAN RULES',sub:'You and a partner against two computer players, using the Canasta League of America rules. First team to 8,500 wins.'}};
 function canastaSaved(){try{const g=JSON.parse(localStorage.getItem('amj_canasta_hand'));return g&&Array.isArray(g.hands)&&!g.over?g:null}catch(e){return null}}
 const gameSaved=()=>GAME==='hk'?hkSavedGame():GAME==='canasta'?canastaSaved():savedGame();
@@ -3690,7 +3699,7 @@ function applyGameLabels(){
   const sb=document.querySelector('#splashSolo .splash-sub');if(sb)sb.textContent=g.sub;
   if(g.tag)document.querySelectorAll('.brand small,.splash-tag').forEach(e=>e.textContent=g.tag);
   document.querySelectorAll('[data-game]').forEach(b=>{const o=b.dataset.game===GAME;b.classList.toggle('on',o);b.setAttribute('aria-checked',o)});
-  const mp=document.getElementById('tabMP');if(mp){mp.hidden=GAME!=='american';if(GAME!=='american'&&mp.classList.contains('on'))document.getElementById('tabSolo').click()}
+  const mp=document.getElementById('tabMP');if(mp){mp.hidden=GAME==='canasta';if(GAME==='canasta'&&mp.classList.contains('on'))document.getElementById('tabSolo').click()}
   document.body.classList.toggle('game-hk',GAME==='hk');
   const cl=document.querySelector('#btnCard .lbl');if(cl)cl.textContent=GAME==='hk'?'Scoring':'The Card';
   const hb=document.getElementById('bHandsCard');if(hb)hb.textContent=GAME==='hk'?'Scoring':'The Card';

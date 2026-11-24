@@ -16,7 +16,7 @@ const HK_KINDS=[...['B','C','D'].flatMap(s=>[1,2,3,4,5,6,7,8,9].map(n=>s+n)),'E'
 const HKI=Object.fromEntries(HK_KINDS.map((k,i)=>[k,i]));
 // Table rules (Settings > Chinese mahjong rules). Every faan counts toward the minimum, flowers included (New Style).
 const HK_DEF={minFaan:3,cap:10,table:'half',discPay:'all',repeat:'always',sevenPairs:false,noLastCalls:false,chowOffer:'useful',callTimer:0,scoring:'new',bonusWin:false,penalties:false,pureGreen:false,selfTriplets:'limit'};
-function hkR(){return {...HK_DEF,...((typeof settings!=='undefined'&&settings&&settings.hkRules)||{})}}
+function hkR(){if(typeof NET!=='undefined'&&NET.mode==='client'&&NET.hkRules)return {...HK_DEF,...NET.hkRules};return {...HK_DEF,...((typeof settings!=='undefined'&&settings&&settings.hkRules)||{})}}
 let HK_MIN=3,HK_MAX=10;
 function hkApplyRules(){const r=hkR();HK_MIN=+r.minFaan;HK_MAX=+r.cap}
 const HK_HALF=[1,2,4,8,16,24,32,48,64,96,128,192,256,384];   // half spicy, 0 to 13 faan
@@ -214,7 +214,7 @@ function hkDeal(){hkShortWarned=false;
   later(()=>toast(dealer===0?"You're East":`${NAMES[dealer]} is East · you're ${windOf(0)}`),700);
   // a deal with 7 or more flowers and seasons wins at once (house rule)
   for(let x=0;x<4;x++){const q=(dealer+x)%4;if(hkBonusCheck(q))return}
-  if(dealer!==0)later(()=>hkBotAct(dealer),SPEED+600);
+  if(!HUMAN[dealer])later(()=>hkBotAct(dealer),SPEED+600);
 }
 function hkStartTurn(i){
   if(phase!=='play')return;
@@ -224,8 +224,9 @@ function hkStartTurn(i){
   while(t&&t.k==='F'){p.flowers.push(t);log(`${NAMES[i]} drew ${hkFlowerName(t)} and takes a replacement.`);if(i===0)toast(HK_FLOWER[t.v]||HK_SEASON[t.v-4]);
     if(hkBonusCheck(i))return;
     if(!wall.length){hkDrawGame();return}t=wall.shift()}
-  p.hand.push(t);if(i!==0)sortHand(p.hand);turn=i;step='discard';hkLast={self:true,rep:0};
+  p.hand.push(t);if(!HUMAN[i])sortHand(p.hand);turn=i;step='discard';hkLast={self:true,rep:0};
   if(i===0){newIds=new Set([t.id]);selected=null;log(`You drew ${tname(t.k)}.`);queueFly(t,rectOf('#wallStack'),0,460);render();Sound.tap()}
+  else if(HUMAN[i])render();   // another person's turn: wait for their move
   else{render();later(()=>hkBotAct(i),SPEED)}
 }
 // house rule: collect 7 flowers and seasons and you win at once (3 faan); all 8 is a limit win
@@ -238,7 +239,7 @@ function hkReplacement(i){
     if(!wall.length){hkDrawGame();return false}
     const t=wall.shift();
     if(t.k==='F'){p.flowers.push(t);log(`${NAMES[i]} set aside ${hkFlowerName(t)}.`);if(hkBonusCheck(i))return false;continue}
-    p.hand.push(t);if(i!==0)sortHand(p.hand);else newIds=new Set([t.id]);hkLast={self:true,rep:chain};return true;
+    p.hand.push(t);if(!HUMAN[i])sortHand(p.hand);if(i===0)newIds=new Set([t.id]);hkLast={self:true,rep:chain};return true;
   }
   return false;
 }
@@ -257,7 +258,7 @@ function hkDoKong(i,o){
   if(o.kind==='conc'){
     const tiles=p.hand.filter(t=>t.k===o.k).slice(0,4);tiles.forEach(t=>p.hand.splice(p.hand.indexOf(t),1));
     p.exp.push({type:'kong',k:o.k,tiles,n:4,conc:true});
-    log(`${NAMES[i]} declared a concealed kong.`);toast(`${nameV(i,0)}: Kong!`);Sound.chime();
+    log(`${NAMES[i]} declared a concealed kong.`);toastAll(v=>`${nameV(i,v)}: Kong!`);Sound.chime();
     hkFirst=false;if(hkReplacement(i))hkAfterDraw(i);return;
   }
   const t=p.hand.find(x=>x.k===o.k);if(!t)return;
@@ -266,7 +267,8 @@ function hkDoKong(i,o){
   for(const j of order){
     const r=hkEval(j,[...players[j].hand,t],{rob:true,win:HKI[t.k],last:!wall.length});
     if(!r||!hkEnough(r))continue;
-    if(j===0){callState={hk:true,rob:{j:i,tid:t.id},i,t,o:{win:r.faan,pung:false,kong:false,chows:[]}};render();return}
+    if(HUMAN[j]){const o={win:r.faan,pung:false,kong:false,chows:[]};const cs={hk:true,rob:{j:i,tid:t.id,who:j},i,t,offers:{[j]:o},choices:{},o:j===0?o:null};callState=cs;render();
+      if(MP()){cs.deadline=Date.now()+CALL_MS;later(()=>{if(callState===cs)hkAnswerSeat(j,'pass')},CALL_MS)}return}
     if(!godPow('noWin')){p.hand.splice(p.hand.indexOf(t),1);players[j].hand.push(t);log(`${NAMES[j]} robbed ${NAMES[i]}'s kong!`);hkWin(j,i,{rob:true,win:HKI[t.k],last:!wall.length});return}
   }
   hkFinishAddKong(i,t);
@@ -274,10 +276,10 @@ function hkDoKong(i,o){
 function hkFinishAddKong(i,t){
   const p=players[i];const e=p.exp.find(x=>x.type==='pung'&&x.k===t.k);if(!e)return;
   p.hand.splice(p.hand.indexOf(t),1);e.tiles.push(t);e.type='kong';e.n=4;
-  log(`${NAMES[i]} added a fourth ${tname(t.k)} to make a kong.`);toast(`${nameV(i,0)}: Kong!`);Sound.chime();
+  log(`${NAMES[i]} added a fourth ${tname(t.k)} to make a kong.`);toastAll(v=>`${nameV(i,v)}: Kong!`);Sound.chime();
   hkFirst=false;if(hkReplacement(i))hkAfterDraw(i);
 }
-function hkAfterDraw(i){if(phase!=='play')return;render();if(i!==0)later(()=>hkBotAct(i),SPEED)}
+function hkAfterDraw(i){if(phase!=='play')return;render();if(!HUMAN[i])later(()=>hkBotAct(i),SPEED)}
 
 // ---- computer players ----
 function hkPlan(i){
@@ -305,7 +307,7 @@ function hkChooseDiscard(i){
   return p.hand.find(t=>t.k===HK_KINDS[best])||p.hand[0];
 }
 function hkBotAct(i){
-  if(phase!=='play'||turn!==i||step!=='discard'||callState||i===0)return;
+  if(phase!=='play'||turn!==i||step!=='discard'||callState||HUMAN[i])return;
   const p=players[i];
   if(!godPow('noWin')){const w=hkSelfWin(i);if(w){hkWin(i,null,hkCtxSelf(i));return}}
   for(const o of hkKongOptions(i)){if(o.kind==='add'||botLevel(i)>0||Math.random()<.5){hkDoKong(i,o);return}}
@@ -338,44 +340,53 @@ function hkResolve(i,t){
   const order=[1,2,3].map(d=>(i+d)%4),pos=j=>order.indexOf(j);
   const ctxFor=j=>({win:HKI[t.k],last:!wall.length,earth:hkFirst&&i===dealer&&discards.length===1&&j!==dealer});
   let botWin=null,botPung=null,botChow=null;const noCalls=hkR().noLastCalls&&!wall.length;
-  if(!godPow('noWin'))for(const j of order){if(j===0)continue;const r=hkEval(j,[...players[j].hand,t],ctxFor(j));if(r&&hkEnough(r)){botWin={j};break}}
-  if(!noCalls)for(const j of order){if(j===0)continue;const cl=hkBotClaim(j,t,i);if(!cl)continue;
+  if(!godPow('noWin'))for(const j of order){if(HUMAN[j])continue;const r=hkEval(j,[...players[j].hand,t],ctxFor(j));if(r&&hkEnough(r)){botWin={j};break}}
+  if(!noCalls)for(const j of order){if(HUMAN[j])continue;const cl=hkBotClaim(j,t,i);if(!cl)continue;
     if(cl.t==='chow'){if(!botChow)botChow={j,s:cl.s}}else if(!botPung)botPung={j,t:cl.t}}
-  let o=null;
-  if(i!==0){const p=players[0],c=hkCounts(p.hand),x=HKI[t.k];const r=hkEval(0,[...p.hand,t],ctxFor(0));
-    o={win:r&&hkEnough(r)&&!(botWin&&pos(botWin.j)<pos(0))?r.faan:0,
+  const offers={};
+  for(const j of order){if(!HUMAN[j])continue;const p=players[j],c=hkCounts(p.hand),x=HKI[t.k];const r=hkEval(j,[...p.hand,t],ctxFor(j));
+    const o={win:r&&hkEnough(r)&&!(botWin&&pos(botWin.j)<pos(j))?r.faan:0,
        winShort:r&&!hkEnough(r)?r.faan:null,
        pung:c[x]>=2&&!botWin&&!noCalls,kong:c[x]>=3&&!botWin&&wall.length>0&&!noCalls,
-       chows:(0===(i+1)%4&&!botWin&&!botPung&&!noCalls&&hkR().chowOffer!=='never')?hkChowSets(c,x).filter(s=>{if(hkR().chowOffer==='all')return true;
+       chows:(j===(i+1)%4&&!botWin&&!botPung&&!noCalls&&hkR().chowOffer!=='never')?hkChowSets(c,x).filter(s=>{if(hkR().chowOffer==='all')return true;
          // helpful: it brings you closer to a ready hand
          const m=p.exp.length,sh=hkShanten(c,m);s.forEach(y=>c[y]--);const a=hkShanten(c,m+1);s.forEach(y=>c[y]++);return a<sh}):[]};
-    if(!o.win&&o.winShort!=null&&!botWin&&!hkShortWarned){hkShortWarned=true;toast(`That ${tname(t.k)} would finish your hand, but only for ${o.winShort} faan (you need ${HK_MIN})`)}
-    if(!o.win&&!o.pung&&!o.kong&&!o.chows.length)o=null}
-  const cs={hk:true,i,t,o,botWin,botPung,botChow};
-  if(o){callState=cs;if(o.win||o.pung||o.kong||o.chows.length)Sound.chime();render();hkStartCallTimer(cs);return}
-  hkFinish(cs,null);
+    if(j===0&&!o.win&&o.winShort!=null&&!botWin&&!hkShortWarned){hkShortWarned=true;toast(`That ${tname(t.k)} would finish your hand, but only for ${o.winShort} faan (you need ${HK_MIN})`)}
+    if(o.win||o.pung||o.kong||o.chows.length)offers[j]=o}
+  const cs={hk:true,i,t,order,offers,choices:{},o:offers[0]||null,botWin,botPung,botChow};
+  if(Object.keys(offers).length){callState=cs;if(cs.o)Sound.chime();render();
+    // rooms: everyone gets the same time to answer; solo: the optional call timer
+    if(MP()){cs.deadline=Date.now()+CALL_MS;cs.tok=++callTok;later(()=>{if(callState===cs){for(const x in cs.offers)if(!(x in cs.choices))cs.choices[x]='pass';hkFinish(cs)}},CALL_MS)}
+    else hkStartCallTimer(cs);
+    return}
+  hkFinish(cs);
 }
 // optional call timer: let the tile go if you don't answer in time (waits while a window is open)
 let hkShortWarned=false;
 function hkStartCallTimer(cs){const n=+hkR().callTimer;if(!n)return;let left=n*1000;
   const tick=()=>{if(callState!==cs||phase!=='play')return;if(document.querySelector('#modal .modal'))return setTimeout(tick,500);left-=250;if(left<=0){hkAnswer('pass');return}setTimeout(tick,250)};setTimeout(tick,250)}
-function hkAnswer(c){
-  const cs=callState;if(!cs||!cs.hk||!cs.o)return;
-  takeSnap();
+function hkAnswer(c){hkAnswerSeat(0,c)}
+// a person's answer to a call (you, or someone in your room); once everyone asked has answered, the best claim wins
+function hkAnswerSeat(seat,c){
+  const cs=callState;if(!cs||!cs.hk)return;const o=cs.offers&&cs.offers[seat];if(!o||seat in cs.choices)return;
+  if(!(c==='pass'||(c==='win'&&o.win)||(c==='pung'&&o.pung)||(c==='kong'&&o.kong)||(typeof c==='string'&&c.startsWith('chow:')&&o.chows[+c.slice(5)])))return;
+  if(seat===0)takeSnap();
   if(cs.rob){callState=null;const k=players[cs.rob.j];const t=k.hand.find(x=>x.id===cs.rob.tid);
-    if(c==='win'&&t){k.hand.splice(k.hand.indexOf(t),1);players[0].hand.push(t);log(`You robbed ${NAMES[cs.rob.j]}'s kong!`);hkWin(0,cs.rob.j,{rob:true,win:HKI[t.k],last:!wall.length});return}
+    if(c==='win'&&t){k.hand.splice(k.hand.indexOf(t),1);players[seat].hand.push(t);log(`${NAMES[seat]} robbed ${NAMES[cs.rob.j]}'s kong!`);hkWin(seat,cs.rob.j,{rob:true,win:HKI[t.k],last:!wall.length});return}
     if(t)hkFinishAddKong(cs.rob.j,t);return}
-  hkFinish(cs,c);
+  cs.choices[seat]=c;if(seat===0)cs.o=null;
+  if(Object.keys(cs.offers).every(x=>x in cs.choices))hkFinish(cs);else render();
 }
-function hkFinish(cs,choice){
-  callState=null;const {i,t}=cs;const order=[1,2,3].map(d=>(i+d)%4),pos=j=>order.indexOf(j);
+function hkFinish(cs){
+  callState=null;const {i,t}=cs;const order=[1,2,3].map(d=>(i+d)%4),pos=j=>order.indexOf(j);const ch=cs.choices||{};
   const ctx={win:HKI[t.k],last:!wall.length,earth:hkFirst&&i===dealer&&discards.length===1};
-  let winner=null;
-  if(choice==='win'&&!(cs.botWin&&pos(cs.botWin.j)<pos(0)))winner=0;else if(cs.botWin)winner=cs.botWin.j;
+  // a win beats everything (closest to the thrower first), then a pung or kong, then a chow
+  let winner=null;for(const x in ch)if(ch[x]==='win'&&(winner==null||pos(+x)<pos(winner)))winner=+x;
+  if(cs.botWin&&(winner==null||pos(cs.botWin.j)<pos(winner)))winner=cs.botWin.j;
   if(winner!=null){discards.pop();players[winner].hand.push(t);hkWin(winner,i,{...ctx,earth:ctx.earth&&winner!==dealer});return}
-  if(choice==='pung'||choice==='kong'){hkClaim(0,choice,null,i);return}
+  for(const x in ch)if(ch[x]==='pung'||ch[x]==='kong'){hkClaim(+x,ch[x],null,i);return}
   if(cs.botPung){hkClaim(cs.botPung.j,cs.botPung.t,null,i);return}
-  if(typeof choice==='string'&&choice.startsWith('chow:')){const s=cs.o.chows[+choice.slice(5)];if(s){hkClaim(0,'chow',s,i);return}}
+  for(const x in ch)if(typeof ch[x]==='string'&&ch[x].startsWith('chow:')){const s=cs.offers[x].chows[+ch[x].slice(5)];if(s){hkClaim(+x,'chow',s,i);return}}
   if(cs.botChow){hkClaim(cs.botChow.j,'chow',cs.botChow.s,i);return}
   hkStartTurn((i+1)%4);
 }
@@ -389,7 +400,7 @@ function hkClaim(j,type,s,from){
   log(`${NAMES[j]} called ${tname(t.k)} for a ${type}.`);toastAll(v=>`${nameV(j,v)}: ${type[0].toUpperCase()+type.slice(1)}!`);Sound.chime();
   turn=j;step='discard';selected=null;newIds=new Set();turnSrc=from;hkLast={claimed:true};
   if(type==='kong'&&!hkReplacement(j))return;
-  render();if(j!==0)later(()=>hkBotAct(j),SPEED);
+  render();if(!HUMAN[j])later(()=>hkBotAct(j),SPEED);
 }
 
 // ---- end of a hand ----
@@ -427,7 +438,7 @@ function hkSettle(j,from,r,ctx={}){
   hkDecideKeep(j===dealer);hkSaveProgress();
   log(`${NAMES[j]} won with ${r.faan} faan${r.raw>r.faan?' (capped)':''}.`);
   if(j===0){Sound.fanfare();confetti();toast('Mah Jongg!','big')}else{Sound.sad();toast(`${NAMES[j]}: Mah Jongg`)}
-  render();later(()=>hkShowResult(j,from,r,pts,pay,note),1300);
+  render();later(()=>{hkShowResult(j,from,r,pts,pay,note);hkNetResult(j,from,r,pts,pay,note)},1300);
 }
 // East keeps the deal after winning or a drawn hand, unless the table caps or turns off repeats
 function hkDecideKeep(want){const r=hkR().repeat;const ok=want&&(r==='always'||(r==='cap3'&&hkRepeat<3));
@@ -436,9 +447,9 @@ function hkEastNote(){return hkMatchOver?'':hkKeep?`${dealer===0?'You stay':NAME
 function hkMatchHTML(){if(!hkMatchOver)return '';const order=[0,1,2,3].sort((a,b)=>scores[b]-scores[a]);
   return `<div class="matchend"><h3>That's the match: all four rounds played</h3><ol>${order.map(q=>`<li>${NAMES[q]} <b>${scores[q]}</b></li>`).join('')}</ol></div>`}
 function hkDrawGame(){
-  phase='over';callState=null;hkHist(null,null,null,[0,0,0,0]);hkDecideKeep(true);hkSaveProgress();log(`The wall is empty. Drawn hand: no one pays${hkKeep?' and East keeps the deal':''}.`);Sound.sad();render();
+  phase='over';callState=null;hkHist(null,null,null,[0,0,0,0]);hkDecideKeep(true);if(NET.mode==='host')later(()=>netBroadcast({t:'modal',kind:'hkdraw'}),400);hkSaveProgress();log(`The wall is empty. Drawn hand: no one pays${hkKeep?' and East keeps the deal':''}.`);Sound.sad();render();
   openModal(`<h2>Drawn hand</h2><p>The wall ran out before anyone won, so no points change hands. ${hkEastNote()}</p>${hkMatchHTML()}
-   <div class="mrow"><button class="btn btn-gold" onclick="newGame()">${hkMatchOver?'New match':'Next hand'}</button>${canUndo()?'<button class="btn btn-ghost" onclick="undoMove()">Undo</button>':''}<button class="btn btn-ghost" onclick="hkShowHistory()">Score history</button><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
+   <div class="mrow">${NET.mode==='client'?`<span class="waitnote">Waiting for ${esc(NAMES[NET.hostView]||'the host')} to deal</span>`:`<button class="btn btn-gold" onclick="newGame()">${hkMatchOver?'New match':'Next hand'}</button>`}${canUndo()?'<button class="btn btn-ghost" onclick="undoMove()">Undo</button>':''}<button class="btn btn-ghost" onclick="hkShowHistory()">Score history</button><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
 }
 function hkShowResult(j,from,r,pts,pay,note=''){
   const p=players[j];
@@ -450,7 +461,7 @@ function hkShowResult(j,from,r,pts,pay,note=''){
    <div class="win-tiles">${tiles.map(t=>tileHTML(t,'md')).join('')}${(p.flowers||[]).map(t=>tileHTML(t,'md flowerbonus')).join('')}</div>
    <div class="pay">${NAMES.map((n,i)=>`<span>${n} <b class="${pay[i]>0?'plus':pay[i]<0?'minus':''}">${pay[i]>0?'+':''}${pay[i]}</b></span>`).join('')}</div>
    <p class="setnote">${hkEastNote()}</p>${hkMatchHTML()}
-   <div class="mrow"><button class="btn btn-gold" onclick="newGame()">${hkMatchOver?'New match':'Next hand'}</button>${canUndo()?'<button class="btn btn-ghost" onclick="undoMove()">Undo</button>':''}<button class="btn btn-ghost" onclick="hkShowHistory()">Score history</button><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
+   <div class="mrow">${NET.mode==='client'?`<span class="waitnote">Waiting for ${esc(NAMES[NET.hostView]||'the host')} to deal</span>`:`<button class="btn btn-gold" onclick="newGame()">${hkMatchOver?'New match':'Next hand'}</button>`}${canUndo()?'<button class="btn btn-ghost" onclick="undoMove()">Undo</button>':''}<button class="btn btn-ghost" onclick="hkShowHistory()">Score history</button><button class="btn btn-ghost" onclick="closeModal()">Look at the table</button></div>`);
 }
 
 // the score history: every hand of this match
@@ -464,9 +475,17 @@ function hkShowHistory(){
    <div class="mrow"><button class="btn btn-gold" onclick="closeModal()">Done</button></div></div>`);
 }
 
+// ---- moves from people in your room (checked here on the host) ----
+function hkActWin(seat){const w=hkSelfWin(seat);if(w&&phase==='play'&&turn===seat&&step==='discard'&&!callState)hkWin(seat,null,hkCtxSelf(seat))}
+function hkActKong(seat,k,kind){const o=hkKongOptions(seat).find(x=>x.k===k&&x.kind===kind);if(o&&phase==='play'&&turn===seat&&step==='discard'&&!callState)hkDoKong(seat,o)}
+// results reach everyone in the room
+function hkNetResult(j,from,r,pts,pay,note){if(NET.mode!=='host')return;
+  for(const c of Object.values(NET.conns)){if(c.seat==null||!c.live)continue;const s=c.seat,R=x=>x==null?null:(x-s+4)%4;
+    netTo(c,{t:'hkresult',j:R(j),from:R(from),r:{faan:r.faan,raw:r.raw,items:r.items,bonus:!!r.bonus,limit:!!r.limit},pts,pay:[0,1,2,3].map(x=>pay[(x+s)%4]),note})}}
+
 // ---- your moves ----
-function hkHumanWin(){const w=hkSelfWin(0);if(!w||phase!=='play'||turn!==0||step!=='discard'||callState)return;takeSnap();hkWin(0,null,hkCtxSelf(0))}
-function hkHumanKong(x){const o=hkKongOptions(0)[x];if(!o||phase!=='play'||turn!==0||step!=='discard'||callState)return;takeSnap();selected=null;hkDoKong(0,o)}
+function hkHumanWin(){if(NET.mode==='client'){netSend({t:'act',a:'hkwin'});return}const w=hkSelfWin(0);if(!w||phase!=='play'||turn!==0||step!=='discard'||callState)return;takeSnap();hkWin(0,null,hkCtxSelf(0))}
+function hkHumanKong(x){const o=hkKongOptions(0)[x];if(NET.mode==='client'){if(o)netSend({t:'act',a:'hkkong',k:o.k,kind:o.kind});return}if(!o||phase!=='play'||turn!==0||step!=='discard'||callState)return;takeSnap();selected=null;hkDoKong(0,o)}
 
 // ---- what you see ----
 function hkWaits(seat){
