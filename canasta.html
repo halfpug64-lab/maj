@@ -151,8 +151,8 @@ main{display:grid;grid-template-columns:minmax(64px,110px) 1fr minmax(64px,110px
 @keyframes bannerin{from{opacity:0;transform:translateY(8px)}}
 .meld.closed{flex-direction:column;align-items:center;gap:4px;padding:4px 6px 6px}
 .meld.closed .cpile{position:relative;width:var(--cw);height:calc(var(--cw)*1.4);--cw:clamp(30px,3.8vw,44px)}
-.meld.closed .cpile i{position:absolute;inset:0;border-radius:calc(var(--cw)*.12);background:#fbf6e9;border:1px solid #cfc6b0;transform:translate(calc(var(--k,0)*3px),calc(var(--k,0)*-3px))}
-.meld.closed .cpile i:nth-child(1){--k:3}.meld.closed .cpile i:nth-child(2){--k:2}.meld.closed .cpile i:nth-child(3){--k:1}
+.meld.closed .cpile>i{position:absolute;inset:0;border-radius:calc(var(--cw)*.12);background:#fbf6e9;border:1px solid #cfc6b0;transform:translate(calc(var(--k,0)*3px),calc(var(--k,0)*-3px))}
+.meld.closed .cpile>i:nth-child(1){--k:3}.meld.closed .cpile>i:nth-child(2){--k:2}.meld.closed .cpile>i:nth-child(3){--k:1}
 .meld.closed .cpile .card{position:absolute;inset:0;margin:0}
 .ribbon{font:800 10.5px/1 var(--body);letter-spacing:.03em;padding:4px 7px;border-radius:7px;color:#fff;white-space:nowrap}
 .meld.closed.red .ribbon{background:#d23b3b}.meld.closed.black .ribbon{background:#1d1a14}.meld.closed.gold .ribbon{background:linear-gradient(180deg,#f2cf6b,#c8952a);color:#2a1d02}
