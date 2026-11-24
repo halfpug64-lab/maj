@@ -466,6 +466,7 @@ function hkStatus(){
 // A complete hand shows its exact faan. A ready hand shows the best tile it can win on.
 // Otherwise it adds up what you already hold: dragon and wind pungs, flowers, one suit, a concealed hand.
 let hkFaanOpen=false;
+addEventListener('pointerdown',e=>{if(hkFaanOpen&&!e.target.closest('.faanbub')){hkFaanOpen=false;render()}},true);
 // the coach (how close you are, what to throw) is its own switch, off unless you turn it on
 const hkCoachOn=()=>settings.hkCoach===true;
 function hkFaanNow(){
@@ -533,9 +534,13 @@ function hkFaanHTML(){
   return `<div class="bubble faanbub${ok?' ok':''}"><button class="bhead" onclick="hkFaanOpen=!hkFaanOpen;render()" aria-expanded="${hkFaanOpen}" title="Tap to see what counts"><span class="bk">Faan</span><b class="fnum">${f.faan}</b><span class="flab">${label}</span>${note}</button>
     ${hkFaanOpen?`<div class="flist">${f.kind==='ready'?`<p class="fsub">Your best win: ${tileHTML(f.k,'xs')} for ${f.faan} faan.</p>`:f.kind==='win'?'<p class="fsub">Your hand right now:</p>':'<p class="fsub">What you already have:</p>'}
       ${f.items.length?f.items.map(([n,v])=>`<div class="frow"><span>${n}<small>${hkFaanDesc(n)}</small></span><b>${v}</b></div>`).join(''):'<div class="frow"><span>Nothing yet<small>Dragon or wind pungs, flowers and one-suit hands add faan.</small></span><b>0</b></div>'}
-      ${f.kind!=='win'?`<p class="fsub">Could still add:</p>${hkFaanIdeas().map(([n,v,d])=>`<div class="frow idea"><span>${n}<small>${d}</small></span><b>${v}</b></div>`).join('')}<em>You need ${HK_MIN} faan to win. How you win (self-drawn, last tile and so on) is counted when you win.</em>`:''}</div>`:''}</div>`;
+      ${f.kind!=='win'?`<p class="fsub">Could still add:</p>${hkFaanIdeas().map(([n,v,d])=>`<div class="frow idea"><span>${n}<small>${d}</small></span><b>${v}</b></div>`).join('')}`:''}</div>`:''}</div>`;
 }
-function hkBubbleHTML(){
+// the faan details float just above the Faan bubble (fixed to the screen, so the bubble row can't cut them off)
+function hkPlaceFaan(){const f=document.querySelector('.faanbub .flist'),b=document.querySelector('.faanbub .bhead');if(!f||!b)return;
+  const r=b.getBoundingClientRect(),w=f.offsetWidth,h=f.offsetHeight;let left=Math.max(8,Math.min(innerWidth-w-8,r.left));
+  let top=r.top-h-8;if(top<8)top=Math.min(innerHeight-h-8,r.bottom+8);f.style.left=left+'px';f.style.top=top+'px';f.style.bottom='auto';f.classList.add('placed')}
+function hkBubbleHTML(){if(hkFaanOpen)requestAnimationFrame(hkPlaceFaan);
   if(phase!=='play')return '';
   const fb=hkFaanHTML();if(!hkCoachOn())return fb?`<div class="bubbles">${fb}</div>`:'';
   const co=hkCoach();if(!co)return fb?`<div class="bubbles">${fb}</div>`:'';

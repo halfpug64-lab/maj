@@ -515,10 +515,15 @@ body.table-view .felt{grid-template-columns:minmax(150px,240px) minmax(0,1fr) mi
 .faanbub .fnum{font:800 20px/1 var(--display,inherit);color:var(--gold,#ecc66d);min-width:1ch;text-align:center}
 .faanbub.ok{border-color:rgba(120,210,140,.6)}.faanbub.ok .fnum{color:#8fe0a0}
 .faanbub .flab{font-size:12px;opacity:.8;white-space:nowrap}.faanbub .fneed{font-size:11px;opacity:.6;white-space:nowrap}
-.faanbub .flist{color:var(--txt);padding:2px 12px 10px;font-size:13px;max-width:440px}
-.faanbub .frow{display:flex;gap:12px;align-items:flex-start;padding:4px 0;border-top:1px solid rgba(236,198,109,.12)}.faanbub .frow span{flex:1;min-width:0}
-.faanbub .frow small{display:block;font-size:11.5px;line-height:1.35;opacity:.7;margin-top:1px}.faanbub .frow b{min-width:2ch;text-align:right;color:var(--gold,#ecc66d)}
-.faanbub .frow.idea b{color:#8fe0a0}.faanbub .fsub{margin:8px 0 2px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.65}
+.bubble.faanbub{overflow:visible;position:relative}
+.faanbub .flist{position:fixed;left:8px;bottom:120px;z-index:45;visibility:hidden;width:min(330px,86vw);max-height:min(300px,46vh);overflow-y:auto;color:var(--txt);padding:4px 10px 8px;font-size:12.5px;
+  background:color-mix(in srgb,var(--bg-deep,#120d22) 94%,#000);border:1px solid rgba(236,198,109,.45);border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.5);animation:fpop .14s ease-out}
+
+.faanbub .flist.placed{visibility:visible}
+@keyframes fpop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.faanbub .frow{display:flex;gap:10px;align-items:baseline;padding:3px 0;border-top:1px solid rgba(236,198,109,.1)}.faanbub .frow span{flex:1;min-width:0}
+.faanbub .frow small{display:block;font-size:10.5px;line-height:1.3;opacity:.68}.faanbub .frow b{min-width:2ch;text-align:right;color:var(--gold,#ecc66d)}
+.faanbub .frow.idea b{color:#8fe0a0}.faanbub .fsub{margin:6px 0 1px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.65}
 .faanbub .flist em{display:block;font-size:11px;opacity:.65;margin-top:4px;font-style:normal}
 .bubble{border-radius:14px;background:rgba(0,0,0,.28);border:1px solid rgba(236,198,109,.35);overflow:hidden;max-width:100%}
 .bubble.fresh{animation:rise .3s}
