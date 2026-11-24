@@ -395,7 +395,7 @@ function layThrees(i){
 function saveHand(){try{if(settings.save!==false&&G&&!G.over)localStorage.setItem('amj_canasta_hand',JSON.stringify({...G,newIds:[],hint:null,dealFx:false}))}catch(e){}}
 function savedHand(){try{const g=JSON.parse(localStorage.getItem('amj_canasta_hand'));return g&&Array.isArray(g.hands)&&g.hands.length===4&&!g.over?g:null}catch(e){return null}}
 function startTurn(){
-  if(G.over)return;const i=G.turn;G.mustOut=G.mustOut||{};G.noOut=G.noOut||{};G.asked=G.asked||{};delete G.mustOut[i];delete G.noOut[i];G.openTurn=null;
+  if(G.over)return;const i=G.turn;G.mustOut=G.mustOut||{};G.noOut=G.noOut||{};G.asked=G.asked||{};delete G.mustOut[i];delete G.noOut[i];delete G.asked[i];G.openTurn=null;
   if(G.talon[i].length){const tl=G.talon[i];G.hands[i].push(...tl);if(i===0){tl.forEach(c=>G.newIds.add(c.id));if(!SIM)toast(`Your ${tl.length} bonus cards for making your team's first meld are in your hand (the glowing ones). Now take your normal draw.`)}G.talon[i]=[];sortHand(G.hands[i])}
   layThrees(i);
   G.phase='draw';G.justPicked=false;G.emptyAtTurn=!G.pile.length;
@@ -781,7 +781,7 @@ function layHeldThree(){if(!myTurn())return;snap();const h=G.hands[0],t=selCards
   sortHand(h);log('You laid out your 3 and drew a replacement.');Sound.flick();sel.clear();render()}
 
 // ================= Asking to go out =================
-// You may ask your partner once per hand. "Yes" means you must go out this turn; "no" means you can't this turn.
+// You may ask your partner once each turn. "Yes" means you must go out this turn; "no" means you can't this turn.
 let SIM=false;
 // meld everything you can, down to one card (used to go out)
 function meldOut(i){const t=team(i),h=G.hands[i];
@@ -802,10 +802,17 @@ function canFinish(i){
 // your partner's answer: yes unless they're holding a lot of points (or 7s and Aces that would cost a penalty)
 // a partner's answer to "may I go out?": yes unless they'd be stuck with a lot of points (or 7s and Aces that cost a penalty),
 // or yes anyway when the other team could go out soon
+// Say no only when one more turn really helps: three 7s or Aces (throw one, or meld them, and the 1,500 is gone),
+// or a lot of points with cards that can still be melded. Otherwise, or when the other team could go out first, say yes.
 function partnerSaysYes(seat=2){
-  const h=G.hands[seat];const pts=h.reduce((s,c)=>s+(isThree(c)?5:val(c)),0);
-  const pen=SA()&&['A','7'].some(r=>h.filter(c=>c.r===r).length>=3);
-  return canastas(1-team(seat)).length>=2||(!pen&&pts<=100);
+  const h=G.hands[seat],t=team(seat);const pts=h.reduce((s,c)=>s+(isThree(c)?5:val(c)),0);
+  if(canastas(1-t).length>=2)return true;
+  const fix=SA()&&['A','7'].some(r=>{const n=h.filter(c=>c.r===r).length,m=teamMeld(t,r);return n===3||(n>=3&&m&&m.cards.length+n<=7)});
+  const by={};for(const c of h)if(isNat(c))by[c.r]=(by[c.r]||0)+1;
+  const meldable=h.some(c=>{const m=teamMeld(t,c.r);return isNat(c)&&m&&m.cards.length<7})||Object.entries(by).some(([r,n])=>n>=3&&!teamMeld(t,r)&&!(SA()&&(r==='7'||r==='A')));
+  const no=fix||(pts>100&&meldable);
+  if(no)(G.prep=G.prep||{})[seat]=true;   // they asked for time: use it
+  return !no;
 }
 function askPartner(){
   if(!myTurn()||G.phase!=='play'||G.asked[0])return;G.asked[0]=true;
@@ -832,7 +839,7 @@ function rankDiscards(i){
   if(!cands.length)cands=h.filter(c=>!isThree(c));
   const cnt=r=>h.filter(c=>c.r===r).length;
   const rate=c=>{let s=cnt(c.r)*3;const ours=teamMeld(t,c.r);if(ours&&ours.cards.length<7)s+=5;if(SA()&&(c.r==='7'||c.r==='A'))s+=2;
-    if(SA()&&(c.r==='7'||c.r==='A')&&!ours&&cnt(c.r)>=3&&riskyStart(i,c.r,cnt(c.r)))s-=cnt(c.r)*3+4;   // holding three or more costs 1,500: shed them
+    if(SA()&&(c.r==='7'||c.r==='A')&&!ours&&cnt(c.r)>=3&&(riskyStart(i,c.r,cnt(c.r))||(G.prep&&G.prep[i])||canGoOut(t)||canGoOut(opp)))s-=cnt(c.r)*3+30;   // holding three or more costs 1,500: shed them first
     if(isDead(c.r))s-=8;const theirs=teamMeld(opp,c.r);if(theirs&&theirs.cards.length>=5)s-=6;if(theirs&&theirs.cards.length<5)s+=6;
     // feeding the pack: the bigger the pile, the more it matters whether the next player could hold a pair of this rank
     const nx=(i+1)%4,pk=G.pile.length+1;
@@ -1061,7 +1068,7 @@ function render(){
     else acts=`<button class="btn" id="aMeld" title="Lay down the selected cards, or add them to your meld of that rank" ${sel.size?'':'disabled'}>Meld</button><button class="btn gold" id="aDiscard" title="Throw the selected card on the discard pile and end your turn" ${sel.size===1?'':'disabled'}>${h.length===1&&canGoOut(0)&&G.pendingTalon!==0&&!(G.noOut&&G.noOut[0])?'Discard and go out':'Discard'}</button>`;
   }else if(G.over)acts='<button class="btn gold" id="aNext">Next hand</button>';
   if(myTurn()&&sel.size>1)acts+=`<button class="btn sm" id="aDesel" title="Unselect all your cards">Deselect all</button>`;
-  if(myTurn()&&G.phase==='play'&&G.opened[0]&&canGoOut(0)&&G.pendingTalon!==0&&!(G.asked&&G.asked[0]))acts+=`<button class="btn" id="aAsk" title="You can ask once per hand">${NAMES[2]}, may I go out?</button>`;
+  if(myTurn()&&G.phase==='play'&&G.opened[0]&&canGoOut(0)&&G.pendingTalon!==0&&!(G.asked&&G.asked[0]))acts+=`<button class="btn" id="aAsk" title="You can ask once each turn">${NAMES[2]}, may I go out?</button>`;
   if(myTurn()&&G.mustOut&&G.mustOut[0])acts+=`<span class="mustout">${NAMES[2]} said yes: go out this turn</span>`;
   // like Swap for Joker in mahjong: select your 3 and the button appears
   if(myTurn()&&!G.opened[0]&&selCards().some(isThree))acts+=`<button class="btn gold" id="aLay3" title="Set the 3 out on the table and draw a replacement">Lay down 3</button>`;
@@ -1116,7 +1123,7 @@ function showHelp(){
    ${SA()?'<li>7s never take wild cards. Aces can only take a wild card in the initial meld.</li>':''}<li>A meld of all wild cards is allowed, but your team can't add wild cards anywhere else until it's finished.</li><li>When a natural canasta of a rank closes, ${CR().deadForBoth?'nobody':'that team'} can meld that rank again.</li></ul>
    <h3>Initial meld</h3><p>Your team's first meld must be worth 125 points (155 once you have 3,000, 180 from 5,000)${CR().open==='pure'?' and include a clean meld: three natural cards of one rank, or three wild cards':CR().open==='naturals3'?' and include a meld with three natural cards':''}. A 7-card natural or wild canasta from your hand opens with no minimum. To open, pick a group and tap Meld: it waits on the table, showing its points. Add as many groups as you like, then tap Finish opening once they reach the minimum (discarding also finishes it). Tap Cancel to take them all back, or tap one group to take just that one back. Until you discard, anything else you meld that turn counts as part of your initial meld. Open while 9 or more cards are left in the draw pile and you get bonus cards next turn: 4 if your team opened first, 3 if second.</p>
    <h3>Discarding</h3><p>Never a 3. Wild cards only as your very last card. On an empty pile, avoid Sevens, Wilds, Aces and Dead cards.</p>
-   <h3>Going out</h3><p>Your team needs two canastas${CR().barGoOut?', and no unfinished pure Aces or 7s meld':''}. Meld everything but one card and discard it. You may ask your partner once per hand whether to go out: if they say yes you must go out that turn, if no you can't that turn. You never have to ask.</p>
+   <h3>Going out</h3><p>Your team needs two canastas${CR().barGoOut?', and no unfinished pure Aces or 7s meld':''}. Meld everything but one card and discard it. You may ask your partner whether to go out, once each turn: if they say yes you must go out that turn, if no you can't that turn. You never have to ask.</p>
    <h3>Scoring</h3><p>Mixed canasta 300, natural canasta 500, natural Aces or 7s 2,500, wild canasta 2,000 (all 2s 3,000, four jokers 2,500), going out 100, plus the value of your melded cards. With no canasta, melded cards count against you. 3s: with no canasta they cost you, with one they don't count, with two or more they score (100, 300, 500, 1,000 for one to four of a color). Cards left in your hands count against you. Unfinished 7s or pure Aces meld −2,500, unfinished wild meld −2,000 (−2,500 with all four jokers), three or more Aces or 7s left in a player's hand −1,500.</p>
    <h3>Special hands</h3><p>Before your team melds, a 14-card hand right after drawing can end the hand. ${CR().specials==='cla'?'Canasta League list: Straight 3,000, Pairs 2,500, Wild Pairs 2,000, Miami Pairs 2,500, Zip Code 2,500, Garbage 3,000, Blast Off 3,000, Triples 3,500, Quads 3,500, and the Dream Hands 8,500 (an instant win).':'Straight (A through K plus a joker) 3,000, Pairs (seven natural pairs) 2,500, Pairs with 2s (must include pairs of 7s and Aces) 2,000, Garbage (two fours of a kind and two threes of a kind, no wilds) 2,000.'}</p>
    <p class="log" style="color:#6b5a3b;text-align:left">Table and house rules are under the gear button.</p>
