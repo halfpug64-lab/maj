@@ -282,6 +282,9 @@ body.tv .hand{padding-top:13px;min-height:calc(var(--cw)*1.4 + 16px)}body.tv .ac
 #god .gx{all:unset;cursor:pointer;margin-left:4px;font-weight:800}
 .reveal{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;max-width:100%}.reveal .card.sm{--cw:22px}.reveal .card .ix2,.reveal .card .ace,.reveal .card .face{display:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* phones and tablets: iOS blurs a band just below the status bar, so leave extra room at the top */
+@media(pointer:coarse){body .top{padding-top:calc(24px + env(safe-area-inset-top,0px))}}
 </style>
 </head>
 <body>

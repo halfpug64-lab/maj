@@ -1388,6 +1388,12 @@ body.table-view .seat-top .plate{flex-wrap:nowrap}body.table-view .plate .pname{
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* phones and tablets: iOS blurs a band just below the status bar, so leave extra room at the top */
+@media(pointer:coarse){
+  body .topbar{padding-top:calc(env(safe-area-inset-top,0px) + 14px)}
+  body #splash{padding-top:calc(env(safe-area-inset-top,0px) + 38px)}
+}
 </style>
 </head>
 <body>
