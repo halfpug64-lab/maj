@@ -264,7 +264,7 @@ body.tv .hand{padding-top:13px;min-height:calc(var(--cw)*1.4 + 16px)}body.tv .ac
 }
 
 /* Canasta Admin (party mode) */
-#bGod{color:#ffd23f}
+#bGod{color:#ffd23f}#bGod[hidden]{display:none}
 .pcode{display:flex;gap:8px;align-items:center}.pcode input{width:96px;padding:8px 10px;border-radius:10px;border:1px solid #cdbb8c;background:#fffdf6;color:#2b2216;font:600 16px var(--body);letter-spacing:3px}
 .pcode input.shake{animation:gshake .09s 4;border-color:#c0392b}@keyframes gshake{50%{transform:translateX(4px)}}
 #god{max-width:760px}#god .godtitle{display:flex;align-items:center;gap:10px}#god .godtitle svg{width:28px;height:28px;color:#c99a2e}
@@ -285,6 +285,15 @@ body.tv .hand{padding-top:13px;min-height:calc(var(--cw)*1.4 + 16px)}body.tv .ac
 
 /* phones and tablets: iOS blurs a band just below the status bar, so leave extra room at the top */
 @media(pointer:coarse){body .top{padding-top:calc(24px + env(safe-area-inset-top,0px))}}
+
+/* narrow phones: a tighter top bar so every button fits */
+@media(max-width:430px){
+  .top{gap:5px;padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+  .top .btn.icon{min-width:34px;min-height:34px;padding:6px}.top .btn.icon svg{width:17px;height:17px}
+  .top h1{font-size:15px}.top .sc .chip{font-size:11.5px;padding:3px 7px}
+  #bNew{padding:5px 8px;font-size:11.5px;min-height:34px}
+}
+@media(max-width:360px){.top h1{display:none}}
 </style>
 </head>
 <body>
@@ -294,6 +303,7 @@ body.tv .hand{padding-top:13px;min-height:calc(var(--cw)*1.4 + 16px)}body.tv .ac
   <h1>American Canasta <i class="beta">Alpha</i></h1>
   <div class="sc" id="scores"></div>
   <button class="btn icon" id="bGod" hidden title="Canasta Admin" aria-label="Canasta Admin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></button>
+  <button class="btn icon" id="bSound"></button>
   <button class="btn icon" id="bSet" title="Settings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   <button class="btn icon" id="bHelp" title="How to play" aria-label="How to play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5V14"/><path d="M12 17.2h.01"/></svg></button>
   <button class="btn gold sm" id="bNew">New game</button>
@@ -1285,7 +1295,13 @@ function showRules(){
     document.querySelectorAll('[data-speed]').forEach(x=>{const o=x===b;x.classList.toggle('on',o);x.setAttribute('aria-pressed',o)})});
   $('#mDone').onclick=closeModal;$('#mDone').focus();
 }
-$('#bSet').onclick=showRules;$('#bGod').onclick=showGod;
+$('#bSet').onclick=showRules;
+// sound on/off (shared with the mahjong games)
+const SND_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
+  SND_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>';
+function renderSoundBtn(){const b=$('#bSound');b.innerHTML=Sound.on?SND_ON:SND_OFF;const l=Sound.on?'Mute sound':'Turn sound on';b.title=l;b.setAttribute('aria-label',l)}
+renderSoundBtn();
+$('#bSound').onclick=()=>{Sound.on=!Sound.on;try{localStorage.setItem('amj_sound',Sound.on?'on':'off')}catch(e){}renderSoundBtn();if(Sound.on)Sound.chime()};$('#bGod').onclick=showGod;
 $('#bNew').onclick=()=>{
   $('#modal').innerHTML=`<div class="modal" role="dialog" aria-modal="true"><div class="box"><h2>Start a new game?</h2><p>Both scores go back to 0 and a fresh hand is dealt.</p>
     <div class="mrow"><button class="btn gold" id="mYes">New game</button><button class="btn" id="mNo">Keep playing</button></div></div></div>`;
