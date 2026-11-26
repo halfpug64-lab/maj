@@ -352,7 +352,7 @@ const GOAL=8500;
 // Table and house rules (the gear button). A hand keeps the rules it was dealt with; changes count from the next hand.
 const CR_DEF={v:3,open:'pure',wildBase:3,specials:'basic',packOnOpen:true,lastThree:true,deadForBoth:true,barGoOut:true,sevensAces:true};
 function CR(){return {...CR_DEF,...(G&&G.rules?G.rules:((typeof settings==='object'&&settings.canastaRules)||{}))}}
-const showSuggest=()=>settings.cnSuggest===true,showHint=()=>settings.cnHint===true,showPts=()=>settings.cnPoints!==false;   // helpers (Settings): Suggest and Hint start off, the points bubble on
+const showSignals=()=>settings.cnSignals!==false,showSuggest=()=>settings.cnSuggest===true,showHint=()=>settings.cnHint===true,showPts=()=>settings.cnPoints!==false;   // helpers (Settings): Suggest and Hint start off, the points bubble on
 const SA=()=>CR().sevensAces;   // the special 7s and Aces rules (on unless the table switches them off)
 let settings={};try{settings=JSON.parse(localStorage.getItem('amj_settings'))||{}}catch(e){}
 // Table view (Settings > Layout): everything fits the screen
@@ -706,6 +706,10 @@ function discardCard(i,id){
     if(swad(c)&&h.some(x=>!swad(x)))return SA()?'On an empty pile you can\'t throw a Seven, Ace, Wild or Dead card while you have another choice':'On an empty pile you can\'t throw a Wild or Dead card while you have another choice'}
   const fr=src(i,id);h.splice(h.indexOf(c),1);G.pile.push(c);G.newIds=new Set();fly(c,fr,{dur:380});Sound.flick();
   (G.discHist=G.discHist||[[],[],[],[]])[i].push(c.r);
+  if(SA()&&(c.r==='7'||c.r==='A')&&!teamMeld(t,c.r)&&!SIM){G.sig=G.sig||{};const key=i+':'+c.r;
+    if(!G.sig[key]){G.sig[key]=true;const word=c.r==='7'?'7s':'Aces',a=c.r==='7'?'a 7':'an Ace';
+      if(i===2&&showSignals())setTimeout(()=>toast(`${NAMES[2]} threw ${a}. That usually means ${NAMES[2]==='You'?'you hold':'they\'re holding'} a pair of ${word}, so your team has ${word} blocked: you don't need to keep yours for that.`),450);
+      else if(i!==0&&showSignals())log(`${NAMES[i]} threw ${a}: they likely hold a pair of ${word}.`)}}
   log(`${NAMES[i]} discarded ${c.r==='JK'?'a joker':c.r+c.s}.`);
   // talon: bonus cards for the player who just made their team's initial meld
   if(G.pendingTalon===i){G.pendingTalon=null;if(G.stock.length>8){const n=G.firstOpen===t&&!G.opened[1-t]?4:3;const sr=stockRect();G.talon[i]=G.stock.splice(-n);for(let k=0;k<n;k++)fly(null,sr,{toSeat:i,back:true,delay:150+k*90});say(i,`${n} bonus cards`);if(i===0&&!SIM)toast(`You made your team's first meld, so you get ${n} bonus cards. They go into your hand at the start of your next turn.`);log(`${NAMES[i]==='You'?'You get':NAMES[i]+' gets'} ${n} bonus cards next turn.`)}}
@@ -956,6 +960,7 @@ function rankDiscards(i){
   const cnt=r=>h.filter(c=>c.r===r).length;
   const rate=c=>{let s=cnt(c.r)*3;const ours=teamMeld(t,c.r);if(ours&&ours.cards.length<7)s+=5;if(SA()&&(c.r==='7'||c.r==='A'))s+=2;
     if(SA()&&(c.r==='7'||c.r==='A')&&!ours&&cnt(c.r)>=3&&(riskyStart(i,c.r,cnt(c.r))||(G.prep&&G.prep[i])||canGoOut(t)||canGoOut(opp)))s-=cnt(c.r)*3+30;   // holding three or more costs 1,500: shed them first
+    if(SA()&&(c.r==='7'||c.r==='A')&&!ours&&G.sig&&G.sig[((i+2)%4)+':'+c.r])s-=6;   // partner signalled a pair: ours aren't needed to block
     if(SA()&&(c.r==='7'||c.r==='A')&&!ours&&cnt(c.r)<3&&canGoOut(t)&&riskyStart(i,c.r,cnt(c.r)+1))s-=10;
     if(isDead(c.r))s-=8;const theirs=teamMeld(opp,c.r);if(theirs&&theirs.cards.length>=5)s-=6;if(theirs&&theirs.cards.length<5)s+=6;
     // feeding the pack: the bigger the pile, the more it matters whether the next player could hold a pair of this rank
@@ -1260,6 +1265,7 @@ function showRules(){
     <div class="crow"><div><b>Layout</b><span>Table fits the whole game on your screen so you never scroll. Scrolling gives the cards more room.</span></div><div class="cseg" role="group" aria-label="Layout">${[['scroll','Scrolling'],['table','Table']].map(([v,l])=>`<button class="${(settings.cnLayout||'table')===v?'on':''}" data-lay="${v}" aria-pressed="${(settings.cnLayout||'table')===v}">${l}</button>`).join('')}</div></div>
     <h3>Helpers</h3>
     <div class="crow"><div><b>Undo button</b><span>Takes back your last move (a draw, taking the pack, a meld or a discard) and whatever the other players did after it. Also turns on Undo in the mahjong games.</span></div><label class="ctog"><input type="checkbox" data-hp="undo" ${undoOn()?'checked':''}><i></i></label></div>
+    <div class="crow"><div><b>Explain signals</b><span>When your partner throws a 7 or an Ace, say what it tells you (they hold a pair, so your team has that rank blocked).</span></div><label class="ctog"><input type="checkbox" data-hp="cnSignals" ${showSignals()?'checked':''}><i></i></label></div>
     <div class="crow"><div><b>Points bubble</b><span>Shows what the cards you've picked are worth, adding up as you pick more.</span></div><label class="ctog"><input type="checkbox" data-hp="cnPoints" ${showPts()?'checked':''}><i></i></label></div>
     <div class="crow"><div><b>Suggest opening button</b><span>Finds a first meld in your hand and puts it down for you.</span></div><label class="ctog"><input type="checkbox" data-hp="cnSuggest" ${showSuggest()?'checked':''}><i></i></label></div>
     <div class="crow"><div><b>Hint button</b><span>Tells you what to do this turn and highlights a good card to throw.</span></div><label class="ctog"><input type="checkbox" data-hp="cnHint" ${showHint()?'checked':''}><i></i></label></div>
