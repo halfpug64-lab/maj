@@ -165,6 +165,10 @@ body.light .warn7{color:#9b1c2c}
 .meld.pop{animation:pop .8s cubic-bezier(.2,1.4,.3,1)}
 @keyframes pop{0%{transform:scale(.6)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
 .zone h3 .team{font-weight:800;letter-spacing:.06em}.zone h3 .team.us{color:var(--accent)}
+.handpts{background:rgba(236,198,109,.16);color:var(--accent);border:1px solid rgba(236,198,109,.35);border-radius:20px;padding:2px 8px;text-transform:none;letter-spacing:0;font-weight:800;white-space:nowrap}
+.handpts small{font-weight:600;font-size:.85em;opacity:.8}.handpts.neg{color:#ff9e9e;border-color:rgba(255,158,158,.4);background:rgba(255,120,120,.12)}
+body.light .handpts{color:#7a5a10;background:rgba(236,198,109,.3)}body.light .handpts.neg{color:#a32020}
+@media(max-width:430px){.handpts small{display:none}}
 .pillc{background:rgba(0,0,0,.25);border-radius:20px;padding:2px 8px;text-transform:none;letter-spacing:0;font-weight:700}
 body.light .pillc{background:rgba(255,255,255,.6)}
 .zone{box-shadow:inset 0 2px 12px rgba(0,0,0,.18)}
@@ -807,6 +811,12 @@ function scoreTeam(t,outSeat,special){
   if(SA())for(const seat of [t,t+2])for(const r of ['A','7']){if(G.hands[seat].filter(c=>c.r===r).length>=3)add(`${NAMES[seat]==='You'?'You':NAMES[seat]} held three or more ${rn(r)}`,-1500)}
   return {rows,total:rows.reduce((s,x)=>s+x[1],0)};
 }
+// what's on the table for a team this hand: canastas, melded cards and red 3s, scored the same way as the end of the hand.
+// Cards still in hands and the unfinished-meld penalties are left out, since nobody can see the other team's hands.
+function tablePts(t){if(!G)return 0;const C=canastas(t).length;let v=0;
+  for(const m of canastas(t))v+=canastaValue(m)[0];
+  if(C!==1)for(const red of [true,false]){const n=G.threes[t].filter(c=>isRed(c)===red).length;if(n)v+=(C===0?-1:1)*THREE_PTS[Math.min(4,n)]}
+  const mv=G.melds[t].reduce((a,m)=>a+meldPts(m.cards),0);return v+(C>=1?mv:-mv)}
 function endHand(outSeat,why,special){
   if(G.over)return;G.over=true;G.phase='over';
   const res=[0,1].map(t=>scoreTeam(t,outSeat,special));
@@ -1154,7 +1164,7 @@ function meldHTML(m,x,mine,t){const c=m.cards.length>=7;const mixed=c&&m.r!=='W'
 function zoneHTML(t){
   const me=t===0,o=G.opened[t];
   const th=G.threes[t].length?`<span class="threes">${G.threes[t].map(c=>cardHTML(c,'sm')).join('')}</span>`:'';
-  return `<h3><span class="team ${me?'us':'them'}">${me?`You & ${NAMES[2]}`:`${NAMES[1]} & ${NAMES[3]}`}</span><b>${score[t]}</b><span class="pillc">${o?`${canastas(t).length} canasta${canastas(t).length===1?'':'s'}`:`needs ${minMeld(t)} to open`}</span>${th}</h3>
+  return `<h3><span class="team ${me?'us':'them'}">${me?`You & ${NAMES[2]}`:`${NAMES[1]} & ${NAMES[3]}`}</span><b>${score[t]}</b>${(()=>{const p=G.over?0:tablePts(t);return p?`<span class="handpts ${p<0?'neg':''}" title="Points on the table this hand: canastas, melded cards and 3s. Cards still in hands aren't counted.">${p>0?'+':''}${p.toLocaleString()}<small> this hand</small></span>`:''})()}<span class="pillc">${o?`${canastas(t).length} canasta${canastas(t).length===1?'':'s'}`:`needs ${minMeld(t)} to open`}</span>${th}</h3>
    <div class="melds">${G.melds[t].map((m,x)=>meldHTML(m,x,me,t)).join('')}${me&&staged.length?(()=>{const n=openingInfo(0,staged);return staged.map((g,x)=>`<button class="meld staged" data-stg="${x}" title="Tap with cards picked to add them; tap with nothing picked to take this back" aria-label="Waiting for your opening: ${g.cards.length} cards">${g.cards.map(k=>cardHTML(k,'sm')).join('')}<span class="cnt">${meldPts(g.cards)}</span></button>`).join('')+`<div class="opentray"><span><b>${n.pts}</b> of ${n.need}${n.pts>=n.need&&!n.clean?' · needs a clean meld':''}</span>${G.hands[0].length-staged.reduce((a,g)=>a+g.cards.length,0)<1?'<span class="trayhint">Leave one card out to discard</span>':''}${n.ok&&G.phase==='play'?'<button class="btn gold sm" id="aOpen" title="Lay down all the waiting groups as your team&#39;s first meld">Finish opening</button>':''}<button class="btn sm" id="aUnstage">Cancel</button></div>`})():''}${!G.melds[t].length&&!(me&&staged.length)?'<span class="log">No melds yet</span>':''}</div>`;
 }
 let handHold=false,renderPending=false;   // no redraws while you're dragging a card
