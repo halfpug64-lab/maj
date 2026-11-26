@@ -274,6 +274,9 @@ body.tv .hand{padding-top:13px;min-height:calc(var(--cw)*1.4 + 16px)}body.tv .ac
 #god{max-width:760px}#god .godtitle{display:flex;align-items:center;gap:10px}#god .godtitle svg{width:28px;height:28px;color:#c99a2e}
 #god .gpick{position:sticky;top:-22px;z-index:3;margin:0 -8px;padding:10px 8px;background:linear-gradient(180deg,#fbf6e9,#f4ebd5);border-bottom:1px solid #e2d5b5}
 #god .gmodes{flex-wrap:wrap;margin-bottom:8px}#god .ghead{font-weight:800;margin:0 0 8px}#god .ghead span{font-weight:500;color:#7a6a4c;font-size:13px}
+body.tv .zone.fit .melds .card.sm,body.tv .zone.fit .meld.closed .cpile{--cw:var(--mcw)!important}
+body.tv .zone.fit h3 .threes .card{--cw:max(16px,calc(var(--mcw) - 4px))!important}
+body.tv .zone.fit .meld.closed{flex-direction:row;padding:3px 5px;gap:5px}body.tv .zone.fit .ribbon{font-size:10.5px;padding:3px 5px}
 #god .grow{display:flex;flex-wrap:wrap;gap:5px}#god .card.sm{--cw:34px}
 #god .gt,#god .gk{all:unset;cursor:pointer;position:relative;border-radius:7px;line-height:0;display:inline-block}
 #god .gt:focus-visible,#god .gk:focus-visible{outline:3px solid #2557b8;outline-offset:2px}
@@ -1237,6 +1240,7 @@ function render(){
   // the deal: every card flies out from the deck
   if(G.dealFx){G.dealFx=false;const sr=stockRect();if(sr){G.hands[0].forEach((c,x)=>fly(c,sr,{delay:x*55,dur:520}));for(const s of [1,2,3])for(let k=0;k<4;k++)fly(null,sr,{toSeat:s,back:true,delay:k*140+s*40});
     for(let k=0;k<6;k++)setTimeout(()=>Sound.flick(),k*110)}}
+  fitZones();
   runFX();
   // a canasta just finished: the pile pops, sparkles and chimes
   for(const t of [0,1])for(const m of canastas(t)){const key=t+'-'+m.r;if(G.seenCan.includes(key))continue;G.seenCan.push(key);
@@ -1315,6 +1319,14 @@ $('#bSet').onclick=showRules;
 // sound on/off (shared with the mahjong games)
 const SND_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
   SND_OFF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>';
+// Table layout: shrink the meld cards until every meld fits its area without scrolling
+function fitZones(){if(!document.body.classList.contains('tv'))return;
+  for(const z of [$('#themZone'),$('#usZone')]){if(!z)continue;z.classList.remove('fit');z.style.removeProperty('--mcw');
+    const c=z.querySelector('.melds .card.sm');if(!c||z.scrollHeight<=z.clientHeight+1)continue;
+    let w=c.offsetWidth;z.style.setProperty('--mcw',w+'px');z.classList.add('fit');
+    while(w>20&&z.scrollHeight>z.clientHeight+1){w-=2;z.style.setProperty('--mcw',w+'px')}
+    z.scrollTop=0}}
+let fitT=0;addEventListener('resize',()=>{clearTimeout(fitT);fitT=setTimeout(()=>{if(G)fitZones()},120)});
 function renderSoundBtn(){const b=$('#bSound');b.innerHTML=Sound.on?SND_ON:SND_OFF;const l=Sound.on?'Mute sound':'Turn sound on';b.title=l;b.setAttribute('aria-label',l)}
 renderSoundBtn();
 $('#bSound').onclick=()=>{Sound.on=!Sound.on;try{localStorage.setItem('amj_sound',Sound.on?'on':'off')}catch(e){}renderSoundBtn();if(Sound.on)Sound.chime()};$('#bGod').onclick=showGod;
